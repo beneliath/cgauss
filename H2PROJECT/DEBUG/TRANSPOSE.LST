@@ -1,0 +1,58 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:50
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  D. Gilmore
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE TRANSPOSE (N,A,MAXA,B,MAXB)
+     7  C
+     8  C     TRANSPOSE receives the matrix A and outputs
+     9  C         the matrix B as the transpose of A (A').
+    10  C
+    11        IMPLICIT REAL*8 (A-H,O-Z)
+    12        DIMENSION A(MAXA,MAXA),B(MAXB,MAXB)
+    13  C
+    14  C     A=input matrix
+    15  C     B=output matrix = A'
+    16  C     MAXA=maximum dimension of A (MUST BE SQUARE)
+    17  C     MAXB=maximum dimension of B (MUST BE SQUARE and
+    18  C         equal to MAXA
+    19  C     N=square dimension of matrix (i.e. 3 if A->3x3 matrix)
+    20  C
+    21                DO 1000 I=1,N
+    22                DO 1000 J=1,N
+    23                    B(I,J)=A(J,I)
+    24   1000         CONTINUE 
+    25  C
+    26        RETURN
+    27        END
+
+TRANSPOSE@20  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+MAXB. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+TRANSPOSE@20. . . . . . . FUNCT              ***             ***
+
+
+No errors detected

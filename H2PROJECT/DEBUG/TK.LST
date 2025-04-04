@@ -1,0 +1,1525 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang
+     2  C           Modified By:  D. Gilmore ---> (28 May 95)
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE TK(DFLAG,OVLAP,AX,AY,AZ,A1,BX,BY,BZ,A2,                
+     7       *              CX,CY,CZ,A3,DX,DY,DZ,A4,A5,A6,TKIN)       
+     8  C     -----------------------------------------------------
+     9  C     K.E. INTGL_1 = < psi(L) | -(1/2)DEL**2 _1 | psi {k) >
+    10  C     -----------------------------------------------------
+    11        IMPLICIT REAL*8 (A-H,O-Z)
+    12  	INTEGER DFLAG        
+    13  	COMMON /DTK/ DTKDA1,DTKDA2,DTKDA5,DTKDAZ,DTKDBZ
+    14  	COMMON /DOVn/ DOVnDA1,DOVnDA2,DOVnDA5,DOVnDAZ,DOVnDBZ
+    15  C     -----------------------------------------------------
+    16  C     --- FOUR CENTER KINETIC ENERGY INTEGRAL ---                     
+    17  C     -----------------------------------------------------
+    18  C      COMMON/A2/ PI,PI2,PI3,PI32,PI52                                  
+    19        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/              
+    20  C      WRITE(7,900) OVLAP,AX,AY,AZ,A1,BX,BY,BZ,A2,                      
+    21  C     1             CX,CY,CZ,A3,DX,DY,DZ,A4,A5,A6
+    22  C      WRITE(6,900) OVLAP,AX,AY,AZ,A1,BX,BY,BZ,A2,                      
+    23  C     1             CX,CY,CZ,A3,DX,DY,DZ,A4,A5,A6       
+    24         
+    25        GAMA1=A1+A2
+    26  C         ...Sum of Alpha Exponents (part 1)
+    27  C                                                      
+    28        GAMA2=A3+A4                                                      
+    29  C         ...Sum of Alpha Exponents (part 2)
+    30  C
+    31        GAMA3=A5+A6
+    32  C         ...Sum of Beta (Correlation) Exponents
+    33  C
+    34        PX=(A1*AX+A2*BX)/GAMA1                                           
+    35        QX=(A3*CX+A4*DX)/GAMA2                                            
+    36        PY=(A1*AY+A2*BY)/GAMA1                                            
+    37        QY=(A3*CY+A4*DY)/GAMA2                                            
+    38        PZ=(A1*AZ+A2*BZ)/GAMA1                                            
+    39        QZ=(A3*CZ+A4*DZ)/GAMA2                                           
+    40        QCX=QX-CX 
+    41        QCY=QY-CY 
+    42        QCZ=QZ-CZ                                 
+    43        PAX=PX-AX 
+    44        PAY=PY-AY 
+    45        PAZ=PZ-AZ                                 
+    46        PBX=PX-BX 
+    47        PBY=PY-BY 
+    48        PBZ=PZ-BZ                                 
+    49        PQX=PX-QX 
+    50        PQY=PY-QY 
+    51        PQZ=PZ-QZ                                
+    52        PQX2=PQX*PQX
+    53        PQY2=PQY*PQY 
+    54        PQZ2=PQZ*PQZ                      
+    55        G1PG2=GAMA1+GAMA2                                                
+    56        G1RG2=GAMA1*GAMA2                                                
+    57        XMIAN=G1RG2+GAMA3*G1PG2                                          
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        DELT=G1RG2*GAMA3/XMIAN*FOUR                                      
+    59        GA1DEL=DELT/GAMA1                                                
+    60        OVXA11=PAX-PQX*GA1DEL/FOUR                                       
+    61        OVYA11=PAY-PQY*GA1DEL/FOUR                                       
+    62        OVZA11=PAZ-PQZ*GA1DEL/FOUR                 
+    63        OVXB11=PBX-PQX*GA1DEL/FOUR                 
+    64        OVYB11=PBY-PQY*GA1DEL/FOUR                                 
+    65        OVZB11=PBZ-PQZ*GA1DEL/FOUR                                     
+    66        OVXA12=OVXA11*OVXA11                                            
+    67        OVYA12=OVYA11*OVYA11                                             
+    68        OVZA12=OVZA11*OVZA11                                             
+    69        POM=HALF/GAMA1-GA1DEL/EIGHT/GAMA1                                
+    70        OVXA12=(OVXA12+POM)*OVLAP                                        
+    71        OVYA12=(OVYA12+POM)*OVLAP                                        
+    72        OVZA12=(OVZA12+POM)*OVLAP                                        
+    73        OVXB12=OVXB11*OVXB11                                             
+    74        OVYB12=OVYB11*OVYB11                                             
+    75        OVZB12=OVZB11*OVZB11                                             
+    76        OVXB12=(OVXB12+POM)*OVLAP                                         
+    77        OVYB12=(OVYB12+POM)*OVLAP                                         
+    78        OVZB12=(OVZB12+POM)*OVLAP                                        
+    79        GA2DEL=DELT/GAMA2                                                
+    80        OVXC21=QCX+PQX*GA2DEL/FOUR                                       
+    81        OVYC21=QCY+PQY*GA2DEL/FOUR                                        
+    82        OVZC21=QCZ+PQZ*GA2DEL/FOUR                                        
+    83        OVXC22=OVXC21*OVXC21*OVLAP                                        
+    84        OVYC22=OVYC21*OVYC21*OVLAP                                        
+    85        OVZC22=OVZC21*OVZC21*OVLAP                                        
+    86        POM=HALF/GAMA2-GA2DEL/EIGHT/GAMA2                                 
+    87        POM=POM*OVLAP                                                     
+    88        OVXC22=OVXC22+POM                                                 
+    89        OVYC22=OVYC22+POM                                                 
+    90        OVZC22=OVZC22+POM                                                 
+    91        POM=GA2DEL/EIGHT/GAMA1                                            
+    92        XA1XC2=ONE-HALF*PQX2*DELT                                         
+    93        YA1YC2=ONE-HALF*PQY2*DELT                                         
+    94        ZA1ZC2=ONE-HALF*PQZ2*DELT                                         
+    95        XA1XC2=POM*XA1XC2                                                 
+    96        YA1YC2=POM*YA1YC2                                                 
+    97        ZA1ZC2=POM*ZA1ZC2                                                 
+    98        XA1XC2=PAX*QCX+PQX/FOUR*(PAX*GA2DEL-QCX*GA1DEL)+XA1XC2            
+    99        YA1YC2=PAY*QCY+PQY/FOUR*(PAY*GA2DEL-QCY*GA1DEL)+YA1YC2            
+   100        ZA1ZC2=PAZ*QCz+PQZ/FOUR*(PAZ*GA2DEL-QCZ*GA1DEL)+ZA1ZC2            
+   101        XA1XC2=XA1XC2*OVLAP                                               
+   102        YA1YC2=YA1YC2*OVLAP                                               
+   103        ZA1ZC2=ZA1ZC2*OVLAP                                               
+   104        ACX=AX-CX 
+   105        ACY=AY-CY 
+   106        ACZ=AZ-CZ                                 
+   107        OVA12=OVXA12+OVYA12+OVZA12                                        
+   108        OVA11=TWO*(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)*OVLAP                
+   109        OVC22=OVXC22+OVYC22+OVZC22                                       
+   110        OVC21=-TWO*(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)*OVLAP              
+   111        A1C2=-TWO*(XA1XC2+YA1YC2+ZA1ZC2)                                 
+   112        TKIN=FOUR*A5*A6*(OVA12+OVA11+OVC22+OVC21+A1C2)                   
+   113        IF(GAMA3) 10,12,10                                               
+   114    12  A6DG3=HALF                                                       
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115        A5DG3=HALF                                                       
+   116        GO TO 14                                                         
+   117    10  A6DG3=A6/GAMA3                                                   
+   118        A5DG3=A5/GAMA3                                                   
+   119    14  CONTINUE                                                         
+   120        TKIN=TKIN-FOUR*A1*A1*A6DG3*OVA12                                 
+   121        OVB12=OVXB12+OVYB12+OVZB12                                       
+   122        TKIN=TKIN-FOUR*A2*A2*A5DG3*OVB12                                 
+   123        TKIN=TKIN+(SIX*(A1*A6DG3+A2*A5DG3)+                              
+   124       *     FOUR*A5*A6*(ACX*ACX+ACY*ACY+ACZ*ACZ))*OVLAP                 
+   125  C     -----------------------------------------------------
+   126  C	DERIVATIVES:
+   127  C     -----------------------------------------------------
+   128  C	DTKDA1:
+   129  C	======================================================
+   130  	IF (DFLAG .EQ. 1) THEN
+   131  	PT1=(4.00D+00*A2**2.00D+00*A5)/GAMA3
+   132  	DPT1=0.00D+00
+   133  	PT2=(4.00D+00*A1**2.00D+00*A6)/GAMA3
+   134  	DPT2=8.00D+00*A1*A6DG3
+   135  	PT3=4.00D+00*A5*A6
+   136  	DPT3=0.00D+00
+   137  
+   138  	P1=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   139  	DP1=-1.00D+00/(2.00D+00*GAMA1**2.00D+00)+GAMA2*GAMA3*(GAMA2+GAMA3)
+   140  	-/(2.00D+00*GAMA1*XMIAN**2.00D+00)+GAMA2*GAMA3/(2.00D+00*GAMA1**2.0
+   141       -0D+00*XMIAN)
+   142  	P2=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   143  	DP2=-1.00D+00/(2.00D+00*GAMA1**2.00D+00)+GAMA2*GAMA3*(GAMA2+GAMA3)
+   144  	-/(2.00D+00*GAMA1*XMIAN**2.00D+00)+GAMA2*GAMA3/(2.00D+00*GAMA1**2.0
+   145       -0D+00*XMIAN)
+   146  	P3=(1.00D+00/(2.00D+00*GAMA2))-(GA2DEL/(8.00D+00*GAMA2))
+   147  	DP3=GAMA1*GAMA3*(GAMA2+GAMA3)/(2.00D+00*GAMA2*XMIAN**2.00D+00)-GAM
+   148  	-A3/(2.00D+00*GAMA2*XMIAN)
+   149  
+   150  	DGA1DEL=-4.00D+00*GAMA2*GAMA3*(GAMA2+GAMA3)/XMIAN**2.00D+00
+   151  	DGA2DEL=-4.00D+00*GAMA1*GAMA3*(GAMA2+GAMA3)/XMIAN**2.00D+00+4.00D+
+   152  	-00*GAMA3/XMIAN
+   153  
+   154  	DPx=AX/GAMA1-(A1*AX+A2*BX)/GAMA1**2.00D+00
+   155  	DAx=0.00D+00
+   156  	DBx=0.00D+00 
+   157  	DCx=0.00D+00
+   158  	DQx=0.00D+00
+   159  
+   160  	DPy=AY/GAMA1-(A1*AY+A2*BY)/GAMA1**2.00D+00
+   161  	DAy=0.00D+00
+   162  	DBy=0.00D+00
+   163   	DCy=0.00D+00
+   164  	DQy=0.00D+00
+   165  
+   166  	DPz=AZ/GAMA1-(A1*AZ+A2*BZ)/GAMA1**2.00D+00
+   167  	DAz=0.00D+00
+   168  	DBz=0.00D+00
+   169   	DCz=0.00D+00 
+   170        DQz=0.00D+00
+   171   
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  	DPQx=DPx-DQx
+   173  	DPQy=DPy-DQy
+   174  	DPQz=DPz-DQz
+   175  
+   176  	DPBx=DPx-DBx
+   177  	DPBy=DPy-DBy
+   178  	DPBz=DPz-DBz
+   179  	DPAx=DPx-DAx
+   180  	DPAy=DPy-DAy
+   181  	DPAz=DPz-DAz
+   182  	DQCx=DQx-DCx
+   183  	DQCy=DQy-DCy
+   184  	DQCz=DQz-DCz
+   185  
+   186  	DACx=DAx-DCx
+   187  	DACy=DAy-DCy
+   188  	DACz=DAz-DCz
+   189  
+   190  	DOVxB11=DPBx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx)
+   191  	DOVyB11=DPBy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   192  	DOVzB11=DPBz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   193  	DOVxA11=DPAx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx) 
+   194  	DOVyA11=DPAy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   195  	DOVzA11=DPAz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   196  
+   197  	THETAx=OVXB11**2.00D+00+P1
+   198  	THETAy=OVYB11**2.00D+00+P1
+   199  	THETAz=OVZB11**2.00D+00+P1
+   200  	PHIx=OVXA11**2.00D+00+P2
+   201  	PHIy=OVYA11**2.00D+00+P2
+   202  	PHIz=OVZA11**2.00D+00+P2
+   203  
+   204  	DTHETAx=2.00D+00*OVXB11*DOVxB11+DP1
+   205  	DTHETAy=2.00D+00*OVYB11*DOVyB11+DP1
+   206  	DTHETAz=2.00D+00*OVZB11*DOVzB11+DP1
+   207  	DPHIx=2.00D+00*OVXA11*DOVxA11+DP2
+   208  	DPHIy=2.00D+00*OVYA11*DOVyA11+DP2
+   209  	DPHIz=2.00D+00*OVZA11*DOVzA11+DP2
+   210       
+   211        DOVxB12=OVLAP*DTHETAx+THETAx*DOVnDA1
+   212  	DOVyB12=OVLAP*DTHETAy+THETAy*DOVnDA1
+   213  	DOVzB12=OVLAP*DTHETAz+THETAz*DOVnDA1
+   214  	DOVxA12=PHIx*DOVnDA1+OVLAP*DPHIx
+   215  	DOVyA12=PHIy*DOVnDA1+OVLAP*DPHIy
+   216  	DOVzA12=PHIz*DOVnDA1+OVLAP*DPHIz
+   217  	DOVxC21=DQCx+(1.00D+00/4.00D+00)*(PQX*DGA2DEL+GA2DEL*DPQx)
+   218  	DOVyC21=DQCy+(1.00D+00/4.00D+00)*(PQY*DGA2DEL+GA2DEL*DPQy)
+   219        DOVzC21=DQCz+(1.00D+00/4.00D+00)*(PQZ*DGA2DEL+GA2DEL*DPQz)
+   220  
+   221  	DOVB12=DOVxB12+DOVyB12+DOVzB12
+   222        DOVA12=DOVxA12+DOVyA12+DOVzA12
+   223  
+   224  	RHO=OVA12+OVA11+OVC22+OVC21+A1C2
+   225  
+   226  	EPSILON=(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)
+   227  	DEPSILON=(DOVxA11*ACX+DACx*OVXA11+DOVyA11*ACY+DACy*OVYA11+DOVzA11*
+   228  	-ACZ+DACz*OVZA11)
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229  
+   230  	DOVA11=2.00D+00*(DEPSILON*OVLAP+DOVnDA1*EPSILON)
+   231  
+   232  	ZEDx=OVXC21**2.00D+00+P3
+   233  	ZEDy=OVYC21**2.00D+00+P3
+   234  	ZEDz=OVZC21**2.00D+00+P3
+   235  
+   236  	DZEDx=2.00D+00*OVXC21*DOVxC21+DP3
+   237  	DZEDy=2.00D+00*OVYC21*DOVyC21+DP3
+   238  	DZEDz=2.00D+00*OVZC21*DOVzC21+DP3
+   239  
+   240  	DOVxC22=(OVLAP*DZEDx+ZEDx*DOVnDA1)
+   241  	DOVyC22=(OVLAP*DZEDy+ZEDy*DOVnDA1)
+   242  	DOVzC22=(OVLAP*DZEDz+ZEDz*DOVnDA1)
+   243  
+   244  	DOVC22=DOVxC22+DOVyC22+DOVzC22
+   245  
+   246  	ZETA=(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)
+   247  	DZETA=(DOVxC21*ACX+DACx*OVXC21+DOVyC21*ACY+DACy*OVYC21+DOVzC21*ACZ
+   248  	-+DACz*OVZC21)
+   249  
+   250  	DOVC21=-2.00D+00*(DZETA*OVLAP+DOVnDA1*ZETA)
+   251  
+   252  	HEREx=PAX*GA2DEL-QCX*GA1DEL
+   253  	HEREy=PAY*GA2DEL-QCY*GA1DEL
+   254  	HEREz=PAZ*GA2DEL-QCZ*GA1DEL
+   255  
+   256  	UTAx=(1.00D+00-((PQX**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   257  	-GAMA1))
+   258  	UTAy=(1.00D+00-((PQY**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   259  	-GAMA1))
+   260  	UTAz=(1.00D+00-((PQZ**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   261  	-GAMA1))
+   262  
+   263  
+   264  	REDx=PAX*QCX + (1.00D+00/4.00D+00)*PQX*(HEREx) + UTAx
+   265  	REDy=PAY*QCY + (1.00D+00/4.00D+00)*PQY*(HEREy) + UTAy
+   266  	REDz=PAZ*QCZ + (1.00D+00/4.00D+00)*PQZ*(HEREz) + UTAz							   
+   267  
+   268  	DINHEREx=GA2DEL*(AX/GAMA1-(A1*AX+A2*BX)/GAMA1**2.00D+00)-4.00D+00*
+   269  	-GAMA1*GAMA3*(GAMA2+GAMA3)*PAX/XMIAN**2.00D+00+4.00D+00*GAMA2*GAMA3
+   270       -*(GAMA2+GAMA3)*QCX/XMIAN**2.00D+00+4.00D+00*GAMA3*PAX/XMIAN
+   271  	DINHEREy=GA2DEL*(AY/GAMA1-(A1*AY+A2*BY)/GAMA1**2.00D+00)-4.00D+00*
+   272  	-GAMA1*GAMA3*(GAMA2+GAMA3)*PAY/XMIAN**2.00D+00+4.00D+00*GAMA2*GAMA3
+   273       -*(GAMA2+GAMA3)*QCY/XMIAN**2.00D+00+4.00D+00*GAMA3*PAY/XMIAN
+   274  	DINHEREZ=GA2DEL*(AZ/GAMA1-(A1*AZ+A2*BZ)/GAMA1**2.00D+00)-4.00D+00*
+   275  	-GAMA1*GAMA3*(GAMA2+GAMA3)*PAZ/XMIAN**2.00D+00+4.00D+00*GAMA2*GAMA3
+   276       -*(GAMA2+GAMA3)*QCZ/XMIAN**2.00D+00+4.00D+00*GAMA3*PAZ/XMIAN
+   277  
+   278  	DUTAx=-(GAMA3*(GAMA2+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQX**2.
+   279  	-00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(G
+   280       -AMA2+GAMA3)*G1RG2*PQX**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA2*GAM
+   281       -A3*PQX**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQX*(AX/GAMA1-(A1*AX+A
+   282       -2*BX)/GAMA1**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   283  	DUTAy=-(GAMA3*(GAMA2+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQY**2.
+   284  	-00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(G
+   285       -AMA2+GAMA3)*G1RG2*PQY**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA2*GAM
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   286       -A3*PQY**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQY*(AY/GAMA1-(A1*AY+A
+   287       -2*BY)/GAMA1**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   288  	DUTAz=-(GAMA3*(GAMA2+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQZ**2.
+   289  	-00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(G
+   290       -AMA2+GAMA3)*G1RG2*PQZ**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA2*GAM
+   291       -A3*PQZ**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQZ*(AZ/GAMA1-(A1*AZ+A
+   292       -2*BZ)/GAMA1**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   293  
+   294  
+   295  	DREDx=(PAX*DQCx+QCX*DPAx)+(1.00D+00/4.00D+00)*(PQX*DINHEREx+HEREx*
+   296  	-DPQx)+DUTAx
+   297  	DREDy=(PAY*DQCy+QCY*DPAy)+(1.00D+00/4.00D+00)*(PQY*DINHEREy+HEREy*
+   298  	-DPQy)+DUTAy
+   299  	DREDz=(PAZ*DQCz+QCZ*DPAz)+(1.00D+00/4.00D+00)*(PQZ*DINHEREz+HEREz*
+   300  	-DPQz)+DUTAz	
+   301  
+   302  	DAx1Cx2=(OVLAP*DREDx + REDx*DOVnDA1)
+   303  	DAy1Cy2=(OVLAP*DREDy + REDy*DOVnDA1)
+   304  	DAz1Cz2=(OVLAP*DREDz + REDz*DOVnDA1)
+   305  
+   306  	DA1C2=-2.00D+00*(DAx1Cx2+DAy1Cy2+DAz1Cz2)
+   307  
+   308  	DRHO=DOVA12+DOVA11+DOVC22+DOVC21+DA1C2
+   309  
+   310  	DNKL=(DPT3*RHO + DRHO*PT3)
+   311  
+   312  	DMKL=DNKL - (DPT2*OVA12 + DOVA12*PT2)
+   313  
+   314  	DWKL=DMKL - (DPT1*OVB12 + DOVB12*PT1)
+   315  
+   316  	QKL=(6.00D+00*(A1*A6DG3+A2*A5DG3)+4.00D+00*A5*A6*(ACX*ACX+ACY*ACY+
+   317  	-ACZ*ACZ))
+   318  	DQKL=6.00D+00*A6DG3
+   319  
+   320  	DTKDA1=DWKL + QKL*DOVnDA1 + OVLAP*DQKL
+   321  
+   322  C	WRITE(6,*)'OVLAP=',OVLAP
+   323  C	WRITE(6,*)'DOVLAP=',DOVnDA1
+   324  C	WRITE(6,*)'QKL=',QKL
+   325  C	WRITE(6,*)'DQKL=',DQKL
+   326  C	WRITE(6,*)'DWKL=',DWKL
+   327  C	STOP
+   328  
+   329  C
+   330  C
+   331  C	DTKDA2:
+   332  C	======================================================
+   333  	PT1=(4.00D+00*A2**2.00D+00*A5)/GAMA3
+   334  	DPT1=0.00D+00
+   335  	PT2=(4.00D+00*A1**2.00D+00*A6)/GAMA3
+   336  	DPT2=0.00D+00
+   337  	PT3=4.00D+00*A5*A6
+   338  	DPT3=0.00D+00
+   339  
+   340  	P1=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   341  	DP1=GAMA2*GAMA3*(GAMA1+GAMA3)/(2.00D+00*GAMA1*XMIAN**2.00D+00)-GAM
+   342  	-A3/(2.00D+00*GAMA1*XMIAN)
+
+                                                                        PAGE   7
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   343  	P2=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   344  	DP2=GAMA2*GAMA3*(GAMA1+GAMA3)/(2.00D+00*GAMA1*XMIAN**2.00D+00)-GAM
+   345  	-A3/(2.00D+00*GAMA1*XMIAN)
+   346  	P3=(1.00D+00/(2.00D+00*GAMA2))-(GA2DEL/(8.00D+00*GAMA2))
+   347  	DP3=-1.00D+00/(2.00D+00*GAMA2**2.00D+00)+GAMA1*GAMA3*(GAMA1+GAMA3)
+   348  	-/(2.00D+00*GAMA2*XMIAN**2.00D+00)+GAMA1*GAMA3/(2.00D+00*GAMA2**2.0
+   349       -0D+00*XMIAN)
+   350  
+   351  	DGA1DEL=-4.00D+00*GAMA2*GAMA3*(GAMA1+GAMA3)/XMIAN**2.00D+00+4.00D+
+   352  	-00*GAMA3/XMIAN
+   353  	DGA2DEL=-4.00D+00*GAMA1*GAMA3*(GAMA1+GAMA3)/XMIAN**2.00D+00
+   354  
+   355  	DPx=0.00D+00
+   356  	DAx=0.00D+00
+   357  	DBx=0.00D+00 
+   358  	DCx=0.00D+00
+   359  	DQx=CX/GAMA2-(A3*CX+A4*DX)/GAMA2**2.00D+00
+   360  
+   361  	DPy=0.00D+00
+   362  	DAy=0.00D+00
+   363  	DBy=0.00D+00
+   364   	DCy=0.00D+00
+   365  	DQy=CY/GAMA2-(A3*CY+A4*DY)/GAMA2**2.00D+00
+   366  
+   367  	DPz=0.00D+00
+   368  	DAz=0.00D+00
+   369  	DBz=0.00D+00
+   370   	DCz=0.00D+00 
+   371        DQz=CZ/GAMA2-(A3*CZ+A4*DZ)/GAMA2**2.00D+00
+   372   
+   373  	DPQx=DPx-DQx
+   374  	DPQy=DPy-DQy
+   375  	DPQz=DPz-DQz
+   376  
+   377  	DPBx=DPx-DBx
+   378  	DPBy=DPy-DBy
+   379  	DPBz=DPz-DBz
+   380  	DPAx=DPx-DAx
+   381  	DPAy=DPy-DAy
+   382  	DPAz=DPz-DAz
+   383  	DQCx=DQx-DCx
+   384  	DQCy=DQy-DCy
+   385  	DQCz=DQz-DCz
+   386  
+   387  	DACx=DAx-DCx
+   388  	DACy=DAy-DCy
+   389  	DACz=DAz-DCz
+   390  
+   391  	DOVxB11=DPBx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx)
+   392  	DOVyB11=DPBy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   393  	DOVzB11=DPBz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   394  	DOVxA11=DPAx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx) 
+   395  	DOVyA11=DPAy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   396  	DOVzA11=DPAz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   397  
+   398  	THETAx=OVXB11**2.00D+00+P1
+   399  	THETAy=OVYB11**2.00D+00+P1
+
+                                                                        PAGE   8
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   400  	THETAz=OVZB11**2.00D+00+P1
+   401  	PHIx=OVXA11**2.00D+00+P2
+   402  	PHIy=OVYA11**2.00D+00+P2
+   403  	PHIz=OVZA11**2.00D+00+P2
+   404  
+   405  	DTHETAx=2.00D+00*OVXB11*DOVxB11+DP1
+   406  	DTHETAy=2.00D+00*OVYB11*DOVyB11+DP1
+   407  	DTHETAz=2.00D+00*OVZB11*DOVzB11+DP1
+   408  	DPHIx=2.00D+00*OVXA11*DOVxA11+DP2
+   409  	DPHIy=2.00D+00*OVYA11*DOVyA11+DP2
+   410  	DPHIz=2.00D+00*OVZA11*DOVzA11+DP2
+   411       
+   412        DOVxB12=OVLAP*DTHETAx+THETAx*DOVnDA2
+   413  	DOVyB12=OVLAP*DTHETAy+THETAy*DOVnDA2
+   414  	DOVzB12=OVLAP*DTHETAz+THETAz*DOVnDA2
+   415  	DOVxA12=PHIx*DOVnDA2+OVLAP*DPHIx
+   416  	DOVyA12=PHIy*DOVnDA2+OVLAP*DPHIy
+   417  	DOVzA12=PHIz*DOVnDA2+OVLAP*DPHIz
+   418  	DOVxC21=DQCx+(1.00D+00/4.00D+00)*(PQX*DGA2DEL+GA2DEL*DPQx)
+   419  	DOVyC21=DQCy+(1.00D+00/4.00D+00)*(PQY*DGA2DEL+GA2DEL*DPQy)
+   420        DOVzC21=DQCz+(1.00D+00/4.00D+00)*(PQZ*DGA2DEL+GA2DEL*DPQz)
+   421  
+   422  	DOVB12=DOVxB12+DOVyB12+DOVzB12
+   423        DOVA12=DOVxA12+DOVyA12+DOVzA12
+   424  
+   425  	RHO=OVA12+OVA11+OVC22+OVC21+A1C2
+   426  
+   427  	EPSILON=(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)
+   428  	DEPSILON=(DOVxA11*ACX+DACx*OVXA11+DOVyA11*ACY+DACy*OVYA11+DOVzA11*
+   429  	-ACZ+DACz*OVZA11)
+   430  
+   431  	DOVA11=2.00D+00*(DEPSILON*OVLAP+DOVnDA2*EPSILON)
+   432  
+   433  	ZEDx=OVXC21**2.00D+00+P3
+   434  	ZEDy=OVYC21**2.00D+00+P3
+   435  	ZEDz=OVZC21**2.00D+00+P3
+   436  
+   437  	DZEDx=2.00D+00*OVXC21*DOVxC21+DP3
+   438  	DZEDy=2.00D+00*OVYC21*DOVyC21+DP3
+   439  	DZEDz=2.00D+00*OVZC21*DOVzC21+DP3
+   440  
+   441  	DOVxC22=(OVLAP*DZEDx+ZEDx*DOVnDA2)
+   442  	DOVyC22=(OVLAP*DZEDy+ZEDy*DOVnDA2)
+   443  	DOVzC22=(OVLAP*DZEDz+ZEDz*DOVnDA2)
+   444  
+   445  	DOVC22=DOVxC22+DOVyC22+DOVzC22
+   446  
+   447  	ZETA=(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)
+   448  	DZETA=(DOVxC21*ACX+DACx*OVXC21+DOVyC21*ACY+DACy*OVYC21+DOVzC21*ACZ
+   449  	-+DACz*OVZC21)
+   450  
+   451  	DOVC21=-2.00D+00*(DZETA*OVLAP+DOVnDA2*ZETA)
+   452  
+   453  	HEREx=PAX*GA2DEL-QCX*GA1DEL
+   454  	HEREy=PAY*GA2DEL-QCY*GA1DEL
+   455  	HEREz=PAZ*GA2DEL-QCZ*GA1DEL
+   456  
+
+                                                                        PAGE   9
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   457  	UTAx=(1.00D+00-((PQX**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   458  	-GAMA1))
+   459  	UTAy=(1.00D+00-((PQY**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   460  	-GAMA1))
+   461  	UTAz=(1.00D+00-((PQZ**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   462  	-GAMA1))
+   463  
+   464  
+   465  	REDx=PAX*QCX + (1.00D+00/4.00D+00)*PQX*(HEREx) + UTAx
+   466  	REDy=PAY*QCY + (1.00D+00/4.00D+00)*PQY*(HEREy) + UTAy
+   467  	REDz=PAZ*QCZ + (1.00D+00/4.00D+00)*PQZ*(HEREz) + UTAz							   
+   468  
+   469  	DINHEREx=-4.00D+00*GAMA1*GAMA3*(GAMA1+GAMA3)*PAX/XMIAN**2.00D+00+4
+   470  	-.00D+00*GAMA2*GAMA3*(GAMA1+GAMA3)*QCX/XMIAN**2.00D+00-4.00D+00*GAM
+   471       -A3*QCX/XMIAN-4.00D+00*GAMA2*GAMA3*(CX/GAMA2-(A3*CX+A4*DX)/GAMA2**2
+   472       -.00D+00)/XMIAN
+   473  	DINHEREy=-4.00D+00*GAMA1*GAMA3*(GAMA1+GAMA3)*PAY/XMIAN**2.00D+00+4
+   474  	-.00D+00*GAMA2*GAMA3*(GAMA1+GAMA3)*QCY/XMIAN**2.00D+00-4.00D+00*GAM
+   475       -A3*QCY/XMIAN-4.00D+00*GAMA2*GAMA3*(CY/GAMA2-(A3*CY+A4*DY)/GAMA2**2
+   476       -.00D+00)/XMIAN
+   477  	DINHEREz=-4.00D+00*GAMA1*GAMA3*(GAMA1+GAMA3)*PAZ/XMIAN**2.00D+00+4
+   478  	-.00D+00*GAMA2*GAMA3*(GAMA1+GAMA3)*QCZ/XMIAN**2.00D+00-4.00D+00*GAM
+   479       -A3*QCZ/XMIAN-4.00D+00*GAMA2*GAMA3*(CZ/GAMA2-(A3*CZ+A4*DZ)/GAMA2**2
+   480       -.00D+00)/XMIAN
+   481  
+   482  	DUTAx=-(GAMA3*(GAMA1+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQX**2
+   483  	-.00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(
+   484       -GAMA1+GAMA3)*G1RG2*PQX**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA1*GA
+   485       -MA3*PQX**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQX*(-(CX/GAMA2)+(A3*
+   486       -CX+A4*DX)/GAMA2**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   487  	DUTAy=-(GAMA3*(GAMA1+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQY**2
+   488  	-.00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(
+   489       -GAMA1+GAMA3)*G1RG2*PQY**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA1*GA
+   490       -MA3*PQY**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQY*(-(CY/GAMA2)+(A3*
+   491       -CY+A4*DY)/GAMA2**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   492  	DUTAz=-(GAMA3*(GAMA1+GAMA3)*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQZ**2
+   493  	-.00D+00/XMIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*(
+   494       -GAMA1+GAMA3)*G1RG2*PQZ**2.00D+00/XMIAN**2.00D+00-2.00D+00*GAMA1*GA
+   495       -MA3*PQZ**2.00D+00/XMIAN-4.00D+00*GAMA3*G1RG2*PQZ*(-(CZ/GAMA2)+(A3*
+   496       -CZ+A4*DZ)/GAMA2**2.00D+00)/XMIAN)/(2.00D+00*XMIAN)
+   497  
+   498  
+   499  	DREDx=(PAX*DQCx+QCX*DPAx)+(1.00D+00/4.00D+00)*(PQX*DINHEREx+HEREx*
+   500  	-DPQx)+DUTAx
+   501  	DREDy=(PAY*DQCy+QCY*DPAy)+(1.00D+00/4.00D+00)*(PQY*DINHEREy+HEREy*
+   502  	-DPQy)+DUTAy
+   503  	DREDz=(PAZ*DQCz+QCZ*DPAz)+(1.00D+00/4.00D+00)*(PQZ*DINHEREz+HEREz*
+   504  	-DPQz)+DUTAz	
+   505  
+   506  	DAx1Cx2=(OVLAP*DREDx + REDx*DOVnDA2)
+   507  	DAy1Cy2=(OVLAP*DREDy + REDy*DOVnDA2)
+   508  	DAz1Cz2=(OVLAP*DREDz + REDz*DOVnDA2)
+   509  
+   510  	DA1C2=-2.00D+00*(DAx1Cx2+DAy1Cy2+DAz1Cz2)
+   511  
+   512  	DRHO=DOVA12+DOVA11+DOVC22+DOVC21+DA1C2
+   513  
+
+                                                                        PAGE  10
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   514  	DNKL=(DPT3*RHO + DRHO*PT3)
+   515  
+   516  	DMKL=DNKL - (DPT2*OVA12 + DOVA12*PT2)
+   517  
+   518  	DWKL=DMKL - (DPT1*OVB12 + DOVB12*PT1)
+   519  
+   520  	QKL=(6.00D+00*(A1*A6DG3+A2*A5DG3)+4.00D+00*A5*A6*(ACX*ACX+ACY*ACY+
+   521  	-ACZ*ACZ))
+   522  	DQKL=0.00D+00
+   523  
+   524  	DTKDA2=DWKL + QKL*DOVnDA2 + OVLAP*DQKL
+   525  
+   526  C	WRITE(6,*)'OVLAP=',OVLAP
+   527  C	WRITE(6,*)'DOVLAP=',DOVnDA2
+   528  C	WRITE(6,*)'QKL=',QKL
+   529  C	WRITE(6,*)'DQKL=',DQKL
+   530  C	WRITE(6,*)'DWKL=',DWKL
+   531  C	STOP
+   532  C
+   533  C
+   534  C	DTKDA5:
+   535  C	======================================================
+   536  	PT1=(4.00D+00*A2**2.00D+00*A5)/GAMA3
+   537  	DPT1=-4.00D+00*A2**2.00D+00*A5/GAMA3**2.00D+00+4.00D+00*A2**2.00D+
+   538  	-00/GAMA3
+   539  	PT2=(4.00D+00*A1**2.00D+00*A6)/GAMA3
+   540  	DPT2=-4.00D+00*A1**2.00D+00*A6/GAMA3**2.00D+00
+   541  	PT3=4.00D+00*A5*A6
+   542  	DPT3=4.00D+00*A6
+   543  
+   544  	P1=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   545  	DP1=GAMA2*GAMA3*G1PG2/(2.00D+00*GAMA1*XMIAN**2.00D+00)-GAMA2/(2.00
+   546  	-D+00*GAMA1*XMIAN)
+   547  	P2=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   548  	DP2=GAMA2*GAMA3*G1PG2/(2.00D+00*GAMA1*XMIAN**2.00D+00)-GAMA2/(2.00
+   549  	-D+00*GAMA1*XMIAN)
+   550  	P3=(1.00D+00/(2.00D+00*GAMA2))-(GA2DEL/(8.00D+00*GAMA2))
+   551  	DP3=GAMA1*GAMA3*G1PG2/(2.00D+00*GAMA2*XMIAN**2.00D+00)-GAMA1/(2.00
+   552  	-D+00*GAMA2*XMIAN)
+   553  
+   554  	DGA1DEL=-4.00D+00*GAMA2*GAMA3*G1PG2/XMIAN**2.00D+00+4.00D+00*GAMA2
+   555  	-/XMIAN
+   556  	DGA2DEL=-4.00D+00*GAMA1*GAMA3*G1PG2/XMIAN**2.00D+00+4.00D+00*GAMA1
+   557  	-/XMIAN
+   558  
+   559  	DPx=0.00D+00
+   560  	DAx=0.00D+00
+   561  	DBx=0.00D+00 
+   562  	DCx=0.00D+00
+   563  	DQx=0.00D+00
+   564  
+   565  	DPy=0.00D+00
+   566  	DAy=0.00D+00
+   567  	DBy=0.00D+00
+   568   	DCy=0.00D+00
+   569  	DQy=0.00D+00
+   570  
+
+                                                                        PAGE  11
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   571  	DPz=0.00D+00
+   572  	DAz=0.00D+00
+   573  	DBz=0.00D+00
+   574   	DCz=0.00D+00 
+   575        DQz=0.00D+00
+   576   
+   577  	DPQx=DPx-DQx
+   578  	DPQy=DPy-DQy
+   579  	DPQz=DPz-DQz
+   580  
+   581  	DPBx=DPx-DBx
+   582  	DPBy=DPy-DBy
+   583  	DPBz=DPz-DBz
+   584  	DPAx=DPx-DAx
+   585  	DPAy=DPy-DAy
+   586  	DPAz=DPz-DAz
+   587  	DQCx=DQx-DCx
+   588  	DQCy=DQy-DCy
+   589  	DQCz=DQz-DCz
+   590  
+   591  	DACx=DAx-DCx
+   592  	DACy=DAy-DCy
+   593  	DACz=DAz-DCz
+   594  
+   595  	DOVxB11=DPBx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx)
+   596  	DOVyB11=DPBy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   597  	DOVzB11=DPBz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   598  	DOVxA11=DPAx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx) 
+   599  	DOVyA11=DPAy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   600  	DOVzA11=DPAz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   601  
+   602  	THETAx=OVXB11**2.00D+00+P1
+   603  	THETAy=OVYB11**2.00D+00+P1
+   604  	THETAz=OVZB11**2.00D+00+P1
+   605  	PHIx=OVXA11**2.00D+00+P2
+   606  	PHIy=OVYA11**2.00D+00+P2
+   607  	PHIz=OVZA11**2.00D+00+P2
+   608  
+   609  	DTHETAx=2.00D+00*OVXB11*DOVxB11+DP1
+   610  	DTHETAy=2.00D+00*OVYB11*DOVyB11+DP1
+   611  	DTHETAz=2.00D+00*OVZB11*DOVzB11+DP1
+   612  	DPHIx=2.00D+00*OVXA11*DOVxA11+DP2
+   613  	DPHIy=2.00D+00*OVYA11*DOVyA11+DP2
+   614  	DPHIz=2.00D+00*OVZA11*DOVzA11+DP2
+   615       
+   616        DOVxB12=OVLAP*DTHETAx+THETAx*DOVnDA5
+   617  	DOVyB12=OVLAP*DTHETAy+THETAy*DOVnDA5
+   618  	DOVzB12=OVLAP*DTHETAz+THETAz*DOVnDA5
+   619  	DOVxA12=PHIx*DOVnDA5+OVLAP*DPHIx
+   620  	DOVyA12=PHIy*DOVnDA5+OVLAP*DPHIy
+   621  	DOVzA12=PHIz*DOVnDA5+OVLAP*DPHIz
+   622  	DOVxC21=DQCx+(1.00D+00/4.00D+00)*(PQX*DGA2DEL+GA2DEL*DPQx)
+   623  	DOVyC21=DQCy+(1.00D+00/4.00D+00)*(PQY*DGA2DEL+GA2DEL*DPQy)
+   624        DOVzC21=DQCz+(1.00D+00/4.00D+00)*(PQZ*DGA2DEL+GA2DEL*DPQz)
+   625  
+   626  	DOVB12=DOVxB12+DOVyB12+DOVzB12
+   627        DOVA12=DOVxA12+DOVyA12+DOVzA12
+
+                                                                        PAGE  12
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   628  
+   629  	RHO=OVA12+OVA11+OVC22+OVC21+A1C2
+   630  
+   631  	EPSILON=(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)
+   632  	DEPSILON=(DOVxA11*ACX+DACx*OVXA11+DOVyA11*ACY+DACy*OVYA11+DOVzA11*
+   633  	-ACZ+DACz*OVZA11)
+   634  
+   635  	DOVA11=2.00D+00*(DEPSILON*OVLAP+DOVnDA5*EPSILON)
+   636  
+   637  	ZEDx=OVXC21**2.00D+00+P3
+   638  	ZEDy=OVYC21**2.00D+00+P3
+   639  	ZEDz=OVZC21**2.00D+00+P3
+   640  
+   641  	DZEDx=2.00D+00*OVXC21*DOVxC21+DP3
+   642  	DZEDy=2.00D+00*OVYC21*DOVyC21+DP3
+   643  	DZEDz=2.00D+00*OVZC21*DOVzC21+DP3
+   644  
+   645  	DOVxC22=(OVLAP*DZEDx+ZEDx*DOVnDA5)
+   646  	DOVyC22=(OVLAP*DZEDy+ZEDy*DOVnDA5)
+   647  	DOVzC22=(OVLAP*DZEDz+ZEDz*DOVnDA5)
+   648  
+   649  	DOVC22=DOVxC22+DOVyC22+DOVzC22
+   650  
+   651  	ZETA=(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)
+   652  	DZETA=(DOVxC21*ACX+DACx*OVXC21+DOVyC21*ACY+DACy*OVYC21+DOVzC21*ACZ
+   653  	-+DACz*OVZC21)
+   654  
+   655  	DOVC21=-2.00D+00*(DZETA*OVLAP+DOVnDA5*ZETA)
+   656  
+   657  	HEREx=PAX*GA2DEL-QCX*GA1DEL
+   658  	HEREy=PAY*GA2DEL-QCY*GA1DEL
+   659  	HEREz=PAZ*GA2DEL-QCZ*GA1DEL
+   660  
+   661  	UTAx=(1.00D+00-((PQX**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   662  	-GAMA1))
+   663  	UTAy=(1.00D+00-((PQY**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   664  	-GAMA1))
+   665  	UTAz=(1.00D+00-((PQZ**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   666  	-GAMA1))
+   667  
+   668  
+   669  	REDx=PAX*QCX + (1.00D+00/4.00D+00)*PQX*(HEREx) + UTAx
+   670  	REDy=PAY*QCY + (1.00D+00/4.00D+00)*PQY*(HEREy) + UTAy
+   671  	REDz=PAZ*QCZ + (1.00D+00/4.00D+00)*PQZ*(HEREz) + UTAz							   
+   672  
+   673  	DINHEREx=-4.00D+00*GAMA1*GAMA3*G1PG2*PAX/XMIAN**2.00D+00+4.00D+00*
+   674  	-GAMA2*GAMA3*G1PG2*QCX/XMIAN**2.00D+00+4.00D+00*GAMA1*PAX/XMIAN-4.0
+   675       -0D+00*GAMA2*QCX/XMIAN
+   676  	DINHEREy=-4.00D+00*GAMA1*GAMA3*G1PG2*PAY/XMIAN**2.00D+00+4.00D+00*
+   677  	-GAMA2*GAMA3*G1PG2*QCY/XMIAN**2.00D+00+4.00D+00*GAMA1*PAY/XMIAN-4.0
+   678       -0D+00*GAMA2*QCY/XMIAN
+   679  	DINHEREz=-4.00D+00*GAMA1*GAMA3*G1PG2*PAZ/XMIAN**2.00D+00+4.00D+00*
+   680  	-GAMA2*GAMA3*G1PG2*QCZ/XMIAN**2.00D+00+4.00D+00*GAMA1*PAZ/XMIAN-4.0
+   681       -0D+00*GAMA2*QCZ/XMIAN
+   682  
+   683  	DUTAx=-(GAMA3*G1PG2*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQX**2.00D+00/X
+   684  	-MIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*G1PG2*G1RG
+
+                                                                        PAGE  13
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   685       -2*PQX**2.00D+00/XMIAN**2.00D+00-2.00D+00*G1RG2*PQX**2.00D+00/XMIAN
+   686       -)/(2.00D+00*XMIAN)+(1.00D+00-2.00D+00*GAMA3*G1RG2*PQX**2.00D+00/XM
+   687       -IAN)/(2.00D+00*XMIAN)
+   688  	DUTAy=-(GAMA3*G1PG2*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQY**2.00D+00/X
+   689  	-MIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*G1PG2*G1RG
+   690       -2*PQY**2.00D+00/XMIAN**2.00D+00-2.00D+00*G1RG2*PQY**2.00D+00/XMIAN
+   691       -)/(2.00D+00*XMIAN)+(1.00D+00-2.00D+00*GAMA3*G1RG2*PQY**2.00D+00/XM
+   692       -IAN)/(2.00D+00*XMIAN)
+   693  	DUTAz=-(GAMA3*G1PG2*(1.00D+00-2.00D+00*GAMA3*G1RG2*PQZ**2.00D+00/X
+   694  	-MIAN))/(2.00D+00*XMIAN**2.00D+00)+GAMA3*(2.00D+00*GAMA3*G1PG2*G1RG
+   695       -2*PQZ**2.00D+00/XMIAN**2.00D+00-2.00D+00*G1RG2*PQZ**2.00D+00/XMIAN
+   696       -)/(2.00D+00*XMIAN)+(1.00D+00-2.00D+00*GAMA3*G1RG2*PQZ**2.00D+00/XM
+   697       -IAN)/(2.00D+00*XMIAN)
+   698  
+   699  
+   700  	DREDx=(PAX*DQCx+QCX*DPAx)+(1.00D+00/4.00D+00)*(PQX*DINHEREx+HEREx*
+   701  	-DPQx)+DUTAx
+   702  	DREDy=(PAY*DQCy+QCY*DPAy)+(1.00D+00/4.00D+00)*(PQY*DINHEREy+HEREy*
+   703  	-DPQy)+DUTAy
+   704  	DREDz=(PAZ*DQCz+QCZ*DPAz)+(1.00D+00/4.00D+00)*(PQZ*DINHEREz+HEREz*
+   705  	-DPQz)+DUTAz	
+   706  
+   707  	DAx1Cx2=(OVLAP*DREDx + REDx*DOVnDA5)
+   708  	DAy1Cy2=(OVLAP*DREDy + REDy*DOVnDA5)
+   709  	DAz1Cz2=(OVLAP*DREDz + REDz*DOVnDA5)
+   710  
+   711  	DA1C2=-2.00D+00*(DAx1Cx2+DAy1Cy2+DAz1Cz2)
+   712  
+   713  	DRHO=DOVA12+DOVA11+DOVC22+DOVC21+DA1C2
+   714  
+   715  	DNKL=(DPT3*RHO + DRHO*PT3)
+   716  
+   717  	DMKL=DNKL - (DPT2*OVA12 + DOVA12*PT2)
+   718  
+   719  	DWKL=DMKL - (DPT1*OVB12 + DOVB12*PT1)
+   720  
+   721  	QKL=(6.00D+00*(A1*A6DG3+A2*A5DG3)+4.00D+00*A5*A6*(ACX*ACX+ACY*ACY+
+   722  	-ACZ*ACZ))
+   723  	DQKL=4.00D+00*(ACX**2.00D+00+ACY**2.00D+00+ACZ**2.00D+00)*A6+6.00D
+   724  	-+00*(-(A2*A5/GAMA3**2.00D+00)-A1*A6/GAMA3**2.00D+00+A2/GAMA3)
+   725  
+   726  	DTKDA5=DWKL + QKL*DOVnDA5 + OVLAP*DQKL
+   727  
+   728  C	WRITE(6,*)'OVLAP=',OVLAP
+   729  C	WRITE(6,*)'DOVLAP=',DOVnDA5
+   730  C	WRITE(6,*)'QKL=',QKL
+   731  C	WRITE(6,*)'DQKL=',DQKL
+   732  C	WRITE(6,*)'DWKL=',DWKL
+   733  C	STOP
+   734  C
+   735  C	DTKDAZ:
+   736  C	======================================================
+   737  	PT1=(4.00D+00*A2**2.00D+00*A5)/GAMA3
+   738  	DPT1=0.00D+00
+   739  	PT2=(4.00D+00*A1**2.00D+00*A6)/GAMA3
+   740  	DPT2=0.00D+00
+   741  	PT3=4.00D+00*A5*A6
+
+                                                                        PAGE  14
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   742  	DPT3=0.00D+00
+   743  
+   744  	P1=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   745  	DP1=0.00D+00
+   746  	P2=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   747  	DP2=0.00D+00
+   748  	P3=(1.00D+00/(2.00D+00*GAMA2))-(GA2DEL/(8.00D+00*GAMA2))
+   749  	DP3=0.00D+00
+   750  
+   751  	DGA1DEL=0.00D+00
+   752  	DGA2DEL=0.00D+00
+   753  
+   754  	DPx=0.00D+00
+   755  	DAx=0.00D+00
+   756  	DBx=0.00D+00 
+   757  	DCx=0.00D+00
+   758  	DQx=0.00D+00
+   759  
+   760  	DPy=0.00D+00
+   761  	DAy=0.00D+00
+   762  	DBy=0.00D+00
+   763   	DCy=0.00D+00
+   764  	DQy=0.00D+00
+   765  
+   766  	DPz=A1/GAMA1
+   767  	DAz=1.00D+00
+   768  	DBz=0.00D+00
+   769   	DCz=0.00D+00 
+   770        DQz=0.00D+00
+   771   
+   772  	DPQx=DPx-DQx
+   773  	DPQy=DPy-DQy
+   774  	DPQz=DPz-DQz
+   775  
+   776  	DPBx=DPx-DBx
+   777  	DPBy=DPy-DBy
+   778  	DPBz=DPz-DBz
+   779  	DPAx=DPx-DAx
+   780  	DPAy=DPy-DAy
+   781  	DPAz=DPz-DAz
+   782  	DQCx=DQx-DCx
+   783  	DQCy=DQy-DCy
+   784  	DQCz=DQz-DCz
+   785  
+   786  	DACx=DAx-DCx
+   787  	DACy=DAy-DCy
+   788  	DACz=DAz-DCz
+   789  
+   790  	DOVxB11=DPBx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx)
+   791  	DOVyB11=DPBy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   792  	DOVzB11=DPBz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   793  	DOVxA11=DPAx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx) 
+   794  	DOVyA11=DPAy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   795  	DOVzA11=DPAz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   796  
+   797  	THETAx=OVXB11**2.00D+00+P1
+   798  	THETAy=OVYB11**2.00D+00+P1
+
+                                                                        PAGE  15
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   799  	THETAz=OVZB11**2.00D+00+P1
+   800  	PHIx=OVXA11**2.00D+00+P2
+   801  	PHIy=OVYA11**2.00D+00+P2
+   802  	PHIz=OVZA11**2.00D+00+P2
+   803  
+   804  	DTHETAx=2.00D+00*OVXB11*DOVxB11+DP1
+   805  	DTHETAy=2.00D+00*OVYB11*DOVyB11+DP1
+   806  	DTHETAz=2.00D+00*OVZB11*DOVzB11+DP1
+   807  	DPHIx=2.00D+00*OVXA11*DOVxA11+DP2
+   808  	DPHIy=2.00D+00*OVYA11*DOVyA11+DP2
+   809  	DPHIz=2.00D+00*OVZA11*DOVzA11+DP2
+   810       
+   811        DOVxB12=OVLAP*DTHETAx+THETAx*DOVnDAZ
+   812  	DOVyB12=OVLAP*DTHETAy+THETAy*DOVnDAZ
+   813  	DOVzB12=OVLAP*DTHETAz+THETAz*DOVnDAZ
+   814  	DOVxA12=PHIx*DOVnDAZ+OVLAP*DPHIx
+   815  	DOVyA12=PHIy*DOVnDAZ+OVLAP*DPHIy
+   816  	DOVzA12=PHIz*DOVnDAZ+OVLAP*DPHIz
+   817  	DOVxC21=DQCx+(1.00D+00/4.00D+00)*(PQX*DGA2DEL+GA2DEL*DPQx)
+   818  	DOVyC21=DQCy+(1.00D+00/4.00D+00)*(PQY*DGA2DEL+GA2DEL*DPQy)
+   819        DOVzC21=DQCz+(1.00D+00/4.00D+00)*(PQZ*DGA2DEL+GA2DEL*DPQz)
+   820  
+   821  	DOVB12=DOVxB12+DOVyB12+DOVzB12
+   822        DOVA12=DOVxA12+DOVyA12+DOVzA12
+   823  
+   824  	RHO=OVA12+OVA11+OVC22+OVC21+A1C2
+   825  
+   826  	EPSILON=(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)
+   827  	DEPSILON=(DOVxA11*ACX+DACx*OVXA11+DOVyA11*ACY+DACy*OVYA11+DOVzA11*
+   828  	-ACZ+DACz*OVZA11)
+   829  
+   830  	DOVA11=2.00D+00*(DEPSILON*OVLAP+DOVnDAZ*EPSILON)
+   831  
+   832  	ZEDx=OVXC21**2.00D+00+P3
+   833  	ZEDy=OVYC21**2.00D+00+P3
+   834  	ZEDz=OVZC21**2.00D+00+P3
+   835  
+   836  	DZEDx=2.00D+00*OVXC21*DOVxC21+DP3
+   837  	DZEDy=2.00D+00*OVYC21*DOVyC21+DP3
+   838  	DZEDz=2.00D+00*OVZC21*DOVzC21+DP3
+   839  
+   840  	DOVxC22=(OVLAP*DZEDx+ZEDx*DOVnDAZ)
+   841  	DOVyC22=(OVLAP*DZEDy+ZEDy*DOVnDAZ)
+   842  	DOVzC22=(OVLAP*DZEDz+ZEDz*DOVnDAZ)
+   843  
+   844  	DOVC22=DOVxC22+DOVyC22+DOVzC22
+   845  
+   846  	ZETA=(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)
+   847  	DZETA=(DOVxC21*ACX+DACx*OVXC21+DOVyC21*ACY+DACy*OVYC21+DOVzC21*ACZ
+   848  	-+DACz*OVZC21)
+   849  
+   850  	DOVC21=-2.00D+00*(DZETA*OVLAP+DOVnDAZ*ZETA)
+   851  
+   852  	HEREx=PAX*GA2DEL-QCX*GA1DEL
+   853  	HEREy=PAY*GA2DEL-QCY*GA1DEL
+   854  	HEREz=PAZ*GA2DEL-QCZ*GA1DEL
+   855  
+
+                                                                        PAGE  16
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   856  	UTAx=(1.00D+00-((PQX**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   857  	-GAMA1))
+   858  	UTAy=(1.00D+00-((PQY**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   859  	-GAMA1))
+   860  	UTAz=(1.00D+00-((PQZ**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+   861  	-GAMA1))
+   862  
+   863  
+   864  	REDx=PAX*QCX + (1.00D+00/4.00D+00)*PQX*(HEREx) + UTAx
+   865  	REDy=PAY*QCY + (1.00D+00/4.00D+00)*PQY*(HEREy) + UTAy
+   866  	REDz=PAZ*QCZ + (1.00D+00/4.00D+00)*PQZ*(HEREz) + UTAz							   
+   867  
+   868  	DINHEREx=0.00D+00
+   869  	DINHEREy=0.00D+00
+   870  	DINHEREz=(-1.00D+00+A1/GAMA1)*GA2DEL
+   871  
+   872  	DUTAx=0.00D+00
+   873  	DUTAy=0.00D+00
+   874  	DUTAz=-2.00D+00*A1*GAMA2*GAMA3**2.00D+00*PQZ/XMIAN**2.00D+00
+   875  
+   876  
+   877  	DREDx=(PAX*DQCx+QCX*DPAx)+(1.00D+00/4.00D+00)*(PQX*DINHEREx+HEREx*
+   878  	-DPQx)+DUTAx
+   879  	DREDy=(PAY*DQCy+QCY*DPAy)+(1.00D+00/4.00D+00)*(PQY*DINHEREy+HEREy*
+   880  	-DPQy)+DUTAy
+   881  	DREDz=(PAZ*DQCz+QCZ*DPAz)+(1.00D+00/4.00D+00)*(PQZ*DINHEREz+HEREz*
+   882  	-DPQz)+DUTAz	
+   883  
+   884  	DAx1Cx2=(OVLAP*DREDx + REDx*DOVnDAZ)
+   885  	DAy1Cy2=(OVLAP*DREDy + REDy*DOVnDAZ)
+   886  	DAz1Cz2=(OVLAP*DREDz + REDz*DOVnDAZ)
+   887  
+   888  	DA1C2=-2.00D+00*(DAx1Cx2+DAy1Cy2+DAz1Cz2)
+   889  
+   890  	DRHO=DOVA12+DOVA11+DOVC22+DOVC21+DA1C2
+   891  
+   892  	DNKL=(DPT3*RHO + DRHO*PT3)
+   893  
+   894  	DMKL=DNKL - (DPT2*OVA12 + DOVA12*PT2)
+   895  
+   896  	DWKL=DMKL - (DPT1*OVB12 + DOVB12*PT1)
+   897  
+   898  	QKL=(6.00D+00*(A1*A6DG3+A2*A5DG3)+4.00D+00*A5*A6*(ACX*ACX+ACY*ACY+
+   899  	-ACZ*ACZ))
+   900  	DQKL=8.00D+00*ACZ*A5*A6
+   901  
+   902  	DTKDAZ=DWKL + QKL*DOVnDAZ + OVLAP*DQKL
+   903  
+   904  C	WRITE(6,*)'OVLAP=',OVLAP
+   905  C	WRITE(6,*)'DOVLAP=',DOVnDAZ
+   906  C	WRITE(6,*)'QKL=',QKL
+   907  C	WRITE(6,*)'DQKL=',DQKL
+   908  C	WRITE(6,*)'DWKL=',DWKL
+   909  C	STOP
+   910  C
+   911  C
+   912  C	DTKDBZ:
+
+                                                                        PAGE  17
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   913  C	======================================================
+   914  	PT1=(4.00D+00*A2**2.00D+00*A5)/GAMA3
+   915  	DPT1=0.00D+00
+   916  	PT2=(4.00D+00*A1**2.00D+00*A6)/GAMA3
+   917  	DPT2=0.00D+00
+   918  	PT3=4*A5*A6
+   919  	DPT3=0.00D+00
+   920  
+   921  	P1=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   922  	DP1=0.00D+00
+   923  	P2=(1.00D+00/(2.00D+00*GAMA1))-(GA1DEL/(8.00D+00*GAMA1))
+   924  	DP2=0.00D+00
+   925  	P3=(1.00D+00/(2.00D+00*GAMA2))-(GA2DEL/(8.00D+00*GAMA2))
+   926  	DP3=0.00D+00
+   927  
+   928  	DGA1DEL=0.00D+00
+   929  	DGA2DEL=0.00D+00
+   930  
+   931  	DPx=0.00D+00
+   932  	DAx=0.00D+00
+   933  	DBx=0.00D+00 
+   934  	DCx=0.00D+00
+   935  	DQx=0.00D+00
+   936  
+   937  	DPy=0.00D+00
+   938  	DAy=0.00D+00
+   939  	DBy=0.00D+00
+   940   	DCy=0.00D+00
+   941  	DQy=0.00D+00
+   942  
+   943  	DPz=0.00D+00
+   944  	DAz=0.00D+00
+   945  	DBz=0.00D+00
+   946   	DCz=1.00D+00 
+   947        DQz=A3/GAMA2
+   948   
+   949  	DPQx=DPx-DQx
+   950  	DPQy=DPy-DQy
+   951  	DPQz=DPz-DQz
+   952  
+   953  	DPBx=DPx-DBx
+   954  	DPBy=DPy-DBy
+   955  	DPBz=DPz-DBz
+   956  	DPAx=DPx-DAx
+   957  	DPAy=DPy-DAy
+   958  	DPAz=DPz-DAz
+   959  	DQCx=DQx-DCx
+   960  	DQCy=DQy-DCy
+   961  	DQCz=DQz-DCz
+   962  
+   963  	DACx=DAx-DCx
+   964  	DACy=DAy-DCy
+   965  	DACz=DAz-DCz
+   966  
+   967  	DOVxB11=DPBx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx)
+   968  	DOVyB11=DPBy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   969  	DOVzB11=DPBz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+
+                                                                        PAGE  18
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   970  	DOVxA11=DPAx-(1.00D+00/4.00D+00)*(PQX*DGA1DEL+GA1DEL*DPQx) 
+   971  	DOVyA11=DPAy-(1.00D+00/4.00D+00)*(PQY*DGA1DEL+GA1DEL*DPQy)
+   972  	DOVzA11=DPAz-(1.00D+00/4.00D+00)*(PQZ*DGA1DEL+GA1DEL*DPQz)
+   973  
+   974  	THETAx=OVXB11**2.00D+00+P1
+   975  	THETAy=OVYB11**2.00D+00+P1
+   976  	THETAz=OVZB11**2.00D+00+P1
+   977  	PHIx=OVXA11**2.00D+00+P2
+   978  	PHIy=OVYA11**2.00D+00+P2
+   979  	PHIz=OVZA11**2.00D+00+P2
+   980  
+   981  	DTHETAx=2.00D+00*OVXB11*DOVxB11+DP1
+   982  	DTHETAy=2.00D+00*OVYB11*DOVyB11+DP1
+   983  	DTHETAz=2.00D+00*OVZB11*DOVzB11+DP1
+   984  	DPHIx=2.00D+00*OVXA11*DOVxA11+DP2
+   985  	DPHIy=2.00D+00*OVYA11*DOVyA11+DP2
+   986  	DPHIz=2.00D+00*OVZA11*DOVzA11+DP2
+   987       
+   988        DOVxB12=OVLAP*DTHETAx+THETAx*DOVnDBZ
+   989  	DOVyB12=OVLAP*DTHETAy+THETAy*DOVnDBZ
+   990  	DOVzB12=OVLAP*DTHETAz+THETAz*DOVnDBZ
+   991  	DOVxA12=PHIx*DOVnDBZ+OVLAP*DPHIx
+   992  	DOVyA12=PHIy*DOVnDBZ+OVLAP*DPHIy
+   993  	DOVzA12=PHIz*DOVnDBZ+OVLAP*DPHIz
+   994  	DOVxC21=DQCx+(1.00D+00/4.00D+00)*(PQX*DGA2DEL+GA2DEL*DPQx)
+   995  	DOVyC21=DQCy+(1.00D+00/4.00D+00)*(PQY*DGA2DEL+GA2DEL*DPQy)
+   996        DOVzC21=DQCz+(1.00D+00/4.00D+00)*(PQZ*DGA2DEL+GA2DEL*DPQz)
+   997  
+   998  	DOVB12=DOVxB12+DOVyB12+DOVzB12
+   999        DOVA12=DOVxA12+DOVyA12+DOVzA12
+  1000  
+  1001  	RHO=OVA12+OVA11+OVC22+OVC21+A1C2
+  1002  
+  1003  	EPSILON=(OVXA11*ACX+OVYA11*ACY+OVZA11*ACZ)
+  1004  	DEPSILON=(DOVxA11*ACX+DACx*OVXA11+DOVyA11*ACY+DACy*OVYA11+DOVzA11*
+  1005  	-ACZ+DACz*OVZA11)
+  1006  
+  1007  	DOVA11=2.00D+00*(DEPSILON*OVLAP+DOVnDBZ*EPSILON)
+  1008  
+  1009  	ZEDx=OVXC21**2.00D+00+P3
+  1010  	ZEDy=OVYC21**2.00D+00+P3
+  1011  	ZEDz=OVZC21**2.00D+00+P3
+  1012  
+  1013  	DZEDx=2.00D+00*OVXC21*DOVxC21+DP3
+  1014  	DZEDy=2.00D+00*OVYC21*DOVyC21+DP3
+  1015  	DZEDz=2.00D+00*OVZC21*DOVzC21+DP3
+  1016  
+  1017  	DOVxC22=(OVLAP*DZEDx+ZEDx*DOVnDBZ)
+  1018  	DOVyC22=(OVLAP*DZEDy+ZEDy*DOVnDBZ)
+  1019  	DOVzC22=(OVLAP*DZEDz+ZEDz*DOVnDBZ)
+  1020  
+  1021  	DOVC22=DOVxC22+DOVyC22+DOVzC22
+  1022  
+  1023  	ZETA=(OVXC21*ACX+OVYC21*ACY+OVZC21*ACZ)
+  1024  	DZETA=(DOVxC21*ACX+DACx*OVXC21+DOVyC21*ACY+DACy*OVYC21+DOVzC21*ACZ
+  1025  	-+DACz*OVZC21)
+  1026  
+
+                                                                        PAGE  19
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1027  	DOVC21=-2.00D+00*(DZETA*OVLAP+DOVnDBZ*ZETA)
+  1028  
+  1029  	HEREx=PAX*GA2DEL-QCX*GA1DEL
+  1030  	HEREy=PAY*GA2DEL-QCY*GA1DEL
+  1031  	HEREz=PAZ*GA2DEL-QCZ*GA1DEL
+  1032  
+  1033  	UTAx=(1.00D+00-((PQX**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+  1034  	-GAMA1))
+  1035  	UTAy=(1.00D+00-((PQY**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+  1036  	-GAMA1))
+  1037  	UTAz=(1.00D+00-((PQZ**2.00D+00*DELT)/2.00D+00))*(GA2DEL/(8.00D+00*
+  1038  	-GAMA1))
+  1039  
+  1040  
+  1041  	REDx=PAX*QCX + (1.00D+00/4.00D+00)*PQX*(HEREx) + UTAx
+  1042  	REDy=PAY*QCY + (1.00D+00/4.00D+00)*PQY*(HEREy) + UTAy
+  1043  	REDz=PAZ*QCZ + (1.00D+00/4.00D+00)*PQZ*(HEREz) + UTAz							   
+  1044  
+  1045  	DINHEREx=0.00D+00
+  1046  	DINHEREy=0.00D+00
+  1047  	DINHEREz=-4.00D+00*(-1.00D+00+A3/GAMA2)*GAMA2*GAMA3/XMIAN
+  1048  
+  1049  	DUTAx=0.00D+00
+  1050  	DUTAy=0.00D+00
+  1051  	DUTAz=2.00D+00*A3*GAMA1*GAMA3**2.00D+00*PQZ/XMIAN**2.00D+00
+  1052  
+  1053  
+  1054  	DREDx=(PAX*DQCx+QCX*DPAx)+(1.00D+00/4.00D+00)*(PQX*DINHEREx+HEREx*
+  1055  	-DPQx)+DUTAx
+  1056  	DREDy=(PAY*DQCy+QCY*DPAy)+(1.00D+00/4.00D+00)*(PQY*DINHEREy+HEREy*
+  1057  	-DPQy)+DUTAy
+  1058  	DREDz=(PAZ*DQCz+QCZ*DPAz)+(1.00D+00/4.00D+00)*(PQZ*DINHEREz+HEREz*
+  1059  	-DPQz)+DUTAz	
+  1060  
+  1061  	DAx1Cx2=(OVLAP*DREDx + REDx*DOVnDBZ)
+  1062  	DAy1Cy2=(OVLAP*DREDy + REDy*DOVnDBZ)
+  1063  	DAz1Cz2=(OVLAP*DREDz + REDz*DOVnDBZ)
+  1064  
+  1065  	DA1C2=-2.00D+00*(DAx1Cx2+DAy1Cy2+DAz1Cz2)
+  1066  
+  1067  	DRHO=DOVA12+DOVA11+DOVC22+DOVC21+DA1C2
+  1068  
+  1069  	DNKL=(DPT3*RHO + DRHO*PT3)
+  1070  
+  1071  	DMKL=DNKL - (DPT2*OVA12 + DOVA12*PT2)
+  1072  
+  1073  	DWKL=DMKL - (DPT1*OVB12 + DOVB12*PT1)
+  1074  
+  1075  	QKL=(6.00D+00*(A1*A6DG3+A2*A5DG3)+4.00D+00*A5*A6*(ACX*ACX+ACY*ACY+
+  1076  	-ACZ*ACZ))
+  1077  	DQKL=-8.00D+00*ACZ*A5*A6
+  1078  
+  1079  	DTKDBZ=DWKL + QKL*DOVnDBZ + OVLAP*DQKL
+  1080  
+  1081  C	WRITE(6,*)'OVLAP=',OVLAP
+  1082  C	WRITE(6,*)'DOVLAP=',DOVnDBZ
+  1083  C	WRITE(6,*)'QKL=',QKL
+
+                                                                        PAGE  20
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1084  C	WRITE(6,*)'DQKL=',DQKL
+  1085  C	WRITE(6,*)'DWKL=',DWKL
+  1086  C	STOP
+  1087  C
+  1088  	END IF
+  1089  C
+  1090  C
+  1091  C     -----------------------------------------------------
+  1092  C     --- OutPut FORMAT(s) ---
+  1093  C     -----------------------------------------------------
+  1094  900   FORMAT(1x,F10.5)
+  1095  C     -----------------------------------------------------
+  1096  C
+  1097  C
+  1098        RETURN  
+  1099        END                                                               
+
+TK@84  Local symbols
+Name                      Class              Type           Size
+
+
+/DOVN/. . . . . . . . . . DOVN(0)            MULTI*40         40
+/DTK/ . . . . . . . . . . DTK(0)             MULTI*40         40
+A1. . . . . . . . . . . . param                                4
+A1C2. . . . . . . . . . . local              REAL*8            8
+A2. . . . . . . . . . . . param                                4
+A3. . . . . . . . . . . . param                                4
+A4. . . . . . . . . . . . param                                4
+A5. . . . . . . . . . . . param                                4
+A5DG3 . . . . . . . . . . local              REAL*8            8
+A6. . . . . . . . . . . . param                                4
+A6DG3 . . . . . . . . . . local              REAL*8            8
+ACX . . . . . . . . . . . local              REAL*8            8
+ACY . . . . . . . . . . . local              REAL*8            8
+ACZ . . . . . . . . . . . local              REAL*8            8
+AX. . . . . . . . . . . . param                                4
+AY. . . . . . . . . . . . param                                4
+AZ. . . . . . . . . . . . param                                4
+BX. . . . . . . . . . . . param                                4
+BY. . . . . . . . . . . . param                                4
+BZ. . . . . . . . . . . . param                                4
+CX. . . . . . . . . . . . param                                4
+CY. . . . . . . . . . . . param                                4
+CZ. . . . . . . . . . . . param                                4
+DA1C2 . . . . . . . . . . local              REAL*8            8
+DACX. . . . . . . . . . . local              REAL*8            8
+DACY. . . . . . . . . . . local              REAL*8            8
+DACZ. . . . . . . . . . . local              REAL*8            8
+DAX . . . . . . . . . . . local              REAL*8            8
+DAX1CX2 . . . . . . . . . local              REAL*8            8
+DAY . . . . . . . . . . . local              REAL*8            8
+DAY1CY2 . . . . . . . . . local              REAL*8            8
+DAZ . . . . . . . . . . . local              REAL*8            8
+DAZ1CZ2 . . . . . . . . . local              REAL*8            8
+DBX . . . . . . . . . . . local              REAL*8            8
+DBY . . . . . . . . . . . local              REAL*8            8
+DBZ . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  21
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TK@84  Local symbols
+Name                      Class              Type           Size
+
+
+DCX . . . . . . . . . . . local              REAL*8            8
+DCY . . . . . . . . . . . local              REAL*8            8
+DCZ . . . . . . . . . . . local              REAL*8            8
+DELT. . . . . . . . . . . local              REAL*8            8
+DEPSILON. . . . . . . . . local              REAL*8            8
+DFLAG . . . . . . . . . . param                                4
+DGA1DEL . . . . . . . . . local              REAL*8            8
+DGA2DEL . . . . . . . . . local              REAL*8            8
+DINHEREX. . . . . . . . . local              REAL*8            8
+DINHEREY. . . . . . . . . local              REAL*8            8
+DINHEREZ. . . . . . . . . local              REAL*8            8
+DMKL. . . . . . . . . . . local              REAL*8            8
+DNKL. . . . . . . . . . . local              REAL*8            8
+DOVA11. . . . . . . . . . local              REAL*8            8
+DOVA12. . . . . . . . . . local              REAL*8            8
+DOVB12. . . . . . . . . . local              REAL*8            8
+DOVC21. . . . . . . . . . local              REAL*8            8
+DOVC22. . . . . . . . . . local              REAL*8            8
+DOVNDA1 . . . . . . . . . DOVN(0)            REAL*8            8
+DOVNDA2 . . . . . . . . . DOVN(8)            REAL*8            8
+DOVNDA5 . . . . . . . . . DOVN(16)           REAL*8            8
+DOVNDAZ . . . . . . . . . DOVN(24)           REAL*8            8
+DOVNDBZ . . . . . . . . . DOVN(32)           REAL*8            8
+DOVXA11 . . . . . . . . . local              REAL*8            8
+DOVXA12 . . . . . . . . . local              REAL*8            8
+DOVXB11 . . . . . . . . . local              REAL*8            8
+DOVXB12 . . . . . . . . . local              REAL*8            8
+DOVXC21 . . . . . . . . . local              REAL*8            8
+DOVXC22 . . . . . . . . . local              REAL*8            8
+DOVYA11 . . . . . . . . . local              REAL*8            8
+DOVYA12 . . . . . . . . . local              REAL*8            8
+DOVYB11 . . . . . . . . . local              REAL*8            8
+DOVYB12 . . . . . . . . . local              REAL*8            8
+DOVYC21 . . . . . . . . . local              REAL*8            8
+DOVYC22 . . . . . . . . . local              REAL*8            8
+DOVZA11 . . . . . . . . . local              REAL*8            8
+DOVZA12 . . . . . . . . . local              REAL*8            8
+DOVZB11 . . . . . . . . . local              REAL*8            8
+DOVZB12 . . . . . . . . . local              REAL*8            8
+DOVZC21 . . . . . . . . . local              REAL*8            8
+DOVZC22 . . . . . . . . . local              REAL*8            8
+DP1 . . . . . . . . . . . local              REAL*8            8
+DP2 . . . . . . . . . . . local              REAL*8            8
+DP3 . . . . . . . . . . . local              REAL*8            8
+DPAX. . . . . . . . . . . local              REAL*8            8
+DPAY. . . . . . . . . . . local              REAL*8            8
+DPAZ. . . . . . . . . . . local              REAL*8            8
+DPBX. . . . . . . . . . . local              REAL*8            8
+DPBY. . . . . . . . . . . local              REAL*8            8
+DPBZ. . . . . . . . . . . local              REAL*8            8
+DPHIX . . . . . . . . . . local              REAL*8            8
+DPHIY . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  22
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TK@84  Local symbols
+Name                      Class              Type           Size
+
+
+DPHIZ . . . . . . . . . . local              REAL*8            8
+DPQX. . . . . . . . . . . local              REAL*8            8
+DPQY. . . . . . . . . . . local              REAL*8            8
+DPQZ. . . . . . . . . . . local              REAL*8            8
+DPT1. . . . . . . . . . . local              REAL*8            8
+DPT2. . . . . . . . . . . local              REAL*8            8
+DPT3. . . . . . . . . . . local              REAL*8            8
+DPX . . . . . . . . . . . local              REAL*8            8
+DPY . . . . . . . . . . . local              REAL*8            8
+DPZ . . . . . . . . . . . local              REAL*8            8
+DQCX. . . . . . . . . . . local              REAL*8            8
+DQCY. . . . . . . . . . . local              REAL*8            8
+DQCZ. . . . . . . . . . . local              REAL*8            8
+DQKL. . . . . . . . . . . local              REAL*8            8
+DQX . . . . . . . . . . . local              REAL*8            8
+DQY . . . . . . . . . . . local              REAL*8            8
+DQZ . . . . . . . . . . . local              REAL*8            8
+DREDX . . . . . . . . . . local              REAL*8            8
+DREDY . . . . . . . . . . local              REAL*8            8
+DREDZ . . . . . . . . . . local              REAL*8            8
+DRHO. . . . . . . . . . . local              REAL*8            8
+DTHETAX . . . . . . . . . local              REAL*8            8
+DTHETAY . . . . . . . . . local              REAL*8            8
+DTHETAZ . . . . . . . . . local              REAL*8            8
+DTKDA1. . . . . . . . . . DTK(0)             REAL*8            8
+DTKDA2. . . . . . . . . . DTK(8)             REAL*8            8
+DTKDA5. . . . . . . . . . DTK(16)            REAL*8            8
+DTKDAZ. . . . . . . . . . DTK(24)            REAL*8            8
+DTKDBZ. . . . . . . . . . DTK(32)            REAL*8            8
+DUTAX . . . . . . . . . . local              REAL*8            8
+DUTAY . . . . . . . . . . local              REAL*8            8
+DUTAZ . . . . . . . . . . local              REAL*8            8
+DWKL. . . . . . . . . . . local              REAL*8            8
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+DZ. . . . . . . . . . . . param                                4
+DZEDX . . . . . . . . . . local              REAL*8            8
+DZEDY . . . . . . . . . . local              REAL*8            8
+DZEDZ . . . . . . . . . . local              REAL*8            8
+DZETA . . . . . . . . . . local              REAL*8            8
+EIGHT . . . . . . . . . . local              REAL*8            8
+EPSILON . . . . . . . . . local              REAL*8            8
+FOUR. . . . . . . . . . . local              REAL*8            8
+G1PG2 . . . . . . . . . . local              REAL*8            8
+G1RG2 . . . . . . . . . . local              REAL*8            8
+GA1DEL. . . . . . . . . . local              REAL*8            8
+GA2DEL. . . . . . . . . . local              REAL*8            8
+GAMA1 . . . . . . . . . . local              REAL*8            8
+GAMA2 . . . . . . . . . . local              REAL*8            8
+GAMA3 . . . . . . . . . . local              REAL*8            8
+HALF. . . . . . . . . . . local              REAL*8            8
+HEREX . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  23
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TK@84  Local symbols
+Name                      Class              Type           Size
+
+
+HEREY . . . . . . . . . . local              REAL*8            8
+HEREZ . . . . . . . . . . local              REAL*8            8
+ONE . . . . . . . . . . . local              REAL*8            8
+OVA11 . . . . . . . . . . local              REAL*8            8
+OVA12 . . . . . . . . . . local              REAL*8            8
+OVB12 . . . . . . . . . . local              REAL*8            8
+OVC21 . . . . . . . . . . local              REAL*8            8
+OVC22 . . . . . . . . . . local              REAL*8            8
+OVLAP . . . . . . . . . . param                                4
+OVXA11. . . . . . . . . . local              REAL*8            8
+OVXA12. . . . . . . . . . local              REAL*8            8
+OVXB11. . . . . . . . . . local              REAL*8            8
+OVXB12. . . . . . . . . . local              REAL*8            8
+OVXC21. . . . . . . . . . local              REAL*8            8
+OVXC22. . . . . . . . . . local              REAL*8            8
+OVYA11. . . . . . . . . . local              REAL*8            8
+OVYA12. . . . . . . . . . local              REAL*8            8
+OVYB11. . . . . . . . . . local              REAL*8            8
+OVYB12. . . . . . . . . . local              REAL*8            8
+OVYC21. . . . . . . . . . local              REAL*8            8
+OVYC22. . . . . . . . . . local              REAL*8            8
+OVZA11. . . . . . . . . . local              REAL*8            8
+OVZA12. . . . . . . . . . local              REAL*8            8
+OVZB11. . . . . . . . . . local              REAL*8            8
+OVZB12. . . . . . . . . . local              REAL*8            8
+OVZC21. . . . . . . . . . local              REAL*8            8
+OVZC22. . . . . . . . . . local              REAL*8            8
+P1. . . . . . . . . . . . local              REAL*8            8
+P2. . . . . . . . . . . . local              REAL*8            8
+P3. . . . . . . . . . . . local              REAL*8            8
+PAX . . . . . . . . . . . local              REAL*8            8
+PAY . . . . . . . . . . . local              REAL*8            8
+PAZ . . . . . . . . . . . local              REAL*8            8
+PBX . . . . . . . . . . . local              REAL*8            8
+PBY . . . . . . . . . . . local              REAL*8            8
+PBZ . . . . . . . . . . . local              REAL*8            8
+PHIX. . . . . . . . . . . local              REAL*8            8
+PHIY. . . . . . . . . . . local              REAL*8            8
+PHIZ. . . . . . . . . . . local              REAL*8            8
+POM . . . . . . . . . . . local              REAL*8            8
+PQX . . . . . . . . . . . local              REAL*8            8
+PQX2. . . . . . . . . . . local              REAL*8            8
+PQY . . . . . . . . . . . local              REAL*8            8
+PQY2. . . . . . . . . . . local              REAL*8            8
+PQZ . . . . . . . . . . . local              REAL*8            8
+PQZ2. . . . . . . . . . . local              REAL*8            8
+PT1 . . . . . . . . . . . local              REAL*8            8
+PT2 . . . . . . . . . . . local              REAL*8            8
+PT3 . . . . . . . . . . . local              REAL*8            8
+PX. . . . . . . . . . . . local              REAL*8            8
+PY. . . . . . . . . . . . local              REAL*8            8
+PZ. . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  24
+                                                                        04-26-96
+                                                                        21:52:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TK@84  Local symbols
+Name                      Class              Type           Size
+
+
+QCX . . . . . . . . . . . local              REAL*8            8
+QCY . . . . . . . . . . . local              REAL*8            8
+QCZ . . . . . . . . . . . local              REAL*8            8
+QKL . . . . . . . . . . . local              REAL*8            8
+QX. . . . . . . . . . . . local              REAL*8            8
+QY. . . . . . . . . . . . local              REAL*8            8
+QZ. . . . . . . . . . . . local              REAL*8            8
+REDX. . . . . . . . . . . local              REAL*8            8
+REDY. . . . . . . . . . . local              REAL*8            8
+REDZ. . . . . . . . . . . local              REAL*8            8
+RHO . . . . . . . . . . . local              REAL*8            8
+SIX . . . . . . . . . . . local              REAL*8            8
+THETAX. . . . . . . . . . local              REAL*8            8
+THETAY. . . . . . . . . . local              REAL*8            8
+THETAZ. . . . . . . . . . local              REAL*8            8
+TKIN. . . . . . . . . . . param                                4
+TWO . . . . . . . . . . . local              REAL*8            8
+UTAX. . . . . . . . . . . local              REAL*8            8
+UTAY. . . . . . . . . . . local              REAL*8            8
+UTAZ. . . . . . . . . . . local              REAL*8            8
+XA1XC2. . . . . . . . . . local              REAL*8            8
+XMIAN . . . . . . . . . . local              REAL*8            8
+YA1YC2. . . . . . . . . . local              REAL*8            8
+ZA1ZC2. . . . . . . . . . local              REAL*8            8
+ZEDX. . . . . . . . . . . local              REAL*8            8
+ZEDY. . . . . . . . . . . local              REAL*8            8
+ZEDZ. . . . . . . . . . . local              REAL*8            8
+ZETA. . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DOVN. . . . . . . . . . . common             ***              40
+DTK . . . . . . . . . . . common             ***              40
+TK@84 . . . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

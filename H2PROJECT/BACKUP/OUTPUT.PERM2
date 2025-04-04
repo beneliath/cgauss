@@ -1,0 +1,38 @@
+ Correlated Gaussian Geminal Output:  H_2
+ ========================================
+ Adamowicz Research / [Univ. of AZ, CHEM]
+ Programming:      [Z. Zhang, D. Gilmore]
+  PROGRAM BEGINS:  TIME STAMP...
+     10/27/1995
+     15:34:32:40 
+ Output stream begins...
+ READING (h2.in) Gaussian Geminal Data...
+  
+      AA1               AA2               B12
+      ------------------------------------------------------
+  
+     .57170000E+00     .57170000E+00     .74830000E-03
+     .21280000E+00     .21280000E+00     .41430000E-04
+  
+  
+  Overlap (S) matrix: 
+  ------------------- 
+                  1                       2
+   1        61.834609786585450    225.729175442655900
+   2       225.729175442655900   1526.640277985102000
+  
+  Hamiltonian (H) matrix: 
+  ----------------------- 
+                  1                       2
+   1       -50.296545550736480   -258.643753872739700
+   2      -258.645671670586100  -1332.911063037686000
+  
+            UNOPTIMIZED GROUND STATE ENERGY =  -9.733976013958872E-001
+  
+  UNOPTIMIZED ENERGY ROUTINE FINISHES:  TIME STAMP...
+     10/27/1995
+     15:34:32:51 
+  
+  PROGRAM FINISHES:  TIME STAMP...
+     10/27/1995
+     15:34:32:53 

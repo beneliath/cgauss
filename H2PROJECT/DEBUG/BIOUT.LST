@@ -1,0 +1,44 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:20
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  D. Gilmore
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE BIOUT(STRING)
+     7  C
+     8  C     BIOUT prints string output to both the OUTPUT.TXT
+     9  C         file and the screen
+    10  C
+    11        CHARACTER*(*) STRING
+    12  C
+    13        WRITE(6,*) STRING
+    14        WRITE(7,*) STRING
+    15  C
+    16        RETURN
+    17        END
+
+BIOUT@8  Local symbols
+Name                      Class              Type           Size
+
+
+STRING. . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BIOUT@8 . . . . . . . . . FUNCT              ***             ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

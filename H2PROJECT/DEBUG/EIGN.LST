@@ -1,0 +1,348 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  
+     2  
+     3  
+     4  
+     5        SUBROUTINE EIGN(N,EIG)                                            
+     6        IMPLICIT REAL*8(A-H,O-Z)
+     7        REAL*8 IPOSV,IVPOS,IORD
+     8  C                  ****  VERSION  3/20/73  ****                         
+     9  C        *****  DESCRIPTION                               *****         
+    10  C        *****   THIS IS A GIVENS-HOUSHOLDER ROUTINE      *****         
+    11  C        *****   RECEIVES A MATRIX-A-OF WHICH ONLY LOWER  *****         
+    12  C        *****   TRANGLE IS USED AND THIS IS DESTROYED    *****         
+    13  C        *****   EIGENVALUES ARE RETURNED IN ALGEBRAIC    *****         
+    14  C        *****   ASCENDING ORDER IN ARRAY-EIG-            *****         
+    15  C        *****   THE EIGENVECTORS ARE RETURNED STORED BY  *****         
+    16  C        *****   COLUMNS IN VEC.                          *****         
+    17  C        *****         PARAMETERS PASSED                  *****         
+    18  C        *****   RHO=TOLERANCE ON FINAL OFF-DIAG ELEMENTS *****         
+    19  C        *****   N  IS THE SIZE OF THE MATRIX             *****         
+    20  C        *****   OF THAT IN QCPE PROGRAM CINDO BY DOBOSH  *****         
+    21  C        *****  THIS ROUTINE IS SLIGHTLY MODIFIED VERSION *****         
+    22  C                                                                       
+    23        DIMENSION W(500),EIG(500),GAMMA(500),BETA(500),P(500),
+    24       *          Q(500),BETASQ(500) 
+    25        COMMON /EIGMAT/A(500,500),VEC(500,500),IPOSV(500),
+    26       *               IVPOS(500),IORD(500)   
+    27        EQUIVALENCE (IPOSV,GAMMA),(IVPOS,BETA),(IORD,BETASQ),             
+    28       *  (IVPOS,P),(IVPOS,Q)                                             
+    29        RHO=1.0D-10                                                       
+    30        RHOSQ=RHO*RHO                                                     
+    31        IF(N.EQ.0) GO TO 560                                              
+    32        SHIFT = 0.D+00                                                    
+    33        N1=N-1                                                            
+    34        N2=N-2                                                            
+    35        GAMMA(1)=A(1,1)                                                   
+    36        IF(N2.EQ.0) GO TO 270                                             
+    37        IF(N2.LT.0)GO TO 280                                              
+    38        DO 260 NR=1,N2                                                    
+    39        B=A(NR+1,NR)                                                      
+    40        S=0.D+00                                                          
+    41        DO 130 I=NR,N2                                                    
+    42    130 S=S+A(I+2,NR)**2                                                  
+    43  C        *****  PREPARE FOR POSSIBLE BYPASS OF TRANSFORMATION  *****    
+    44        A(NR+1,NR)=0.D+00                                                 
+    45        IF(S.LE.0) GO TO 250                                              
+    46        S=S+B*B                                                           
+    47        SGN=+1.D+00                                                       
+    48        IF(B.GE.0) GO TO 160                                              
+    49        SGN = -1.D+00                                                     
+    50  160   SQRTS=SQRT(S)                                                    
+    51        D=SGN/(SQRTS+SQRTS)                                               
+    52        TEMP=SQRT(5.D-01+B*D)                                            
+    53        W(NR)=TEMP                                                        
+    54        A(NR+1,NR)=TEMP                                                   
+    55        D=D/TEMP                                                          
+    56        B=-SGN*SQRTS                                                      
+    57  C        *****  D IS FACTOR OF PROPORTIONALITY.           *****         
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C        *****  COMPUTE AND SAVE W VECTOR                               
+    59        DO 170 I=NR,N2                                                    
+    60        TEMP=D*A(I+2,NR)                                                  
+    61        W(I+1)=TEMP                                                       
+    62    170 A(I+2,NR)=TEMP                                                    
+    63  C        *****  PREMULTIPLY VECTOR-W-BY MATRIX -A- TO OBTAIN *****      
+    64  C        *****  -P- VECTOR.  SIMULTANEOUSLY ACCUMULATE DOT   *****      
+    65  C        *****  PRODUCT WP,(THE SCALAR K).                  *****       
+    66        WTAW = 0.D+00                                                     
+    67        DO 220 I=NR,N1                                                    
+    68        SUM = 0.D+00                                                      
+    69        DO 180 J=NR,I                                                     
+    70    180 SUM=SUM+A(I+1,J+1)*W(J)                                           
+    71        I1=I+1                                                            
+    72        IF((N1-I1).LT.0) GO TO 210                                        
+    73        DO 200 J=I1,N1                                                    
+    74    200 SUM=SUM+A(J+1,I+1)*W(J)                                           
+    75    210 P(I)=SUM                                                          
+    76    220 WTAW=WTAW+SUM*W(I)                                                
+    77  C        *****  P VECTOR AND SCALAR K NOW STORED.NEXT     *****         
+    78  C        ***** COMPUTE -Q- VECTOR                         *****         
+    79        DO 230 I=NR,N1                                                    
+    80    230 Q(I)=P(I)-WTAW*W(I)                                               
+    81  C        *****  NOW FORM PAP MATRIX, REQUIRED PART        *****         
+    82        DO 240 J=NR,N1                                                    
+    83        QJ=Q(J)                                                           
+    84        WJ=W(J)                                                           
+    85        DO 240 I=J,N1                                                     
+    86    240 A(I+1,J+1)=A(I+1,J+1)-2.D+00*(W(I)*QJ+WJ*Q(I))                    
+    87    250 BETA(NR)=B                                                        
+    88        BETASQ(NR)=B*B                                                    
+    89    260 GAMMA(NR+1)=A(NR+1,NR+1)                                          
+    90    270 B=A(N,N-1)                                                        
+    91        BETA(N-1)=B                                                       
+    92        BETASQ(N-1)=B*B                                                   
+    93        GAMMA(N)=A(N,N)                                                   
+    94    280 BETASQ(N)=0.D+00                                                  
+    95  C        *****  ADJOIN AN IDENTITY MATRIX TO BE           *****         
+    96  C        *****  POSTMULTIPLIED BY ROTATIONS               *****         
+    97        DO 300 I=1,N                                                      
+    98        DO 290 J=1,N                                                      
+    99    290 VEC(I,J)=0.D+00                                                   
+   100    300 VEC(I,I)=1.D+00                                                   
+   101        M=N                                                               
+   102        SUM=0.D+00                                                        
+   103        NPAS=1                                                            
+   104        GO TO 400                                                         
+   105    310 SUM=SUM+SHIFT                                                     
+   106        COSA=1.D+00                                                       
+   107        G=GAMMA(1)-SHIFT                                                  
+   108        PP=G                                                              
+   109        PPBS=PP*PP+BETASQ(1)                                              
+   110        PPBR=SQRT(PPBS)                                                  
+   111        DO 370 J=1,M                                                      
+   112        COSAP=COSA                                                        
+   113        IF(PPBS.NE.0) GO TO 320                                           
+   114        SINA = 0.D+00                                                     
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115        SINA2=0.D+00                                                      
+   116        COSA=1.D+00                                                       
+   117        GO TO 350                                                         
+   118    320 SINA=BETA(J)/PPBR                                                 
+   119        SINA2=BETASQ(J)/PPBS                                              
+   120        COSA=PP/PPBR                                                      
+   121  C        *****  POSTMULTIPLY IDENTITY BY P-TRANSPOSE      *****         
+   122        NT=J+NPAS                                                         
+   123        IF(NT.LE.N) GO TO 330                                             
+   124        NT = N                                                            
+   125    330 DO 340 I=1,NT                                                     
+   126        TEMP=COSA*VEC(I,J)+SINA*VEC(I,J+1)                                
+   127        VEC(I,J+1)=-SINA*VEC(I,J)+COSA*VEC(I,J+1)                         
+   128    340 VEC(I,J)=TEMP                                                     
+   129   350  DIA=GAMMA(J+1)-SHIFT                                              
+   130        U=SINA2*(G+DIA)                                                   
+   131        GAMMA(J)=G+U                                                      
+   132        G=DIA-U                                                           
+   133        PP=DIA*COSA-SINA*COSAP*BETA(J)                                    
+   134        IF(J.NE.M) GO TO 360                                              
+   135        BETA(J)=SINA*PP                                                   
+   136        BETASQ(J)=SINA2*PP*PP                                             
+   137        GO TO 380                                                         
+   138    360 PPBS=PP*PP+BETASQ(J+1)                                            
+   139        PPBR=SQRT(PPBS)                                                  
+   140        BETA(J)=SINA*PPBR                                                 
+   141    370 BETASQ(J)=SINA2*PPBS                                              
+   142   380  GAMMA(M+1)=G                                                      
+   143  C        *****  TEST FOR CONVERGENCE OF LAST DIAGONAL ELEMENT  *****    
+   144        NPAS=NPAS+1                                                       
+   145        IF(BETASQ(M).GT.RHOSQ) GO TO 410                                  
+   146    390 EIG(M+1)=GAMMA(M+1)+SUM                                           
+   147    400 BETA(M)=0.D+00                                                    
+   148        BETASQ(M)=0.D+00                                                  
+   149        M=M-1                                                             
+   150        IF(M.EQ.0) GO TO 430                                              
+   151        IF(BETASQ(M).LE.RHOSQ) GO TO 390                                  
+   152  C        *****  TAKE ROOT OF CORNER 2 BY 2 NEAREST TO     *****         
+   153  C        *****  LOEWR DIAGONAL IN VALUE AS ESTIMATE OF    *****         
+   154  C        *****  EIGENVALUE TO USE FOR SHIFT               *****         
+   155    410 A2=GAMMA(M+1)                                                     
+   156        R2=5.D-01*A2                                                      
+   157        R1=5.D-01*GAMMA(M)                                                
+   158        R12=R1+R2                                                         
+   159        DIF=R1-R2                                                         
+   160        TEMP=SQRT(DIF*DIF+BETASQ(M))                                     
+   161        R1=R12+TEMP                                                       
+   162        R2=R12-TEMP                                                       
+   163        DIF=ABS(A2-R1)-ABS(A2-R2)                                       
+   164        IF(DIF.LT.0) GO TO 420                                            
+   165        SHIFT=R2                                                          
+   166        GO TO 310                                                         
+   167    420 SHIFT=R1                                                          
+   168        GO TO 310                                                         
+   169    430 EIG(1)=GAMMA(1)+SUM                                               
+   170  C        *****  INITIALIZE AUXILIARY TABLES REQUIRED FOR  *****         
+   171  C        *****  REARANGING THE VECTORS                    *****         
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172        DO 440 J=1,N                                                      
+   173        IPOSV(J)=J                                                        
+   174        IVPOS(J)=J                                                        
+   175    440 IORD(J) = J                                                       
+   176  C        ***** USE A TRANSPOSITION SORT TO ORDER THE EIGENVALUES  ***** 
+   177        M=N                                                               
+   178        GO TO 470                                                         
+   179    450 DO 460 J=1,M                                                      
+   180        IF(EIG(J).LE.EIG(J+1)) GO TO 460                                  
+   181        TEMP=EIG(J)                                                       
+   182        EIG(J)=EIG(J+1)                                                   
+   183        EIG(J+1)=TEMP                                                     
+   184        ITEMP=IORD(J)                                                     
+   185        IORD(J)=IORD(J+1)                                                 
+   186        IORD(J+1)=ITEMP                                                   
+   187    460 CONTINUE                                                          
+   188    470 M=M-1                                                             
+   189        IF(M.NE.0) GO TO 450                                              
+   190        IF(N1.EQ.0) GO TO 500                                             
+   191        DO 490 L=1,N1                                                     
+   192        NV=IORD(L)                                                        
+   193        NP=IPOSV(NV)                                                      
+   194        IF(NP.EQ.L) GO TO 490                                             
+   195        LV=IVPOS(L)                                                       
+   196        IVPOS(NP)=LV                                                      
+   197        IPOSV(LV)=NP                                                      
+   198        DO 480 I=1,N                                                      
+   199        TEMP=VEC(I,L)                                                     
+   200        VEC(I,L)=VEC(I,NP)                                                
+   201    480 VEC(I,NP) = TEMP                                                  
+   202    490 CONTINUE                                                          
+   203    500 CONTINUE                                                          
+   204  C        *****  BACK TRANSFORM THE VECTORS OF THE TRIPLE  *****         
+   205  C        *****  DIAGONAL MATRIX                                         
+   206        DO 550 NRR=1,N                                                    
+   207        K=N1                                                              
+   208    510 K=K-1                                                             
+   209        IF(K.LE.0) GO TO 540                                              
+   210        SUM = 0.D+00                                                      
+   211        DO 520 I=K,N1                                                     
+   212    520 SUM=SUM+VEC(I+1,NRR)*A(I+1,K)                                     
+   213        SUM=SUM+SUM                                                       
+   214        DO 530 I=K,N1                                                     
+   215    530 VEC(I+1,NRR)=VEC(I+1,NRR)-SUM*A(I+1,K)                            
+   216        GO TO 510                                                         
+   217    540 CONTINUE                                                          
+   218    550 CONTINUE                                                          
+   219    560 CONTINUE                                                          
+   220        RETURN                                                            
+   221        END    
+
+EIGN@8  Local symbols
+Name                      Class              Type           Size
+
+
+/EIGMAT/. . . . . . . . . EIGMAT(0)          MULTI*4012000 4012000
+A . . . . . . . . . . . . EIGMAT(0)          REAL*8       2000000
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+EIGN@8  Local symbols
+Name                      Class              Type           Size
+
+
+A2. . . . . . . . . . . . local              REAL*8            8
+B . . . . . . . . . . . . local              REAL*8            8
+BETA. . . . . . . . . . . EIGMAT(4004000)    REAL*8         4000
+BETASQ. . . . . . . . . . EIGMAT(4008000)    REAL*8         4000
+COSA. . . . . . . . . . . local              REAL*8            8
+COSAP . . . . . . . . . . local              REAL*8            8
+D . . . . . . . . . . . . local              REAL*8            8
+DIA . . . . . . . . . . . local              REAL*8            8
+DIF . . . . . . . . . . . local              REAL*8            8
+EIG . . . . . . . . . . . param                                4
+G . . . . . . . . . . . . local              REAL*8            8
+GAMMA . . . . . . . . . . EIGMAT(4000000)    REAL*8         4000
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+I1. . . . . . . . . . . . local              INTEGER*4         4
+IORD. . . . . . . . . . . EIGMAT(4008000)    REAL*8         4000
+IPOSV . . . . . . . . . . EIGMAT(4000000)    REAL*8         4000
+ITEMP . . . . . . . . . . local              INTEGER*4         4
+IVPOS . . . . . . . . . . EIGMAT(4004000)    REAL*8         4000
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . dynam              INTEGER*4         4
+LV. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+N1. . . . . . . . . . . . local              INTEGER*4         4
+N2. . . . . . . . . . . . local              INTEGER*4         4
+NP. . . . . . . . . . . . local              INTEGER*4         4
+NPAS. . . . . . . . . . . local              INTEGER*4         4
+NR. . . . . . . . . . . . dynam              INTEGER*4         4
+NRR . . . . . . . . . . . dynam              INTEGER*4         4
+NT. . . . . . . . . . . . local              INTEGER*4         4
+NV. . . . . . . . . . . . local              INTEGER*4         4
+P . . . . . . . . . . . . EIGMAT(4004000)    REAL*8         4000
+PP. . . . . . . . . . . . local              REAL*8            8
+PPBR. . . . . . . . . . . local              REAL*8            8
+PPBS. . . . . . . . . . . local              REAL*8            8
+Q . . . . . . . . . . . . EIGMAT(4004000)    REAL*8         4000
+QJ. . . . . . . . . . . . local              REAL*8            8
+R1. . . . . . . . . . . . local              REAL*8            8
+R12 . . . . . . . . . . . local              REAL*8            8
+R2. . . . . . . . . . . . local              REAL*8            8
+RHO . . . . . . . . . . . local              REAL*8            8
+RHOSQ . . . . . . . . . . local              REAL*8            8
+S . . . . . . . . . . . . local              REAL*8            8
+SGN . . . . . . . . . . . local              REAL*8            8
+SHIFT . . . . . . . . . . local              REAL*8            8
+SINA. . . . . . . . . . . local              REAL*8            8
+SINA2 . . . . . . . . . . local              REAL*8            8
+SQRTS . . . . . . . . . . local              REAL*8            8
+SUM . . . . . . . . . . . local              REAL*8            8
+TEMP. . . . . . . . . . . local              REAL*8            8
+U . . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:54:45
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+EIGN@8  Local symbols
+Name                      Class              Type           Size
+
+
+VEC . . . . . . . . . . . EIGMAT(2000000)    REAL*8       2000000
+W . . . . . . . . . . . . local              REAL*8         4000
+WJ. . . . . . . . . . . . local              REAL*8            8
+WTAW. . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+EIGMAT. . . . . . . . . . common             ***          4012000
+EIGN@8. . . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

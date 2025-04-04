@@ -1,0 +1,94 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:53:37
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        subroutine daxpy(n,da,dx,incx,dy,incy)
+     2  c
+     3  c     constant times a vector plus a vector.
+     4  c     uses unrolled loops for increments equal to one.
+     5  c     jack dongarra, linpack, 3/11/78.
+     6  c     modified 12/3/93, array(1) declarations changed to array(*)
+     7  c
+     8        double precision dx(*),dy(*),da
+     9        integer i,incx,incy,ix,iy,m,mp1,n
+    10  c
+    11        if(n.le.0)return
+    12        if (da .eq. 0.0d0) return
+    13        if(incx.eq.1.and.incy.eq.1)go to 20
+    14  c
+    15  c        code for unequal increments or equal increments
+    16  c          not equal to 1
+    17  c
+    18        ix = 1
+    19        iy = 1
+    20        if(incx.lt.0)ix = (-n+1)*incx + 1
+    21        if(incy.lt.0)iy = (-n+1)*incy + 1
+    22        do 10 i = 1,n
+    23          dy(iy) = dy(iy) + da*dx(ix)
+    24          ix = ix + incx
+    25          iy = iy + incy
+    26     10 continue
+    27        return
+    28  c
+    29  c        code for both increments equal to 1
+    30  c
+    31  c
+    32  c        clean-up loop
+    33  c
+    34     20 m = mod(n,4)
+    35        if( m .eq. 0 ) go to 40
+    36        do 30 i = 1,m
+    37          dy(i) = dy(i) + da*dx(i)
+    38     30 continue
+    39        if( n .lt. 4 ) return
+    40     40 mp1 = m + 1
+    41        do 50 i = mp1,n,4
+    42          dy(i) = dy(i) + da*dx(i)
+    43          dy(i + 1) = dy(i + 1) + da*dx(i + 1)
+    44          dy(i + 2) = dy(i + 2) + da*dx(i + 2)
+    45          dy(i + 3) = dy(i + 3) + da*dx(i + 3)
+    46     50 continue
+    47        return
+    48        end
+
+DAXPY@24  Local symbols
+Name                      Class              Type           Size
+
+
+DA. . . . . . . . . . . . param                                4
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:53:37
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+DAXPY@24  Local symbols
+Name                      Class              Type           Size
+
+
+INCX. . . . . . . . . . . param                                4
+INCY. . . . . . . . . . . param                                4
+IX. . . . . . . . . . . . local              INTEGER*4         4
+IY. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MP1 . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DAXPY@24. . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

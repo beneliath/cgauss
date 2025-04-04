@@ -1,0 +1,36 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE BLANKDIRECTION (N,DIRECTION,NMAX)
+     2        REAL*8 DIRECTION(NMAX)
+     3        INTEGER I
+     4        DO 100 I=1,N
+     5            DIRECTION(N)=0.0D+00
+     6   100  CONTINUE
+     7        RETURN
+     8        END
+
+BLANKDIRECTION@12  Local symbols
+Name                      Class              Type           Size
+
+
+DIRECTION . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NMAX. . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BLANKDIRECTION@12 . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+
+
+No errors detected

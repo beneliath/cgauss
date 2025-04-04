@@ -1,0 +1,1119 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     2  C     -----------------------------------------------------
+     3        SUBROUTINE HAMILTONp(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,
+     4       1                    EVEC,S,H,EMIN,XAA1,XRX1,XRY1,XRZ1,
+     5       2					XAA2,XRX2,XRY2,XRZ2,XB12)
+     6  C     -----------------------------------------------------
+     7        IMPLICIT REAL*8 (A-H,O-Z)
+     8        INTEGER M,ERROR,DFLAG
+     9  	REAL*8 Snp1,Hnp1
+    10        REAL*8, DIMENSION(M) ::	AA1,RX1,RY1,RZ1,
+    11  	-						AA2,RX2,RY2,RZ2,
+    12       -						B12,EVEC
+    13  	REAL*8, DIMENSION(M,M) :: S,H
+    14  	REAL*8, DIMENSION(M+1) :: CO
+    15  	REAL*8 HH(2,2),SS(2,2),U(2,2),BIG(2),JB(2),VH(3)
+    16  C     -----------------------------------------------------
+    17  	COMMON /OVER/ L,K
+    18  	COMMON /TNOVER/ NXAC,XAC
+    19  C     -----------------------------------------------------
+    20  	PARAMETER(ISYMM=1)
+    21  	PARAMETER(IPERM=0)
+    22  C     -----------------------------------------------------
+    23        MMAX=M
+    24  	DFLAG=0
+    25  C     -----------------------------------------------------
+    26        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/
+    27  C     -----------------------------------------------------
+    28        CALL GEOM(EX1,EY1,EZ1,EX2,EY2,EZ2)
+    29  	L=1
+    30  	K=1
+    31  C     -----------------------------------------------------	  
+    32  C     -----------------------------------------------------
+    33  C     --- Calculate OVERLAP INTEGRAL ---
+    34  C     -----------------------------------------------------
+    35               CALL OVERLP(M,DFLAG,XRX1,XRY1,XRZ1,XAA1,
+    36       1            XRX1,XRY1,XRZ1,XAA1,                      
+    37       2            XRX2,XRY2,XRZ2,XAA2,
+    38       3            XRX2,XRY2,XRZ2,XAA2,
+    39       4            XB12,XB12,OV1,KLM)
+    40  C
+    41  C
+    42  	IF(ISYMM) THEN
+    43  		CALL OVERLP(M,DFLAG,XRX1,XRY1,XRZ1,XAA1,
+    44       1            XRX2,XRY2,XRZ2,XAA2,                      
+    45       2            XRX2,XRY2,XRZ2,XAA2,
+    46       3            XRX1,XRY1,XRZ1,XAA1,
+    47       4            XB12,XB12,OV2,KLM)
+    48  C
+    49  C
+    50  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+    51  C
+    52                CALL OVERLP(M,DFLAG,XRX1,XRY1,XRZ1,XAA1,
+    53       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+    54       2            XRX2,XRY2,XRZ2,XAA2,
+    55       3            -XRX2,-XRY2,-XRZ2,XAA2,
+    56       4            XB12,XB12,OV3,KLM)
+    57  C
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C
+    59  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+    60  C         P_[elec.1,elec.2]*P_[H1,H2]
+    61  C
+    62                CALL OVERLP(M,DFLAG,XRX1,XRY1,XRZ1,XAA1,
+    63       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+    64       2            XRX2,XRY2,XRZ2,XAA2,
+    65       3            -XRX1,-XRY1,-XRZ1,XAA1,
+    66       4            XB12,XB12,OV4,KLM)
+    67  C              
+    68  	END IF
+    69  C     -----------------------------------------------------
+    70  	IF(ISYMM) THEN
+    71                Snp1=OV1+OV2+OV3+OV4
+    72  		ELSE
+    73                Snp1=OV1
+    74  	END IF
+    75  	IF(IPERM.EQ.1) THEN
+    76  		Snp1=OV1
+    77  	END IF
+    78  	IF(IPERM.EQ.2) THEN
+    79  		Snp1=OV2
+    80  	END IF
+    81  	IF(IPERM.EQ.3) THEN
+    82  		Snp1=OV3
+    83  	END IF
+    84  	IF(IPERM.EQ.4) THEN
+    85  		Snp1=OV4
+    86  	END IF
+    87  C
+    88  C     -----------------------------------------------------
+    89  C     --- Calculate KINETIC ENERGY OF ELECTRON 1 ---
+    90  C     -----------------------------------------------------
+    91                CALL TK(DFLAG,OV1,
+    92       1            XRX1,XRY1,XRZ1,XAA1,
+    93       2            XRX1,XRY1,XRZ1,XAA1,                      
+    94       3            XRX2,XRY2,XRZ2,XAA2,
+    95       4            XRX2,XRY2,XRZ2,XAA2,
+    96       5            XB12,XB12,T1)  
+    97  C
+    98  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+    99  	IF (ISYMM) THEN
+   100                CALL TK(DFLAG,OV2,
+   101       1            XRX1,XRY1,XRZ1,XAA1,
+   102       2            XRX2,XRY2,XRZ2,XAA2,                      
+   103       3            XRX2,XRY2,XRZ2,XAA2,
+   104       4            XRX1,XRY1,XRZ1,XAA1,
+   105       5            XB12,XB12,T2)  
+   106  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   107                CALL TK(DFLAG,OV3,
+   108       1            XRX1,XRY1,XRZ1,XAA1,
+   109       2            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   110       3            XRX2,XRY2,XRZ2,XAA2,
+   111       4            -XRX2,-XRY2,-XRZ2,XAA2,
+   112       5            XB12,XB12,T3)
+   113  C     ...Electro/Nuclear Symmetrization Integral:
+   114  C         P_[elec.1,elec.2]*P_[H1,H2]
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115                CALL TK(DFLAG,OV4,
+   116       1            XRX1,XRY1,XRZ1,XAA1,
+   117       2            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   118       3            XRX2,XRY2,XRZ2,XAA2,
+   119       4            -XRX1,-XRY1,-XRZ1,XAA1,
+   120       5            XB12,XB12,T4)
+   121  	END IF
+   122  C     -----------------------------------------------------
+   123  C     --- Calculate KINETIC ENERGY OF ELECTRON 2 ---
+   124  C     -----------------------------------------------------
+   125               CALL TK(DFLAG,OV1,
+   126       1            XRX2,XRY2,XRZ2,XAA2,
+   127       2            XRX2,XRY2,XRZ2,XAA2,                      
+   128       3            XRX1,XRY1,XRZ1,XAA1,
+   129       4            XRX1,XRY1,XRZ1,XAA1,
+   130       5            XB12,XB12,T5)  
+   131  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   132  	IF (ISYMM) THEN
+   133                CALL TK(DFLAG,OV2,
+   134       1            XRX2,XRY2,XRZ2,XAA2,
+   135       2            XRX1,XRY1,XRZ1,XAA1,                      
+   136       3            XRX1,XRY1,XRZ1,XAA1,
+   137       4            XRX2,XRY2,XRZ2,XAA2,
+   138       5            XB12,XB12,T6) 
+   139  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   140                CALL TK(DFLAG,OV3,
+   141       1            XRX2,XRY2,XRZ2,XAA2,
+   142       2            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   143       3            XRX1,XRY1,XRZ1,XAA1,
+   144       4            -XRX1,-XRY1,-XRZ1,XAA1,
+   145       5            XB12,XB12,T7)
+   146  C     ...Electro/Nuclear Symmetrization Integral:
+   147  C         P_[elec.1,elec.2]*P_[H1,H2]
+   148                CALL TK(DFLAG,OV4,
+   149       1            XRX2,XRY2,XRZ2,XAA2,
+   150       2            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   151       3            XRX1,XRY1,XRZ1,XAA1,
+   152       4            -XRX2,-XRY2,-XRZ2,XAA2,
+   153       5            XB12,XB12,T8)
+   154  	END IF
+   155  C
+   156  	IF (ISYMM) THEN
+   157              T=(T1+T2+T3+T4+T5+T6+T7+T8)/2.0D+00
+   158  	ELSE
+   159  		  T=(T1+T5)/2.0D+00
+   160  	END IF
+   161  	IF(IPERM.EQ.1) THEN
+   162  		T=(T1+T5)/2.0D+00
+   163  	END IF
+   164  	IF(IPERM.EQ.2) THEN
+   165  		T=(T2+T6)/2.0D+00
+   166  	END IF
+   167  	IF(IPERM.EQ.3) THEN
+   168  		T=(T3+T7)/2.0D+00
+   169  	END IF
+   170  	IF(IPERM.EQ.4) THEN
+   171  		T=(T4+T8)/2.0D+00
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  	END IF
+   173  C     -----------------------------------------------------
+   174  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 1 ---
+   175  C     -----------------------------------------------------
+   176                CALL ENUCL(DFLAG,OV1,XRX1,XRY1,XRZ1,XAA1,
+   177       1           XRX1,XRY1,XRZ1,XAA1,                      
+   178       2           XRX2,XRY2,XRZ2,XAA2,
+   179       3           XRX2,XRY2,XRZ2,XAA2,
+   180       4           XB12,XB12,
+   181       5           EX1,EY1,EZ1,EN1,KLM)
+   182  C
+   183  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   184  C
+   185  	IF (ISYMM) THEN
+   186                CALL ENUCL(DFLAG,OV2,XRX1,XRY1,XRZ1,XAA1,
+   187       1           XRX2,XRY2,XRZ2,XAA2,                      
+   188       2           XRX2,XRY2,XRZ2,XAA2,
+   189       3           XRX1,XRY1,XRZ1,XAA1,
+   190       4           XB12,XB12,
+   191       5           EX1,EY1,EZ1,EN2,KLM)                       
+   192  C
+   193  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   194  C
+   195                CALL ENUCL(DFLAG,OV3,XRX1,XRY1,XRZ1,XAA1,
+   196       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   197       2            XRX2,XRY2,XRZ2,XAA2,
+   198       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   199       4            XB12,XB12,
+   200       5            EX1,EY1,EZ1,EN3,KLM)
+   201  C
+   202  C     ...Electro/Nuclear Symmetrization Integral:
+   203  C         P_[elec.1,elec.2]*P_[H1,H2]
+   204  C
+   205                CALL ENUCL(DFLAG,OV4,XRX1,XRY1,XRZ1,XAA1,
+   206       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   207       2            XRX2,XRY2,XRZ2,XAA2,
+   208       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   209       4            XB12,XB12,
+   210       5            EX1,EY1,EZ1,EN4,KLM)
+   211  	END IF
+   212  C  
+   213                CALL ENUCL(DFLAG,OV1,XRX1,XRY1,XRZ1,XAA1,
+   214       1           XRX1,XRY1,XRZ1,XAA1,                      
+   215       2           XRX2,XRY2,XRZ2,XAA2,
+   216       3           XRX2,XRY2,XRZ2,XAA2,
+   217       4           XB12,XB12,
+   218       5           EX2,EY2,EZ2,EN5,KLM)
+   219  C
+   220  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   221  C
+   222  	IF (ISYMM) THEN
+   223                CALL ENUCL(DFLAG,OV2,XRX1,XRY1,XRZ1,XAA1,
+   224       1           XRX2,XRY2,XRZ2,XAA2,                      
+   225       2           XRX2,XRY2,XRZ2,XAA2,
+   226       3           XRX1,XRY1,XRZ1,XAA1,
+   227       4           XB12,XB12,
+   228       5           EX2,EY2,EZ2,EN6,KLM)                       
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229  C
+   230  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   231  C
+   232                CALL ENUCL(DFLAG,OV3,XRX1,XRY1,XRZ1,XAA1,
+   233       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   234       2            XRX2,XRY2,XRZ2,XAA2,
+   235       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   236       4            XB12,XB12,
+   237       5            EX2,EY2,EZ2,EN7,KLM)
+   238  C
+   239  C     ...Electro/Nuclear Symmetrization Integral:
+   240  C         P_[elec.1,elec.2]*P_[H1,H2]
+   241  C
+   242                CALL ENUCL(DFLAG,OV4,XRX1,XRY1,XRZ1,XAA1,
+   243       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   244       2            XRX2,XRY2,XRZ2,XAA2,
+   245       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   246       4            XB12,XB12,
+   247       5            EX2,EY2,EZ2,EN8,KLM)
+   248  	END IF
+   249  C 
+   250  C     -----------------------------------------------------
+   251  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 2 ---
+   252  C     -----------------------------------------------------
+   253                CALL ENUCL(DFLAG,OV1,XRX2,XRY2,XRZ2,XAA2,
+   254       1           XRX2,XRY2,XRZ2,XAA2,                      
+   255       2           XRX1,XRY1,XRZ1,XAA1,
+   256       3           XRX1,XRY1,XRZ1,XAA1,
+   257       4           XB12,XB12,
+   258       5           EX1,EY1,EZ1,EN9,KLM)                       
+   259  C
+   260  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   261  C
+   262  	IF (ISYMM) THEN
+   263                CALL ENUCL(DFLAG,OV2,XRX2,XRY2,XRZ2,XAA2,
+   264       1           XRX1,XRY1,XRZ1,XAA1,                      
+   265       2           XRX1,XRY1,XRZ1,XAA1,
+   266       3           XRX2,XRY2,XRZ2,XAA2,
+   267       4           XB12,XB12,
+   268       5           EX1,EY1,EZ1,EN10,KLM)                       
+   269  C
+   270  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   271  C
+   272                CALL ENUCL(DFLAG,OV3,XRX2,XRY2,XRZ2,XAA2,
+   273       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   274       2            XRX1,XRY1,XRZ1,XAA1,
+   275       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   276       4            XB12,XB12,
+   277       5            EX1,EY1,EZ1,EN11,KLM)
+   278  C
+   279  C     ...Electro/Nuclear Symmetrization Integral:
+   280  C         P_[elec.1,elec.2]*P_[H1,H2]
+   281  C
+   282                CALL ENUCL(DFLAG,OV4,XRX2,XRY2,XRZ2,XAA2,
+   283       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   284       2            XRX1,XRY1,XRZ1,XAA1,
+   285       3            -XRX2,-XRY2,-XRZ2,XAA2,
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   286       4            XB12,XB12,
+   287       5            EX1,EY1,EZ1,EN12,KLM)
+   288  	END IF
+   289  C 
+   290                CALL ENUCL(DFLAG,OV1,XRX2,XRY2,XRZ2,XAA2,
+   291       1           XRX2,XRY2,XRZ2,XAA2,                      
+   292       2           XRX1,XRY1,XRZ1,XAA1,
+   293       3           XRX1,XRY1,XRZ1,XAA1,
+   294       4           XB12,XB12,
+   295       5           EX2,EY2,EZ2,EN13,KLM)                       
+   296  C
+   297  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   298  C
+   299  	IF (ISYMM) THEN
+   300                CALL ENUCL(DFLAG,OV2,XRX2,XRY2,XRZ2,XAA2,
+   301       1           XRX1,XRY1,XRZ1,XAA1,                      
+   302       2           XRX1,XRY1,XRZ1,XAA1,
+   303       3           XRX2,XRY2,XRZ2,XAA2,
+   304       4           XB12,XB12,
+   305       5           EX2,EY2,EZ2,EN14,KLM)  
+   306  C
+   307  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   308  C
+   309                CALL ENUCL(DFLAG,OV3,XRX2,XRY2,XRZ2,XAA2,
+   310       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   311       2            XRX1,XRY1,XRZ1,XAA1,
+   312       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   313       4            XB12,XB12,
+   314       5            EX2,EY2,EZ2,EN15,KLM)
+   315  C
+   316  C     ...Electro/Nuclear Symmetrization Integral:
+   317  C         P_[elec.1,elec.2]*P_[H1,H2]
+   318  C
+   319                CALL ENUCL(DFLAG,OV4,XRX2,XRY2,XRZ2,XAA2,
+   320       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   321       2            XRX1,XRY1,XRZ1,XAA1,
+   322       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   323       4            XB12,XB12,
+   324       5            EX2,EY2,EZ2,EN16,KLM)
+   325  	END IF
+   326  C 
+   327  C
+   328  	IF (ISYMM) THEN
+   329                ENN1=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   330       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   331  	ELSE
+   332                ENN1=EN1+EN5+EN9+EN13
+   333  	END IF
+   334  C     -----------------------------------------------------
+   335  C     --- Calculate the Elec./Elec. Repulsion ---
+   336  C     -----------------------------------------------------
+   337                CALL ELREP(DFLAG,OV1,XRX1,XRY1,XRZ1,XAA1,
+   338       1           XRX1,XRY1,XRZ1,XAA1,                      
+   339       2           XRX2,XRY2,XRZ2,XAA2,
+   340       3           XRX2,XRY2,XRZ2,XAA2,
+   341       4           XB12,XB12,ER1,KLM)  
+   342  C
+
+                                                                        PAGE   7
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   343  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   344  C
+   345  	IF (ISYMM) THEN
+   346                CALL ELREP(DFLAG,OV2,XRX1,XRY1,XRZ1,XAA1,
+   347       1           XRX2,XRY2,XRZ2,XAA2,                      
+   348       2           XRX2,XRY2,XRZ2,XAA2,
+   349       3           XRX1,XRY1,XRZ1,XAA1,
+   350       4           XB12,XB12,ER2,KLM)  
+   351  C
+   352  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+   353  C
+   354                CALL ELREP(DFLAG,OV3,XRX1,XRY1,XRZ1,XAA1,
+   355       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   356       2            XRX2,XRY2,XRZ2,XAA2,
+   357       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   358       4            XB12,XB12,ER3,KLM)
+   359  C
+   360  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+   361  C         P_[elec.1,elec.2]*P_[H1,H2]
+   362  C
+   363                CALL ELREP(DFLAG,OV4,XRX1,XRY1,XRZ1,XAA1,
+   364       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   365       2            XRX2,XRY2,XRZ2,XAA2,
+   366       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   367       4            XB12,XB12,ER4,KLM)
+   368  	END IF
+   369  
+   370  C              
+   371  	IF (ISYMM) THEN
+   372  		EER1=ER1+ER2+ER3+ER4
+   373  	ELSE
+   374  		EER1=ER1
+   375  	END IF
+   376  C
+   377  C
+   378  	IF (ISYMM) THEN
+   379                EN=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   380       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   381  	ELSE
+   382                EN=EN1+EN5+EN9+EN13
+   383  	END IF
+   384  C
+   385  	IF(IPERM.EQ.1) THEN
+   386                EN=EN1+EN5+EN9+EN13
+   387  	END IF
+   388  	IF(IPERM.EQ.2) THEN
+   389                EN=EN2+EN6+EN10+EN14
+   390  	END IF
+   391  	IF(IPERM.EQ.3) THEN
+   392                EN=EN3+EN7+EN11+EN15
+   393  	END IF
+   394  	IF(IPERM.EQ.4) THEN
+   395                EN=EN4+EN8+EN12+EN16
+   396  	END IF
+   397  C
+   398  	IF (ISYMM) THEN
+   399                ER=ER1+ER2+ER3+ER4
+
+                                                                        PAGE   8
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   400  	ELSE
+   401  			ER=ER1
+   402  	END IF
+   403  C
+   404  	IF(IPERM.EQ.1) THEN
+   405  			ER=ER1
+   406  	END IF
+   407  	IF(IPERM.EQ.2) THEN
+   408  			ER=ER2
+   409  	END IF
+   410  	IF(IPERM.EQ.3) THEN
+   411  			ER=ER3
+   412  	END IF
+   413  	IF(IPERM.EQ.4) THEN
+   414  			ER=ER4
+   415  	END IF
+   416  C
+   417                Hnp1=ER+T-EN+(1.0D+00/1.4011D+00)*Snp1
+   418  C     ----------------------------------------------------- 
+   419  C      CALL BIOUT(' ')
+   420  C	CALL ENERGY(M,H,S,EMIN,CO,KIM)
+   421  C	DO J=1,M
+   422  C		EVEC(J)=CO(J)
+   423  C	END DO
+   424  C	WRITE(6,*)CO(1),CO(2)
+   425  C      J=1
+   426  C	CALL BIOUT(' ')
+   427  C      CALL BIOUT('     LinCoeff:.   AA1:        AA2:        B12:       
+   428  C	-RZ1:       RZ2:')
+#  429  C      CALL BIOUT('FNC: ================================================
+   430  C     -=====================')
+   431  C	DO J=1,M
+   432  C          WRITE(6,1111) J,CO(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+   433  C          WRITE(7,1111) J,CO(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+   434  C	END DO
+   435  
+   436  	SS(1,1)=1.00D+00
+   437  	SS(2,2)=Snp1/Snp1
+   438  C	HH(1,1)=EMIN
+   439        HH(2,2)=Hnp1/Snp1
+   440  	HH(1,2)=0.00D+00
+   441  	SS(1,2)=0.00D+00
+   442  C     ----------------------------------------------------- 
+   443        IF (M.GE.2) K=2
+   444  	DO L=1,M
+   445  C     -----------------------------------------------------
+   446  C     --- Calculate OVERLAP INTEGRAL ---
+   447  C     -----------------------------------------------------
+   448               CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+   449       1            XRX1,XRY1,XRZ1,XAA1,                      
+   450       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   451       3            XRX2,XRY2,XRZ2,XAA2,
+   452       4            B12(L),XB12,OV1,KLM)
+   453  C
+   454  C
+   455  	IF(ISYMM) THEN
+   456  		CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+
+                                                                        PAGE   9
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   457       1            XRX2,XRY2,XRZ2,XAA2,                      
+   458       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   459       3            XRX1,XRY1,XRZ1,XAA1,
+   460       4            B12(L),XB12,OV2,KLM)
+   461  C
+   462  C
+   463  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+   464  C
+   465                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+   466       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   467       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   468       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   469       4            B12(L),XB12,OV3,KLM)
+   470  C
+   471  C
+   472  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+   473  C         P_[elec.1,elec.2]*P_[H1,H2]
+   474  C
+   475                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+   476       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   477       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   478       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   479       4            B12(L),XB12,OV4,KLM)
+   480  C              
+   481  	END IF
+   482  C     -----------------------------------------------------
+   483                Stemp=OV1+OV2+OV3+OV4
+   484  C
+   485  C	WRITE(6,*)'Stemp(',L,')=',Stemp
+   486  C     -----------------------------------------------------
+   487  C     --- Calculate KINETIC ENERGY OF ELECTRON 1 ---
+   488  C     -----------------------------------------------------
+   489                CALL TK(DFLAG,OV1,
+   490       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   491       2            XRX1,XRY1,XRZ1,XAA1,                      
+   492       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   493       4            XRX2,XRY2,XRZ2,XAA2,
+   494       5            B12(L),XB12,T1)  
+   495  C
+   496  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   497  	IF (ISYMM) THEN
+   498                CALL TK(DFLAG,OV2,
+   499       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   500       2            XRX2,XRY2,XRZ2,XAA2,                      
+   501       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   502       4            XRX1,XRY1,XRZ1,XAA1,
+   503       5            B12(L),XB12,T2)  
+   504  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   505                CALL TK(DFLAG,OV3,
+   506       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   507       2            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   508       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   509       4            -XRX2,-XRY2,-XRZ2,XAA2,
+   510       5            B12(L),XB12,T3)
+   511  C     ...Electro/Nuclear Symmetrization Integral:
+   512  C         P_[elec.1,elec.2]*P_[H1,H2]
+   513                CALL TK(DFLAG,OV4,
+
+                                                                        PAGE  10
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   514       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   515       2            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   516       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   517       4            -XRX1,-XRY1,-XRZ1,XAA1,
+   518       5            B12(L),XB12,T4)
+   519  	END IF
+   520  C     -----------------------------------------------------
+   521  C     --- Calculate KINETIC ENERGY OF ELECTRON 2 ---
+   522  C     -----------------------------------------------------
+   523               CALL TK(DFLAG,OV1,
+   524       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   525       2            XRX2,XRY2,XRZ2,XAA2,                      
+   526       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   527       4            XRX1,XRY1,XRZ1,XAA1,
+   528       5            B12(L),XB12,T5)  
+   529  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   530  	IF (ISYMM) THEN
+   531                CALL TK(DFLAG,OV2,
+   532       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   533       2            XRX1,XRY1,XRZ1,XAA1,                      
+   534       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   535       4            XRX2,XRY2,XRZ2,XAA2,
+   536       5            B12(L),XB12,T6) 
+   537  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   538                CALL TK(DFLAG,OV3,
+   539       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   540       2            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   541       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   542       4            -XRX1,-XRY1,-XRZ1,XAA1,
+   543       5            B12(L),XB12,T7)
+   544  C     ...Electro/Nuclear Symmetrization Integral:
+   545  C         P_[elec.1,elec.2]*P_[H1,H2]
+   546                CALL TK(DFLAG,OV4,
+   547       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   548       2            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   549       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   550       4            -XRX2,-XRY2,-XRZ2,XAA2,
+   551       5            B12(L),XB12,T8)
+   552  	END IF
+   553  C
+   554  	IF (ISYMM) THEN
+   555              T=(T1+T2+T3+T4+T5+T6+T7+T8)/2.0D+00
+   556  	ELSE
+   557  		  T=(T1+T5)/2.0D+00
+   558  	END IF
+   559  C     -----------------------------------------------------
+   560  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 1 ---
+   561  C     -----------------------------------------------------
+   562                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   563       1           XRX1,XRY1,XRZ1,XAA1,                      
+   564       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   565       3           XRX2,XRY2,XRZ2,XAA2,
+   566       4           B12(L),XB12,
+   567       5           EX1,EY1,EZ1,EN1,KLM)
+   568  C
+   569  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   570  C
+
+                                                                        PAGE  11
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   571  	IF (ISYMM) THEN
+   572                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   573       1           XRX2,XRY2,XRZ2,XAA2,                      
+   574       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   575       3           XRX1,XRY1,XRZ1,XAA1,
+   576       4           B12(L),XB12,
+   577       5           EX1,EY1,EZ1,EN2,KLM)                       
+   578  C
+   579  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   580  C
+   581                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   582       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   583       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   584       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   585       4            B12(L),XB12,
+   586       5            EX1,EY1,EZ1,EN3,KLM)
+   587  C
+   588  C     ...Electro/Nuclear Symmetrization Integral:
+   589  C         P_[elec.1,elec.2]*P_[H1,H2]
+   590  C
+   591                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   592       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   593       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   594       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   595       4            B12(L),XB12,
+   596       5            EX1,EY1,EZ1,EN4,KLM)
+   597  	END IF
+   598  C  
+   599                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   600       1           XRX1,XRY1,XRZ1,XAA1,                      
+   601       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   602       3           XRX2,XRY2,XRZ2,XAA2,
+   603       4           B12(L),XB12,
+   604       5           EX2,EY2,EZ2,EN5,KLM)
+   605  C
+   606  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   607  C
+   608  	IF (ISYMM) THEN
+   609                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   610       1           XRX2,XRY2,XRZ2,XAA2,                      
+   611       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   612       3           XRX1,XRY1,XRZ1,XAA1,
+   613       4           B12(L),XB12,
+   614       5           EX2,EY2,EZ2,EN6,KLM)                       
+   615  C
+   616  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   617  C
+   618                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   619       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   620       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   621       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   622       4            B12(L),XB12,
+   623       5            EX2,EY2,EZ2,EN7,KLM)
+   624  C
+   625  C     ...Electro/Nuclear Symmetrization Integral:
+   626  C         P_[elec.1,elec.2]*P_[H1,H2]
+   627  C
+
+                                                                        PAGE  12
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   628                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   629       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   630       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   631       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   632       4            B12(L),XB12,
+   633       5            EX2,EY2,EZ2,EN8,KLM)
+   634  	END IF
+   635  C 
+   636  C     -----------------------------------------------------
+   637  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 2 ---
+   638  C     -----------------------------------------------------
+   639                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+   640       1           XRX2,XRY2,XRZ2,XAA2,                      
+   641       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   642       3           XRX1,XRY1,XRZ1,XAA1,
+   643       4           B12(L),XB12,
+   644       5           EX1,EY1,EZ1,EN9,KLM)                       
+   645  C
+   646  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   647  C
+   648  	IF (ISYMM) THEN
+   649                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+   650       1           XRX1,XRY1,XRZ1,XAA1,                      
+   651       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   652       3           XRX2,XRY2,XRZ2,XAA2,
+   653       4           B12(L),XB12,
+   654       5           EX1,EY1,EZ1,EN10,KLM)                       
+   655  C
+   656  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   657  C
+   658                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+   659       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   660       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   661       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   662       4            B12(L),XB12,
+   663       5            EX1,EY1,EZ1,EN11,KLM)
+   664  C
+   665  C     ...Electro/Nuclear Symmetrization Integral:
+   666  C         P_[elec.1,elec.2]*P_[H1,H2]
+   667  C
+   668                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+   669       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   670       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   671       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   672       4            B12(L),XB12,
+   673       5            EX1,EY1,EZ1,EN12,KLM)
+   674  	END IF
+   675  C 
+   676                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+   677       1           XRX2,XRY2,XRZ2,XAA2,                      
+   678       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   679       3           XRX1,XRY1,XRZ1,XAA1,
+   680       4           B12(L),XB12,
+   681       5           EX2,EY2,EZ2,EN13,KLM)                       
+   682  C
+   683  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   684  C
+
+                                                                        PAGE  13
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   685  	IF (ISYMM) THEN
+   686                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+   687       1           XRX1,XRY1,XRZ1,XAA1,                      
+   688       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   689       3           XRX2,XRY2,XRZ2,XAA2,
+   690       4           B12(L),XB12,
+   691       5           EX2,EY2,EZ2,EN14,KLM)  
+   692  C
+   693  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   694  C
+   695                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+   696       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   697       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   698       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   699       4            B12(L),XB12,
+   700       5            EX2,EY2,EZ2,EN15,KLM)
+   701  C
+   702  C     ...Electro/Nuclear Symmetrization Integral:
+   703  C         P_[elec.1,elec.2]*P_[H1,H2]
+   704  C
+   705                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+   706       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+   707       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   708       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   709       4            B12(L),XB12,
+   710       5            EX2,EY2,EZ2,EN16,KLM)
+   711  	END IF
+   712  C 
+   713  C
+   714  	IF (ISYMM) THEN
+   715                ENN1=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   716       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   717  	ELSE
+   718                ENN1=EN1+EN5+EN9+EN13
+   719  	END IF
+   720  C     -----------------------------------------------------
+   721  C     --- Calculate the Elec./Elec. Repulsion ---
+   722  C     -----------------------------------------------------
+   723                CALL ELREP(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   724       1           XRX1,XRY1,XRZ1,XAA1,                      
+   725       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   726       3           XRX2,XRY2,XRZ2,XAA2,
+   727       4           B12(L),XB12,ER1,KLM)  
+   728  C
+   729  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   730  C
+   731  	IF (ISYMM) THEN
+   732                CALL ELREP(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   733       1           XRX2,XRY2,XRZ2,XAA2,                      
+   734       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   735       3           XRX1,XRY1,XRZ1,XAA1,
+   736       4           B12(L),XB12,ER2,KLM)  
+   737  C
+   738  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+   739  C
+   740                CALL ELREP(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   741       1            -XRX1,-XRY1,-XRZ1,XAA1,                      
+
+                                                                        PAGE  14
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   742       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   743       3            -XRX2,-XRY2,-XRZ2,XAA2,
+   744       4            B12(L),XB12,ER3,KLM)
+   745  C
+   746  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+   747  C         P_[elec.1,elec.2]*P_[H1,H2]
+   748  C
+   749                CALL ELREP(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   750       1            -XRX2,-XRY2,-XRZ2,XAA2,                      
+   751       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   752       3            -XRX1,-XRY1,-XRZ1,XAA1,
+   753       4            B12(L),XB12,ER4,KLM)
+   754  	END IF
+   755  
+   756  C              
+   757  	IF (ISYMM) THEN
+   758  		EER1=ER1+ER2+ER3+ER4
+   759  	ELSE
+   760  		EER1=ER1
+   761  	END IF
+   762  C
+   763  C
+   764  	IF (ISYMM) THEN
+   765                EN=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   766       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   767  	ELSE
+   768                EN=EN1+EN5+EN9+EN13
+   769  	END IF
+   770  C
+   771  	IF(IPERM.EQ.1) THEN
+   772                EN=EN1+EN5+EN9+EN13
+   773  	END IF
+   774  	IF(IPERM.EQ.2) THEN
+   775                EN=EN2+EN6+EN10+EN14
+   776  	END IF
+   777  	IF(IPERM.EQ.3) THEN
+   778                EN=EN3+EN7+EN11+EN15
+   779  	END IF
+   780  	IF(IPERM.EQ.4) THEN
+   781                EN=EN4+EN8+EN12+EN16
+   782  	END IF
+   783  C
+   784  	IF (ISYMM) THEN
+   785                ER=ER1+ER2+ER3+ER4
+   786  	ELSE
+   787  			ER=ER1
+   788  	END IF
+   789  C
+   790  C
+   791        HH(1,2)=HH(1,2)+ EVEC(L)*(ER+T-EN+(1.0D+00/1.4011D+00)*Stemp)
+   792  	SS(1,2)=SS(1,2)+ (EVEC(L)*Stemp)
+   793  c	WRITE(6,*)'c',L,'*H(',L,',3)=',EVEC(L)*(ER+T-EN+(1.0D+00/
+   794  c	-1.4011D+00)*Stemp)
+   795  C     ----------------------------------------------------- 
+   796        END DO
+   797  C	WRITE(6,*)'HH(1,2)=',HH(1,2)
+   798  C     -----------------------------------------------------
+
+                                                                        PAGE  15
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   799  	Stemp=0.00D+00
+   800  	HH(1,1)=0.00D+00
+   801        DO L=1,M
+   802  		DO K=1,M
+   803  			HH(1,1)=HH(1,1)+(EVEC(L)*EVEC(K)*H(L,K))
+   804  			Stemp=Stemp + (EVEC(L)*EVEC(K)*S(L,K))
+   805  		END DO
+   806  	END DO
+   807  	HH(1,1)=HH(1,1)/Stemp
+   808  C	WRITE(6,*)'Stemp=',Stemp
+   809  C	WRITE(6,*)'Snp1=',Snp1
+   810  C
+   811  	SS(2,2)=Snp1/Snp1
+   812  C	STOP
+   813  	HH(1,2)=HH(1,2)/DSQRT(Stemp*Snp1)
+   814  C	WRITE(6,*)'HH(1,2)=',HH(1,2)
+   815  	HH(2,1)=HH(1,2)
+   816  	SS(1,2)=SS(1,2)/DSQRT(Stemp*Snp1)
+   817  	SS(2,1)=SS(1,2)
+   818  	VH(1)=HH(1,1)
+   819  	VH(2)=HH(2,1)
+   820  	VH(3)=HH(2,2)				 
+   821  C     ----------------------------------------------------- 
+   822  C	CALL BIOUT(' ')
+   823  C      CALL BIOUT('BEFORE ROTATION...')
+   824  C	CALL BIOUT('HH MATRIX')
+   825  C	CALL TAB(HH,2,2,2,2)
+   826  C	CALL BIOUT(' ')
+   827  C	CALL BIOUT('SS MATRIX')
+   828  C	CALL TAB(SS,2,2,2,2)
+   829  C	CALL BIOUT(' ')
+   830  C	CALL YACOBI(VH,U,2,3,BIG,JB)
+   831  C	HH(1,1)=VH(1)
+   832  C	HH(1,2)=VH(2)
+   833  C	HH(2,1)=VH(2)
+   834  C	HH(2,2)=VH(3)
+   835  C	CALL BIOUT('AFTER ROTATION...')
+   836  C	CALL BIOUT('HH MATRIX')
+   837  C	CALL TAB(HH,2,2,2,2)
+   838  C	CALL BIOUT(' ')
+   839  C	CALL BIOUT('SS MATRIX')
+   840  C	CALL TAB(SS,2,2,2,2)
+   841  C	CALL BIOUT(' ')
+   842  C     ----------------------------------------------------- 
+   843  C      CALL TAB(S,M,M,MMAX,MMAX)                  
+   844  C      CALL TAB(H,M,M,MMAX,MMAX)
+   845        CALL ENERGY(2,HH,SS,EMIN,CO,KIM)
+   846  C      J=1
+   847  C	CALL BIOUT(' ')
+   848  C      CALL BIOUT('     LinCoeff:.   AA1:        AA2:        B12:       
+   849  C	-RZ1:       RZ2:')
+#  850  C      CALL BIOUT('FNC: ================================================
+   851  C     -=====================')
+   852  C	DO J=1,M
+   853  C          WRITE(6,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+   854  C          WRITE(7,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+   855  C	END DO
+
+                                                                        PAGE  16
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   856  C          WRITE(6,1111) M+1,CO(2),XAA1,XAA2,XB12,XRZ1,XRZ2
+   857  C          WRITE(7,1111) M+1,CO(2),XAA1,XAA2,XB12,XRZ1,XRZ2
+   858  C		STOP
+   859  C     -----------------------------------------------------      
+   860  C	WRITE(6,*)'ENERGY DIAGNOSTIC INDEX FOR ADDITION OF THE FUNCTION=',
+   861  C	-EMIN-HH(1,1)
+   862  c      SUMH=0.00D+00
+   863  c	SUMS=0.00D+00
+   864  c	DO J=1,M
+   865  c		DO I=1,M
+   866  c			SUMH=SUMH+EVEC(I)*H(I,J)*EVEC(J)
+   867  c			SUMS=SUMS+EVEC(I)*S(I,J)*EVEC(J)
+   868  c		END DO
+   869  c	END DO
+   870  cC
+   871  c	ENG=SUMH/SUMS
+   872  c	EMIN=ENG
+   873  cC
+   874  C     -----------------------------------------------------      
+   875  1111  FORMAT(I3,6D12.4)
+   876        RETURN
+   877        END
+HAMILTONP@92  Local symbols
+Name                      Class              Type           Size
+
+
+/OVER/. . . . . . . . . . OVER(0)            MULTI*8           8
+AA1 . . . . . . . . . . . param                                4
+AA2 . . . . . . . . . . . param                                4
+B12 . . . . . . . . . . . param                                4
+CO. . . . . . . . . . . . dynam              ADDRESS*4         4
+DFLAG . . . . . . . . . . local              INTEGER*4         4
+EER1. . . . . . . . . . . local              REAL*8            8
+EMIN. . . . . . . . . . . param                                4
+EN. . . . . . . . . . . . local              REAL*8            8
+EN1 . . . . . . . . . . . local              REAL*8            8
+EN10. . . . . . . . . . . local              REAL*8            8
+EN11. . . . . . . . . . . local              REAL*8            8
+EN12. . . . . . . . . . . local              REAL*8            8
+EN13. . . . . . . . . . . local              REAL*8            8
+EN14. . . . . . . . . . . local              REAL*8            8
+EN15. . . . . . . . . . . local              REAL*8            8
+EN16. . . . . . . . . . . local              REAL*8            8
+EN2 . . . . . . . . . . . local              REAL*8            8
+EN3 . . . . . . . . . . . local              REAL*8            8
+EN4 . . . . . . . . . . . local              REAL*8            8
+EN5 . . . . . . . . . . . local              REAL*8            8
+EN6 . . . . . . . . . . . local              REAL*8            8
+EN7 . . . . . . . . . . . local              REAL*8            8
+EN8 . . . . . . . . . . . local              REAL*8            8
+EN9 . . . . . . . . . . . local              REAL*8            8
+ENN1. . . . . . . . . . . local              REAL*8            8
+ER. . . . . . . . . . . . local              REAL*8            8
+ER1 . . . . . . . . . . . local              REAL*8            8
+ER2 . . . . . . . . . . . local              REAL*8            8
+ER3 . . . . . . . . . . . local              REAL*8            8
+ER4 . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  17
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTONP@92  Local symbols
+Name                      Class              Type           Size
+
+
+EVEC. . . . . . . . . . . param                                4
+EX1 . . . . . . . . . . . local              REAL*8            8
+EX2 . . . . . . . . . . . local              REAL*8            8
+EY1 . . . . . . . . . . . local              REAL*8            8
+EY2 . . . . . . . . . . . local              REAL*8            8
+EZ1 . . . . . . . . . . . local              REAL*8            8
+EZ2 . . . . . . . . . . . local              REAL*8            8
+H . . . . . . . . . . . . param                                4
+HH. . . . . . . . . . . . local              REAL*8           32
+HNP1. . . . . . . . . . . local              REAL*8            8
+IPERM . . . . . . . . . . const              INTEGER*4         4
+ISYMM . . . . . . . . . . const              INTEGER*4         4
+K . . . . . . . . . . . . OVER(4)            INTEGER*4         4
+KIM . . . . . . . . . . . local              INTEGER*4         4
+KLM . . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . OVER(0)            INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MMAX. . . . . . . . . . . local              INTEGER*4         4
+OV1 . . . . . . . . . . . local              REAL*8            8
+OV2 . . . . . . . . . . . local              REAL*8            8
+OV3 . . . . . . . . . . . local              REAL*8            8
+OV4 . . . . . . . . . . . local              REAL*8            8
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+S . . . . . . . . . . . . param                                4
+SNP1. . . . . . . . . . . local              REAL*8            8
+SS. . . . . . . . . . . . local              REAL*8           32
+STEMP . . . . . . . . . . local              REAL*8            8
+T . . . . . . . . . . . . local              REAL*8            8
+T1. . . . . . . . . . . . local              REAL*8            8
+T2. . . . . . . . . . . . local              REAL*8            8
+T3. . . . . . . . . . . . local              REAL*8            8
+T4. . . . . . . . . . . . local              REAL*8            8
+T5. . . . . . . . . . . . local              REAL*8            8
+T6. . . . . . . . . . . . local              REAL*8            8
+T7. . . . . . . . . . . . local              REAL*8            8
+T8. . . . . . . . . . . . local              REAL*8            8
+VH. . . . . . . . . . . . local              REAL*8           24
+XAA1. . . . . . . . . . . param                                4
+XAA2. . . . . . . . . . . param                                4
+XB12. . . . . . . . . . . param                                4
+XRX1. . . . . . . . . . . param                                4
+XRX2. . . . . . . . . . . param                                4
+XRY1. . . . . . . . . . . param                                4
+XRY2. . . . . . . . . . . param                                4
+XRZ1. . . . . . . . . . . param                                4
+XRZ2. . . . . . . . . . . param                                4
+
+
+                                                                        PAGE  18
+                                                                        04-26-96
+                                                                        21:52:51
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTONP@92  Local symbols
+Name                      Class              Type           Size
+
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+ELREP@88. . . . . . . . . extern             ***             ***
+ENERGY@24 . . . . . . . . extern             ***             ***
+ENUCL@100 . . . . . . . . extern             ***             ***
+GEOM@24 . . . . . . . . . extern             ***             ***
+HAMILTONP@92. . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+OVER. . . . . . . . . . . common             ***               8
+OVERLP@88 . . . . . . . . extern             ***             ***
+TK@84 . . . . . . . . . . extern             ***             ***
+TNOVER. . . . . . . . . . common             ***              12
+
+
+No errors detected

@@ -1,0 +1,479 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang
+     2  C           Modified By:  D. Gilmore ---> (24 May 95)
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE ELREP(DFLAG,OVERLAP,AX,AY,AZ,A1,BX,BY,BZ,A2,           
+     7       1                 CX,CY,CZ,A3,DX,DY,DZ,A4,
+     8       2                 A5,A6,ER,KLM)                       
+     9  C     -----------------------------------------------------
+    10  C     ELREP INTGL_1 = <psi(L)@A|(???)|psi{k)@B>
+    11  C     -----------------------------------------------------
+    12        IMPLICIT REAL*8 (A-H,O-Z)
+    13  	INTEGER DFLAG
+    14  C     -----------------------------------------------------
+    15  C     *** FOUR CENTER ELECTRON REPULSION INTEGRAL ***
+    16  C     -----------------------------------------------------
+    17  	PARAMETER(C1=0.564691197D-04)
+    18  	PARAMETER(C2=0.758433197D-03)
+    19  	PARAMETER(C3=0.769838037D-02)
+    20  	PARAMETER(C4=0.629344460D-01)
+    21  	PARAMETER(C5=0.213271302D+00)
+    22  	PARAMETER(C6=0.720266520D-04)
+    23  	PARAMETER(C7=0.955528842D-03)
+    24  	PARAMETER(C8=0.101431553D-01)
+    25  	PARAMETER(C9=0.738522953D-01)
+    26  	PARAMETER(C10=0.338450368D+00)
+    27  	PARAMETER(C11=0.879937801D+00)
+    28  	COMMON /DOVn/ DOVnDA1,DOVnDA2,DOVnDA5,DOVnDAZ,DOVnDBZ
+    29  	COMMON /DER/ DERDA1,DERDA2,DERDA5,DERDAZ,DERDBZ
+    30        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/               
+    31        PI=3.1415926535898D+00
+    32  C      PI52=PI**2.5D+00
+    33        ALK1=A1+A2                                                       
+    34        ALK2=A3+A4                                                       
+    35        BLK12=A5+A6
+    36        ALKXX=ALK2+BLK12
+    37        DETAB=ALK1*ALK2+(ALK1+ALK2)*BLK12
+    38  C     -----------------------------------------------------
+    39  C     --- ONE CENTER ELECTRON REPULSION INTEGRAL ---
+    40  C     -----------------------------------------------------
+    41  C      ER=TWO*PI52/(DETAB*DSQRT(ALK1+ALK2))
+    42  C
+    43  	ER=TWO*OVERLAP*DSQRT(DETAB/(PI*(ALK1+ALK2)))
+    44  C
+    45  C     -----------------------------------------------------
+    46  C     --- CENTERS ---
+    47  C     -----------------------------------------------------
+    48  C      CALL KFACT(AX,AY,AZ,A1,BX,BY,BZ,A2,                      
+    49  C     1           CX,CY,CZ,A3,DX,DY,DZ,A4,
+    50  C     2           A5,A6,XK)
+    51  C	WRITE(6,*)A1,AX,A2,BX,ALK1 
+    52        RX1=(A1*AX+A2*BX)/ALK1
+    53        RX2=(A3*CX+A4*DX)/ALK2
+    54        RY1=(A1*AY+A2*BY)/ALK1
+    55        RY2=(A3*CY+A4*DY)/ALK2
+    56        RZ1=(A1*AZ+A2*BZ)/ALK1
+    57        RZ2=(A3*CZ+A4*DZ)/ALK2
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        DD=(RX1-RX2)**2+(RY1-RY2)**2+(RZ1-RZ2)**2
+    59  C      ZZ=EXP(-(ALK1*ALK2*BLK12)*DD/DETAB)
+    60  C     -----------------------------------------------------
+    61  C     --- FOUR-CENTER ELECTRON REPULSION INTEGRAL ---
+    62  C     -----------------------------------------------------
+    63        WW=ALK1*ALK1*ALK2*ALK2*DD/((ALK1+ALK2)*DETAB) 
+    64  C      ER=ER*XK*F0(WW) 
+    65  	ER=ER*F0(WW)
+    66  C      GOTO 1500
+    67  
+    68  C
+    69  C
+    70  	IF (DFLAG .EQ. 1) THEN
+    71  C
+    72  C	DERDA1:
+    73  C	======================================================
+    74  	Z=WW
+    75  	PHIF=((((((C6*Z + C7)*Z + C8)*Z+ C9)*Z + C10)*Z + C11)*Z + 1.00D+0
+    76  	-0)
+    77  	THETAF=(((((C1*Z + C2)*Z + C3)*Z + C4)*Z+ C5)*Z +1.00D+00)
+    78  
+    79  	OKL=DSQRT(DETAB)
+    80  	PKL=DSQRT(1.00D+00/(PI*(ALK1+ALK2)))
+    81  	ANKL=OKL*PKL
+    82  	AMKL=2.00D+00*OVERLAP*ANKL
+    83  
+    84  	DZZ=ALK1**2.00D+00*ALK2**2.00D+00*(2.00D+00*(AX/ALK1-(A1*AX+A2*BX)
+    85  	-/ALK1**2.00D+00)*((A1*AX+A2*BX)/ALK1-(A3*CX+A4*DX)/ALK2)+2*(AY/ALK
+    86       -1-(A1*AY+A2*BY)/ALK1**2.00D+00)*((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/
+    87       -ALK2)+2.00D+00*(AZ/ALK1-(A1*AZ+A2*BZ)/ALK1**2.00D+00)*((A1*AZ+A2*B
+    88       -Z)/ALK1-(A3*CZ+A4*DZ)/ALK2))/(DETAB*(ALK1+ALK2))-ALK1**2.00D+00*AL
+    89       -K2**2.00D+00*(((A1*AX+A2*BX)/ALK1-(A3*CX+A4*DX)/ALK2)**2.00D+00+((
+    90       -A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)**2.00D+00+((A1*AZ+A2*BZ)/ALK
+    91       -1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/(DETAB*(ALK1+ALK2)**2.00D+00)+2.0
+    92       -0D+00*ALK1*ALK2**2.00D+00*(((A1*AX+A2*BX)/ALK1-(A3*CX+A4*DX)/ALK2)
+    93       -**2.00D+00+((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)**2.00D+00+((A1*
+    94       -AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/(DETAB*(ALK1+ALK2))-
+    95       -ALKXX*ALK1**2.00D+00*ALK2**2.00D+00*(((A1*AX+A2*BX)/ALK1-(A3*CX+A4
+    96       -*DX)/ALK2)**2.00D+00+((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)**2.00
+    97       -D+00+((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/(DETAB**2.
+    98       -00D+00*(ALK1+ALK2))
+    99  
+   100  	DTHETAF=5.00D+00*C1*Z**4.00D+00*DZZ+4.00D+00*C2*Z**3.00D+00*DZZ+3.
+   101  	-00D+00*C3*Z**2.00D+00*DZZ+2.00D+00*C4*Z*DZZ+C5*DZZ
+   102  
+   103  	DPHIF=6.00D+00*C6*Z**5.00D+00*DZZ+5.00D+00*C7*Z**4.00D+00*DZZ+4.00
+   104  	-D+00*C8*Z**3.00D+00*DZZ+3.00D+00*C9*Z**2.00D+00*DZZ+2.00D+00*C10*Z
+   105       -*DZZ+C11*DZZ
+   106  
+   107  	DF0=(DSQRT(PHIF)/(2.00D+00*DSQRT(THETAF)))*(-(THETAF/PHIF**2.00D+0
+   108  	-0)*DPHIF+(1.00D+00/PHIF)*DTHETAF)
+   109  
+   110  	FF=DSQRT(THETAF/PHIF)
+   111  
+   112  	DDETAB=ALKXX
+   113  	DTEMP=PI
+   114  
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115  	DOKL=(1.00D+00/(2.00D+00*DSQRT(DETAB)))*DDETAB
+   116  	DPKL=(-1.00D+00/(2.00D+00*((PI*ALK2+PI*ALK1)*DSQRT((PI*ALK2+PI*ALK
+   117  	-1)))))*DTEMP
+   118  	
+   119        DNKL=(OKL*DPKL + PKL*DOKL)
+   120  
+   121  	DMKL=2.00D+00*(OVERLAP*DNKL + ANKL*DOVnDA1)
+   122  
+   123  	DERDA1=AMKL*DF0 + FF*DMKL
+   124  C
+   125  C	WRITE(6,*)'DERDA1=',DERDA1
+   126  C	WRITE(6,*)'MKL=',AMKL
+   127  C	WRITE(6,*)'DF0=',DF0
+   128  C	WRITE(6,*)'F0=',FF
+   129  C	WRITE(6,*)'DMKL=',DMKL
+   130  C	WRITE(6,*)'OVERLAP=',OVERLAP
+   131  C	WRITE(6,*)'DNKL=',DNKL
+   132  C	WRITE(6,*)'NKL=',ANKL
+   133  C	WRITE(6,*)'DSKL=',DOVnDA1
+   134  C	CALL BIOUT(' ')
+   135  C	STOP
+   136  C
+   137  C	DERDA2:
+   138  C	======================================================
+   139  	Z=WW
+   140  	PHIF=((((((C6*Z + C7)*Z + C8)*Z+ C9)*Z + C10)*Z + C11)*Z + 1.00D+0
+   141  	-0)
+   142  	THETAF=(((((C1*Z + C2)*Z + C3)*Z + C4)*Z+ C5)*Z +1.00D+00)
+   143  
+   144  	OKL=DSQRT(DETAB)
+   145  	PKL=DSQRT(1.00D+00/(PI*(ALK1+ALK2)))
+   146  	ANKL=OKL*PKL
+   147  	AMKL=2.00D+00*OVERLAP*ANKL
+   148  
+   149  	DZZ=ALK1**2.00D+00*ALK2**2.00D+00*(2.00D+00*(-(CX/ALK2)+(A3*CX+A4*
+   150  	-DX)/ALK2**2.00D+00)*((A1*AX+A2*BX)/ALK1-(A3*CX+A4*DX)/ALK2)+2.00D+
+   151       -00*(-(CY/ALK2)+(A3*CY+A4*DY)/ALK2**2.00D+00)*((A1*AY+A2*BY)/ALK1-(
+   152       -A3*CY+A4*DY)/ALK2)+2.00D+00*(-(CZ/ALK2)+(A3*CZ+A4*DZ)/ALK2**2.00D+
+   153       -00)*((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2))/(DETAB*(ALK1+ALK2))-A
+   154       -LK1**2.00D+00*ALK2**2.00D+00*(((A1*AX+A2*BX)/ALK1-(A3*CX+A4*DX)/AL
+   155       -K2)**2.00D+00+((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)**2.00D+00+((
+   156       -A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/(DETAB*(ALK1+ALK2
+   157       -)**2.00D+00)+2.00D+00*ALK1**2.00D+00*ALK2*(((A1*AX+A2*BX)/ALK1-(A3
+   158       -*CX+A4*DX)/ALK2)**2.00D+00+((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)
+   159       -**2.00D+00+((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/(DET
+   160       -AB*(ALK1+ ALK2))-ALK1**2.00D+00*ALK2**2.00D+00*(ALK1+BLK12)*(((A1*
+   161       -AX+A2*BX)/ALK1-(A3*CX+A4*DX)/ALK2)**2.00D+00+((A1*AY+A2*BY)/ALK1-(
+   162       -A3*CY+A4*DY)/ALK2)**2.00D+00+((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK
+   163       -2)**2.00D+00)/(DETAB**2.00D+00*(ALK1+ALK2))
+   164  
+   165  	DTHETAF=5.00D+00*C1*Z**4.00D+00*DZZ+4.00D+00*C2*Z**3.00D+00*DZZ+3.
+   166  	-00D+00*C3*Z**2.00D+00*DZZ+2.00D+00*C4*Z*DZZ+C5*DZZ
+   167  
+   168  	DPHIF=6.00D+00*C6*Z**5.00D+00*DZZ+5.00D+00*C7*Z**4.00D+00*DZZ+4.00
+   169  	-D+00*C8*Z**3.00D+00*DZZ+3.00D+00*C9*Z**2.00D+00*DZZ+2.00D+00*C10*Z
+   170       -*DZZ+C11*DZZ
+   171  
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  	DF0=(DSQRT(PHIF)/(2.00D+00*DSQRT(THETAF)))*(-(THETAF/PHIF**2.00D+0
+   173  	-0)*DPHIF+(1.00D+00/PHIF)*DTHETAF)
+   174  
+   175  	FF=DSQRT(THETAF/PHIF)
+   176  
+   177  	DDETAB=ALK1+BLK12
+   178  	DTEMP=PI
+   179  
+   180  	DOKL=(1.00D+00/(2.00D+00*DSQRT(DETAB)))*DDETAB
+   181  	DPKL=(-1.00D+00/(2.00D+00*((PI*ALK2+PI*ALK1)*DSQRT((PI*ALK2+PI*ALK
+   182  	-1)))))*DTEMP
+   183  	
+   184        DNKL=(OKL*DPKL + PKL*DOKL)
+   185  
+   186  	DMKL=2.00D+00*(OVERLAP*DNKL + ANKL*DOVnDA2)
+   187  
+   188  	DERDA2=AMKL*DF0 + FF*DMKL
+   189  C
+   190  C	DERDA5:
+   191  C	======================================================
+   192  	Z=WW
+   193  	PHIF=((((((C6*Z + C7)*Z + C8)*Z+ C9)*Z + C10)*Z + C11)*Z + 1.00D+0
+   194  	-0)
+   195  	THETAF=(((((C1*Z + C2)*Z + C3)*Z + C4)*Z+ C5)*Z +1.00D+00)
+   196  
+   197  	OKL=DSQRT(DETAB)
+   198  	PKL=DSQRT(1.00D+00/(PI*(ALK1+ALK2)))
+   199  	ANKL=OKL*PKL
+   200  	AMKL=2.00D+00*OVERLAP*ANKL
+   201  
+   202  	DZZ=-(ALK1**2.00D+00*ALK2**2.00D+00*(((A1*AX+A2*BX)/ALK1-(A3*CX+A4
+   203  	-*DX)/ALK2)**2.00D+00+((A1*AY+A2*BY)/ALK1-(A3*CY+A4*DY)/ALK2)**2.00
+   204       -D+00+((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*DZ)/ALK2)**2.00D+00)/DETAB**2.0
+   205       -0D+00)
+   206  
+   207  	DTHETAF=5.00D+00*C1*Z**4.00D+00*DZZ+4.00D+00*C2*Z**3.00D+00*DZZ+3.
+   208  	-00D+00*C3*Z**2.00D+00*DZZ+2.00D+00*C4*Z*DZZ+C5*DZZ
+   209  
+   210  	DPHIF=6.00D+00*C6*Z**5.00D+00*DZZ+5.00D+00*C7*Z**4.00D+00*DZZ+4.00
+   211  	-D+00*C8*Z**3.00D+00*DZZ+3.00D+00*C9*Z**2.00D+00*DZZ+2.00D+00*C10*Z
+   212       -*DZZ+C11*DZZ
+   213  
+   214  	DF0=(DSQRT(PHIF)/(2.00D+00*DSQRT(THETAF)))*(-(THETAF/PHIF**2.00D+0
+   215  	-0)*DPHIF+(1.00D+00/PHIF)*DTHETAF)
+   216  
+   217  	FF=DSQRT(THETAF/PHIF)
+   218  
+   219  	DDETAB=ALK1+ALK2
+   220  	DTEMP=0.00D+00
+   221  
+   222  	DOKL=(1.00D+00/(2.00D+00*DSQRT(DETAB)))*DDETAB
+   223  	DPKL=(-1.00D+00/(2.00D+00*((PI*ALK2+PI*ALK1)*DSQRT((PI*ALK2+PI*ALK
+   224  	-1)))))*DTEMP
+   225  	
+   226        DNKL=(OKL*DPKL + PKL*DOKL)
+   227  
+   228  	DMKL=2.00D+00*(OVERLAP*DNKL + ANKL*DOVnDA5)
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229  
+   230  	DERDA5=AMKL*DF0 + FF*DMKL
+   231  C
+   232  C	DERDAZ:
+   233  C	======================================================
+   234  	Z=WW
+   235  	PHIF=((((((C6*Z + C7)*Z + C8)*Z+ C9)*Z + C10)*Z + C11)*Z + 1.00D+0
+   236  	-0)
+   237  	THETAF=(((((C1*Z + C2)*Z + C3)*Z + C4)*Z+ C5)*Z +1.00D+00)
+   238  
+   239  	OKL=DSQRT(DETAB)
+   240  	PKL=DSQRT(1.00D+00/(PI*(ALK1+ALK2)))
+   241  	ANKL=OKL*PKL
+   242  	AMKL=2.00D+00*OVERLAP*ANKL
+   243  
+   244  	DZZ=2.00D+00*A1*ALK1*ALK2**2.0D+00*((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4*D
+   245  	-Z)/ALK2)/(DETAB*(ALK1+ALK2))
+   246  
+   247  	DTHETAF=5.00D+00*C1*Z**4.00D+00*DZZ+4.00D+00*C2*Z**3.00D+00*DZZ+3.
+   248  	-00D+00*C3*Z**2.00D+00*DZZ+2.00D+00*C4*Z*DZZ+C5*DZZ
+   249  
+   250  	DPHIF=6.00D+00*C6*Z**5.00D+00*DZZ+5.00D+00*C7*Z**4.00D+00*DZZ+4.00
+   251  	-D+00*C8*Z**3.00D+00*DZZ+3.00D+00*C9*Z**2.00D+00*DZZ+2.00D+00*C10*Z
+   252       -*DZZ+C11*DZZ
+   253  
+   254  	DF0=(DSQRT(PHIF)/(2.00D+00*DSQRT(THETAF)))*(-(THETAF/PHIF**2.00D+0
+   255  	-0)*DPHIF+(1.00D+00/PHIF)*DTHETAF)
+   256  
+   257  	FF=DSQRT(THETAF/PHIF)
+   258  
+   259  	DDETAB=0.00D+00
+   260  	DTEMP=0.00D+00
+   261  
+   262  	DOKL=(1.00D+00/(2.00D+00*DSQRT(DETAB)))*DDETAB
+   263  	DPKL=(-1.00D+00/(2.00D+00*((PI*ALK2+PI*ALK1)*DSQRT((PI*ALK2+PI*ALK
+   264  	-1)))))*DTEMP
+   265  	
+   266        DNKL=(OKL*DPKL + PKL*DOKL)
+   267  
+   268  	DMKL=2.00D+00*(OVERLAP*DNKL + ANKL*DOVnDAZ)
+   269  
+   270  	DERDAZ=AMKL*DF0 + FF*DMKL
+   271  C
+   272  C
+   273  C	DERDBZ:
+   274  C	======================================================
+   275  	Z=WW
+   276  	PHIF=((((((C6*Z + C7)*Z + C8)*Z+ C9)*Z + C10)*Z + C11)*Z + 1.00D+0
+   277  	-0)
+   278  	THETAF=(((((C1*Z + C2)*Z + C3)*Z + C4)*Z+ C5)*Z +1.00D+00)
+   279  
+   280  	OKL=DSQRT(DETAB)
+   281  	PKL=DSQRT(1.00D+00/(PI*(ALK1+ALK2)))
+   282  	ANKL=OKL*PKL
+   283  	AMKL=2.00D+00*OVERLAP*ANKL
+   284  
+   285  	DZZ=-2.00D+00*A3*ALK1**2.00D+00*ALK2*((A1*AZ+A2*BZ)/ALK1-(A3*CZ+A4
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   286  	-*DZ)/ALK2)/(DETAB*(ALK1+ALK2))
+   287  
+   288  	DTHETAF=5.00D+00*C1*Z**4.00D+00*DZZ+4.00D+00*C2*Z**3.00D+00*DZZ+3.
+   289  	-00D+00*C3*Z**2.00D+00*DZZ+2.00D+00*C4*Z*DZZ+C5*DZZ
+   290  
+   291  	DPHIF=6.00D+00*C6*Z**5.00D+00*DZZ+5.00D+00*C7*Z**4.00D+00*DZZ+4.00
+   292  	-D+00*C8*Z**3.00D+00*DZZ+3.00D+00*C9*Z**2.00D+00*DZZ+2.00D+00*C10*Z
+   293       -*DZZ+C11*DZZ
+   294  
+   295  	DF0=(DSQRT(PHIF)/(2.00D+00*DSQRT(THETAF)))*(-(THETAF/PHIF**2.00D+0
+   296  	-0)*DPHIF+(1.00D+00/PHIF)*DTHETAF)
+   297  
+   298  	FF=DSQRT(THETAF/PHIF)
+   299  
+   300  	DDETAB=0.00D+00
+   301  	DTEMP=0.00D+00
+   302  
+   303  	DOKL=(1.00D+00/(2.00D+00*DSQRT(DETAB)))*DDETAB
+   304  	DPKL=(-1.00D+00/(2.00D+00*((PI*ALK2+PI*ALK1)*DSQRT((PI*ALK2+PI*ALK
+   305  	-1)))))*DTEMP
+   306  	
+   307        DNKL=(OKL*DPKL + PKL*DOKL)
+   308  
+   309  	DMKL=2.00D+00*(OVERLAP*DNKL + ANKL*DOVnDBZ)
+   310  
+   311  	DERDBZ=AMKL*DF0 + FF*DMKL
+   312  C
+   313  	END IF
+   314  C	     
+   315        RETURN                                                            
+   316        END 
+
+ELREP@88  Local symbols
+Name                      Class              Type           Size
+
+
+/DER/ . . . . . . . . . . DER(0)             MULTI*40         40
+/DOVN/. . . . . . . . . . DOVN(0)            MULTI*40         40
+A1. . . . . . . . . . . . param                                4
+A2. . . . . . . . . . . . param                                4
+A3. . . . . . . . . . . . param                                4
+A4. . . . . . . . . . . . param                                4
+A5. . . . . . . . . . . . param                                4
+A6. . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+ALKXX . . . . . . . . . . local              REAL*8            8
+AMKL. . . . . . . . . . . local              REAL*8            8
+ANKL. . . . . . . . . . . local              REAL*8            8
+AX. . . . . . . . . . . . param                                4
+AY. . . . . . . . . . . . param                                4
+AZ. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+BX. . . . . . . . . . . . param                                4
+BY. . . . . . . . . . . . param                                4
+BZ. . . . . . . . . . . . param                                4
+C1. . . . . . . . . . . . const              REAL*8            8
+
+                                                                        PAGE   7
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+ELREP@88  Local symbols
+Name                      Class              Type           Size
+
+
+C10 . . . . . . . . . . . const              REAL*8            8
+C11 . . . . . . . . . . . const              REAL*8            8
+C2. . . . . . . . . . . . const              REAL*8            8
+C3. . . . . . . . . . . . const              REAL*8            8
+C4. . . . . . . . . . . . const              REAL*8            8
+C5. . . . . . . . . . . . const              REAL*8            8
+C6. . . . . . . . . . . . const              REAL*8            8
+C7. . . . . . . . . . . . const              REAL*8            8
+C8. . . . . . . . . . . . const              REAL*8            8
+C9. . . . . . . . . . . . const              REAL*8            8
+CX. . . . . . . . . . . . param                                4
+CY. . . . . . . . . . . . param                                4
+CZ. . . . . . . . . . . . param                                4
+DD. . . . . . . . . . . . local              REAL*8            8
+DDETAB. . . . . . . . . . local              REAL*8            8
+DERDA1. . . . . . . . . . DER(0)             REAL*8            8
+DERDA2. . . . . . . . . . DER(8)             REAL*8            8
+DERDA5. . . . . . . . . . DER(16)            REAL*8            8
+DERDAZ. . . . . . . . . . DER(24)            REAL*8            8
+DERDBZ. . . . . . . . . . DER(32)            REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+DF0 . . . . . . . . . . . local              REAL*8            8
+DFLAG . . . . . . . . . . param                                4
+DMKL. . . . . . . . . . . local              REAL*8            8
+DNKL. . . . . . . . . . . local              REAL*8            8
+DOKL. . . . . . . . . . . local              REAL*8            8
+DOVNDA1 . . . . . . . . . DOVN(0)            REAL*8            8
+DOVNDA2 . . . . . . . . . DOVN(8)            REAL*8            8
+DOVNDA5 . . . . . . . . . DOVN(16)           REAL*8            8
+DOVNDAZ . . . . . . . . . DOVN(24)           REAL*8            8
+DOVNDBZ . . . . . . . . . DOVN(32)           REAL*8            8
+DPHIF . . . . . . . . . . local              REAL*8            8
+DPKL. . . . . . . . . . . local              REAL*8            8
+DTEMP . . . . . . . . . . local              REAL*8            8
+DTHETAF . . . . . . . . . local              REAL*8            8
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+DZ. . . . . . . . . . . . param                                4
+DZZ . . . . . . . . . . . local              REAL*8            8
+ER. . . . . . . . . . . . param                                4
+FF. . . . . . . . . . . . local              REAL*8            8
+KLM . . . . . . . . . . . param                                4
+OKL . . . . . . . . . . . local              REAL*8            8
+OVERLAP . . . . . . . . . param                                4
+PHIF. . . . . . . . . . . local              REAL*8            8
+PI. . . . . . . . . . . . local              REAL*8            8
+PKL . . . . . . . . . . . local              REAL*8            8
+RX1 . . . . . . . . . . . local              REAL*8            8
+RX2 . . . . . . . . . . . local              REAL*8            8
+RY1 . . . . . . . . . . . local              REAL*8            8
+RY2 . . . . . . . . . . . local              REAL*8            8
+RZ1 . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   8
+                                                                        04-26-96
+                                                                        21:54:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+ELREP@88  Local symbols
+Name                      Class              Type           Size
+
+
+RZ2 . . . . . . . . . . . local              REAL*8            8
+THETAF. . . . . . . . . . local              REAL*8            8
+TWO . . . . . . . . . . . local              REAL*8            8
+WW. . . . . . . . . . . . local              REAL*8            8
+Z . . . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DER . . . . . . . . . . . common             ***              40
+DOVN. . . . . . . . . . . common             ***              40
+ELREP@88. . . . . . . . . FUNCT              ***             ***
+F0@4. . . . . . . . . . . extern             REAL*8          ***
+
+
+No errors detected

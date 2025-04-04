@@ -1,0 +1,185 @@
+
+                                                                        PAGE   1
+                                                                        04-30-96
+                                                                        18:03:12
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE GRADEN(N,X,G)
+     2  C
+     3        IMPLICIT REAL*8(A-H,O-Z)
+     4  	INTEGER DFLAG
+     5  C
+     6        PARAMETER (MMAX=500)
+     7  C
+     8        DIMENSION 
+     9       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+    10       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+    11       3         B12(MMAX),EVEC(MMAX),S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX)  
+    12  	DIMENSION X(MMAX*5+MMAX),G(MMAX*5+MMAX)
+    13  	REAL*8 GRAD(MMAX*5+MMAX),T1(MMAX),T2(MMAX),T3(MMAX)
+    14  	CHARACTER RESTARTNAME*66
+    15  C
+    16  	COMMON /FINALGRAD/ GG
+    17  C
+    18  C
+    19  C	REWIND (8)
+    20  	NB=(N/6)
+    21  C
+    22  C
+    23  C
+    24  	K=1
+    25  	DO I=1,NB
+    26  			T1(I)=X(K)	
+    27  			T2(I)=X(K+1)	
+    28  			T3(I)=X(K+2)	
+    29  			RZ1(I)=X(K+3)	
+    30  			RZ2(I)=X(K+4)	
+    31  		K=K+5
+    32  	END DO
+    33  C
+    34  	DO I=1,NB
+    35  			EVEC(I)=X(NB*5+I)
+    36  	END DO
+    37  C
+    38  C
+    39  	M=NB
+    40        DO I=1,M
+    41  	    AA1(I)=T1(I)**2 + T1(I)*T3(I)
+    42            AA2(I)=T2(I)**2 + T3(I)**2 + T1(I)*T3(I)
+    43            B12(I)=-T1(I)*T3(I)
+    44  	END DO
+    45  C
+    46        DFLAG=1
+    47  	CALL HAMILTON(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,
+    48  	-				CO,EMIN,GRAD,T1,T2,T3,DFLAG)
+    49  C
+    50        DO I=1,M
+    51  	    AA1(I)=T1(I)**2 + T1(I)*T3(I)
+    52            AA2(I)=T2(I)**2 + T3(I)**2 + T1(I)*T3(I)
+    53            B12(I)=-T1(I)*T3(I)
+    54  	END DO
+    55  C
+    56  	DO I=1,NB*5+NB
+    57  		G(I)=GRAD(I)
+
+                                                                        PAGE   2
+                                                                        04-30-96
+                                                                        18:03:12
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  	END DO
+    59  	GG=0.00D+00
+    60  	DO I=1,NB*5+NB
+    61  		GG=GG+GRAD(I)*GRAD(I)
+    62  	END DO
+    63  	WRITE(6,*)'ENERGY=',EMIN,'   --->   ||g||^2 = ',GG
+    64  	WRITE(7,*)'ENERGY=',EMIN,'   --->   ||g||^2 = ',GG
+    65  C
+    66  C
+    67        J=1
+    68  	OPEN (8, FILE = 'Restart_Output.DAT', ACCESS = 'SEQUENTIAL',
+    69       -		STATUS = 'UNKNOWN')
+    70        WRITE(8,*) '     LinCoeff:.   AA1:        AA2:        B12:        
+    71  	-RZ1:       RZ2:'
+    72        WRITE(8,*) 'FNC: =================================================
+    73       -====================='
+    74   706  IF (J .LE. M) THEN
+    75            WRITE(8,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+    76            J=J+1
+    77  
+    78        GOTO 706
+    79        END IF
+    80        WRITE(8,*) '------------------------------------------------------
+    81       1---------------------'
+    82  	WRITE(8,*)'ENERGY=',EMIN,'   --->   ||g||^2 = ',GG
+    83  	WRITE(8,*)
+    84  C
+    85        J=1
+    86        WRITE(8,*) ':BEGIN:'
+    87  	WRITE(8,*) M
+    88   606  IF (J .LE. M) THEN
+    89            WRITE(8,*) J,EVEC(J),T1(J),T2(J),T3(J),RZ1(J),RZ2(J)
+    90            J=J+1
+    91  
+    92        GOTO 606
+    93        END IF
+    94        WRITE(8,*) ':END:'
+    95  	WRITE(8,*)
+    96  	CLOSE(8)
+    97  C
+    98  1111  FORMAT(I3,6D12.4)
+    99  C
+   100  C
+   101        RETURN
+   102        END
+
+GRADEN@12  Local symbols
+Name                      Class              Type           Size
+
+
+/FINALGRAD/ . . . . . . . FINALGRAD(0)       MULTI*8           8
+AA1 . . . . . . . . . . . local              REAL*8         4000
+AA2 . . . . . . . . . . . local              REAL*8         4000
+B12 . . . . . . . . . . . local              REAL*8         4000
+CO. . . . . . . . . . . . local              REAL*8         4000
+DFLAG . . . . . . . . . . local              INTEGER*4         4
+EMIN. . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   3
+                                                                        04-30-96
+                                                                        18:03:12
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRADEN@12  Local symbols
+Name                      Class              Type           Size
+
+
+EVEC. . . . . . . . . . . local              REAL*8         4000
+G . . . . . . . . . . . . param                                4
+GG. . . . . . . . . . . . FINALGRAD(0)       REAL*8            8
+GRAD. . . . . . . . . . . local              REAL*8        24000
+H . . . . . . . . . . . . local              REAL*8       2000000
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . local              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NB. . . . . . . . . . . . local              INTEGER*4         4
+RX1 . . . . . . . . . . . local              REAL*8         4000
+RX2 . . . . . . . . . . . local              REAL*8         4000
+RY1 . . . . . . . . . . . local              REAL*8         4000
+RY2 . . . . . . . . . . . local              REAL*8         4000
+RZ1 . . . . . . . . . . . local              REAL*8         4000
+RZ2 . . . . . . . . . . . local              REAL*8         4000
+S . . . . . . . . . . . . local              REAL*8       2000000
+T1. . . . . . . . . . . . local              REAL*8         4000
+T2. . . . . . . . . . . . local              REAL*8         4000
+T3. . . . . . . . . . . . local              REAL*8         4000
+X . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_CLOSE . . . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_OPEN. . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+FINALGRAD . . . . . . . . common             ***               8
+GRADEN@12 . . . . . . . . FUNCT              ***             ***
+HAMILTON@80 . . . . . . . extern             ***             ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+LWRITE_I. . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

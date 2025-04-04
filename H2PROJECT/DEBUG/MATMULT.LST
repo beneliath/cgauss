@@ -1,0 +1,47 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE VMATMULT (N,A,MAXA,B,MAXB,C,MAXC)
+     2        IMPLICIT REAL*8 (A-H,O-Z)
+     3        DIMENSION A(MAXA),B(MAXB,MAXB),C(MAXC)
+     4  C
+     5  		DO J=1,N
+     6  			C(J)=0.0D+00
+     7  			DO K=1,N
+     8  				C(J)=C(J)+A(K)*B(K,J)
+     9  			END DO
+    10  C	WRITE(6,*)C(J)
+    11  		END DO
+    12  C
+    13  	RETURN
+    14        END
+
+VMATMULT@28  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+C . . . . . . . . . . . . param                                4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+MAXB. . . . . . . . . . . param                                4
+MAXC. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+VMATMULT@28 . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

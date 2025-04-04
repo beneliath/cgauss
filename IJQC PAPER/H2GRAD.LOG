@@ -1,0 +1,144 @@
+This is TeX, Version 3.1415 (preloaded format=latex 95.10.5)  12 NOV 1996 22:45
+**&latex h2grad.tex
+(
+LaTeX2e <1995/06/01>
+Hyphenation patterns for english, ukenglish, catalan, danish, spanish, french, 
+german, italian, latin, dutch, polish, portuguese, loaded.
+(
+File: latex209.def 1995/07/07 v0.47 Standard LaTeX file
+
+Entering LaTeX 2.09 compatibility mode.
+\footheight=\dimen102
+\@maxsep=\dimen103
+\@dblmaxsep=\dimen104
+(
+Package: tracefnt 1995/06/15 v3.0b Standard LaTeX package (font tracing)
+\tracingfonts=\count82
+LaTeX Info: Redefining \selectfont on input line 133.
+)
+\symbold=\mathgroup4
+\symsans=\mathgroup5
+\symtypewriter=\mathgroup6
+\symitalic=\mathgroup7
+\symsmallcaps=\mathgroup8
+\symslanted=\mathgroup9
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 276.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 277.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 278.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 284.
+LaTeX Info: Redefining \em on input line 294.
+ (
+Package: latexsym 1995/03/18 v2.2a Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup10
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 81.
+)
+LaTeX Font Info:    Redeclaring math delimiter \lgroup on input line 359.
+LaTeX Font Info:    Redeclaring math delimiter \rgroup on input line 361.
+LaTeX Font Info:    Redeclaring math delimiter \bracevert on input line 363.
+) (
+Document Class: article 1995/06/26 v1.3g Standard LaTeX document class
+(
+File: size12.clo 1995/06/19 v1.3e Standard LaTeX file (size option)
+)
+\c@part=\count83
+\c@section=\count84
+\c@subsection=\count85
+\c@subsubsection=\count86
+\c@paragraph=\count87
+\c@subparagraph=\count88
+\c@figure=\count89
+\c@table=\count90
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+Compatibility mode: definition of \rm ignored.
+Compatibility mode: definition of \sf ignored.
+Compatibility mode: definition of \tt ignored.
+Compatibility mode: definition of \bf ignored.
+Compatibility mode: definition of \it ignored.
+Compatibility mode: definition of \sl ignored.
+Compatibility mode: definition of \sc ignored.
+LaTeX Info: Redefining \cal on input line 489.
+LaTeX Info: Redefining \mit on input line 490.
+\bibindent=\dimen105
+) (
+TCILATEX Macros for Scientific Word 2.5 <22 Dec 95>.
+NOTICE: This macro file is NOT proprietary and may be freely copied and distrib
+uted.
+\@hour=\count91
+\@minute=\count92
+\GRAPHICSTYPE=\count93
+\draft=\count94
+\dispkind=\count95
+\c@chapter=\count96
+\theight=\dimen106
+Compatibility mode: definition of \rm ignored.
+Compatibility mode: definition of \sf ignored.
+Compatibility mode: definition of \tt ignored.
+Compatibility mode: definition of \bf ignored.
+Compatibility mode: definition of \it ignored.
+Compatibility mode: definition of \sl ignored.
+Compatibility mode: definition of \sc ignored.
+\c@theorem=\count97
+\c@axiom=\count98
+\c@remark=\count99
+\c@example=\count100
+\c@exercise=\count101
+\c@definition=\count102
+\c@equationnumber=\count103
+\intno@=\count104
+\ex@=\dimen107
+) ()
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <14.4> on input line 26.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 26.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 26.
+ (
+File: Ulasy.fd 1995/03/18 v2.2aLaTeX symbol font definitions
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 26.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 36.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 36.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 36.
+ [1
+
+]
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 47.
+ [2] [3] [4] [5] [6] [7] [8]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 453.
+
+ (
+File: OMScmr.fd 1995/04/22 v2.3f Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 453.
+ [9] [10] [11] [12] [13] [14]
+[15] [16] () )
+Here is how much of TeX's memory you used:
+839 strings out of 10823
+7888 string characters out of 72203
+59639 words of memory out of 262141
+3743 multiletter control sequences out of 10000
+24209 words of font info for 88 fonts, out of 100000 for 255
+94 hyphenation exceptions out of 607
+23i,9n,21p,171b,253s stack positions out of 300i,40n,60p,4096b,4000s
+
+Output written on  (16 pages, 62568 bytes).

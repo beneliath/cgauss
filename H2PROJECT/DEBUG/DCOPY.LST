@@ -1,0 +1,95 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:53:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        subroutine  dcopy(n,dx,incx,dy,incy)
+     2  c
+     3  c     copies a vector, x, to a vector, y.
+     4  c     uses unrolled loops for increments equal to one.
+     5  c     jack dongarra, linpack, 3/11/78.
+     6  c     modified 12/3/93, array(1) declarations changed to array(*)
+     7  c
+     8        double precision dx(*),dy(*)
+     9        integer i,incx,incy,ix,iy,m,mp1,n
+    10  c
+    11        if(n.le.0)return
+    12        if(incx.eq.1.and.incy.eq.1)go to 20
+    13  c
+    14  c        code for unequal increments or equal increments
+    15  c          not equal to 1
+    16  c
+    17        ix = 1
+    18        iy = 1
+    19        if(incx.lt.0)ix = (-n+1)*incx + 1
+    20        if(incy.lt.0)iy = (-n+1)*incy + 1
+    21        do 10 i = 1,n
+    22          dy(iy) = dx(ix)
+    23          ix = ix + incx
+    24          iy = iy + incy
+    25     10 continue
+    26        return
+    27  c
+    28  c        code for both increments equal to 1
+    29  c
+    30  c
+    31  c        clean-up loop
+    32  c
+    33     20 m = mod(n,7)
+    34        if( m .eq. 0 ) go to 40
+    35        do 30 i = 1,m
+    36          dy(i) = dx(i)
+    37     30 continue
+    38        if( n .lt. 7 ) return
+    39     40 mp1 = m + 1
+    40        do 50 i = mp1,n,7
+    41          dy(i) = dx(i)
+    42          dy(i + 1) = dx(i + 1)
+    43          dy(i + 2) = dx(i + 2)
+    44          dy(i + 3) = dx(i + 3)
+    45          dy(i + 4) = dx(i + 4)
+    46          dy(i + 5) = dx(i + 5)
+    47          dy(i + 6) = dx(i + 6)
+    48     50 continue
+    49        return
+    50        end
+
+DCOPY@20  Local symbols
+Name                      Class              Type           Size
+
+
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:53:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+DCOPY@20  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+INCX. . . . . . . . . . . param                                4
+INCY. . . . . . . . . . . param                                4
+IX. . . . . . . . . . . . local              INTEGER*4         4
+IY. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MP1 . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DCOPY@20. . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

@@ -1,0 +1,570 @@
+
+                                                                        PAGE   1
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang (...poorly)
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE ENERGY(M,H,S,EMIN,CO,KLM)
+     7        IMPLICIT REAL*8 (A-H,O-Z)
+     8  	INTEGER M
+     9  C 
+    10  C     N=number of particles
+    11  C     M= number of functions used in the expansion
+    12  C     IPER=number of permutations
+    13  C     NP = N*(N-1)/2 = number of interacting pairs
+    14  C     MN = M*N = number of orbital exponents
+    15  C     MNP = M*N*(N-1)/2 = number of correlation exponents
+    16  C
+    17        PARAMETER ( NMAX = 5 )
+    18  C      PARAMETER ( MMAX = 3 )
+    19  C      PARAMETER ( NPMAX = NMAX*(NMAX-1)/2 )
+    20  C      PARAMETER ( MNMAX = MMAX*NMAX )
+    21  C 
+    22        REAL*8, DIMENSION(M) ::	CO
+    23  	REAL*8, DIMENSION(M,M) :: S,H
+    24  	REAL*8 SNORM[ALLOCATABLE](:,:)
+    25  
+    26  C      DIMENSION  SNORM(MMAX,MMAX)
+    27        DIMENSION AA(66000),BIG(256),JB(256),TEMP(256),TP(66000)
+    28        DIMENSION UT(256,256),U(256,256),TEM(256,256),SS(256,256)
+    29        DIMENSION TEM1(256,256),TEM2(256,256),TEM3(256,256)
+    30        DIMENSION SHALF(256,256),SNHALF(256,256),CHECKS(256,256)
+    31        DIMENSION HH(256,256),XY(256,256),XT(256,256),W(256,256)
+    32        DIMENSION CT(256,256),CHECKH(256,256),C(256,256),AB(256)
+    33  C
+    34  C      COMMON /MOLPARAM/ N, M, NP 
+    35  C      COMMON /FFF/ S, H
+    36  c      COMMON /NORM/ SNORM
+    37  	ALLOCATE(SNORM(M,M))
+    38  	MMAX=M
+    39  	MNMAX=M*NMAX
+    40  	NPMAX=NMAX*(NMAX-1)/2
+    41  C
+    42        IF(KLM.EQ.5) GOTO 1414
+    43  C
+    44  C     PRINT-OUT THE S & H MATRICES (UNNORMALIZED):
+    45  C     Uncomment all code between the (===) lines to execute...
+    46  C     ===============================================================
+    47  C      CALL BIOUT(' ')
+    48  C      CALL BIOUT(' Overlap (S) matrix: ')
+    49  C      CALL BIOUT(' ------------------- ')
+    50  C          CALL TAB(S,M,M,MMAX,MMAX)
+    51  C      CALL BIOUT(' ')
+    52  C      CALL BIOUT(' Hamiltonian (H) matrix: ')
+    53  C      CALL BIOUT(' ----------------------- ')
+    54  C          CALL TAB(H,M,M,MMAX,MMAX)
+    55  C      CALL BIOUT(' ')
+    56  C     ===============================================================
+    57  C      STOP
+
+                                                                        PAGE   2
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C
+    59  C     ---------------------------------------------------------------
+    60  C     NORMALIZATION OF S & H MATRICES:
+    61  C     ---------------------------------------------------------------
+    62  C     Copy the contents of matrix S into matrix SNORM...
+    63  c      CALL MATRIXCOPY(M,S,MMAX,SNORM,MMAX)
+    64  C
+    65  C     Normalization of the S & H matrix elements...
+    66  c      DO 59 I=1,M
+    67  c      DO 59 J=1,M
+    68  c      S(I,J) = S(I,J)/( DSQRT(SNORM(I,I))*DSQRT(SNORM(J,J)) )
+    69  c      H(I,J) = H(I,J)/( DSQRT(SNORM(I,I))*DSQRT(SNORM(J,J)) )
+    70  C      S(I,J) = S(I,J)/( (SNORM(I,I)**(1/2))*(SNORM(J,J)**(1/2)) )
+    71  C      H(I,J) = H(I,J)/( (SNORM(I,I)**(1/2))*(SNORM(J,J)**(1/2)) )
+    72  c 59   CONTINUE
+    73  C
+    74  C
+    75  C     PRINT-OUTS OF NORMALIZED S & H MATRICES:
+    76  C     Uncomment all code between the (===) lines to execute...
+    77  C     ===============================================================
+    78  C      CALL BIOUT(' ')
+    79  C      CALL BIOUT(' Normalized Overlap (S) Matrix: ')
+    80  C      CALL BIOUT(' ------------------------------ ')
+    81  C         CALL TAB(S,M,M,MMAX,MMAX)
+    82  C      CALL BIOUT(' ')
+    83  C      CALL BIOUT(' Normalized Hamiltonian (H) Matrix: ')
+    84  C      CALL BIOUT(' ---------------------------------- ')
+    85  C         CALL TAB(H,M,M,MMAX,MMAX)
+    86  C      CALL BIOUT(' ')
+    87  C     ===============================================================
+    88  C      STOP
+    89  C
+    90  C
+    91  C     NNP1D2=number of lower triangular elements for YACOBI
+    92        NNP1D2=M*(M+1)/2
+    93  C
+    94  C     ---------------------------------------------------------------
+    95  C     DIAGNOLIZE THE S MATRIX
+    96  C     ---------------------------------------------------------------
+#   97  C     Define the one dimensional array AA(II) as the S matrix for YACOBI
+    98        CALL VECH (M,S,MMAX,AA)
+    99  C
+   100  C
+   101  C     Call YACOBI to get the TRANSPOSE of the ROTATION MATRIX...
+   102        CALL YACOBI(AA,TP,M,NNP1D2,BIG,JB)
+   103  C
+   104  C     Construct the transpose matrix UT FROM the vector TP...
+   105        CALL DEVEC (M,TP,UT,256)
+   106  C
+   107  C
+   108  C     PRINT-OUT THE TRANSPOSE ROTATION MATRIX:
+   109  C     Uncomment all code between the (===) lines to execute...
+   110  C     ===============================================================
+   111  C      CALL BIOUT(' ')
+   112  C      CALL BIOUT(' TRANSPOSE matrix ')
+   113  C      CALL BIOUT(' ---------------------- ')
+   114  C         CALL TAB(UT,M,M,100,100)
+
+                                                                        PAGE   3
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115  C     ===============================================================
+   116  C      STOP
+   117  C
+   118  C
+   119  C     Construct the regular rotation matrix from its transpose (UT)...
+   120        CALL TRANSPOSE(M,UT,256,U,256)
+   121  C
+   122  C
+   123  C     SHOW THAT THE ROTATION IS A UNITARY TRANSFORMATION:
+   124  C     Uncomment all code between the (===) lines to execute...
+   125  C     ===============================================================
+   126  C      CALL BIOUT(' ')
+   127  C      CALL BIOUT(' Unitary Transformation?: ')
+   128  C      CALL BIOUT(' ------------------------ ' )
+   129  C          CALL MATRIXM (M,U,100,UT,100,TEM3,100)
+   130  C          CALL TAB(TEM3,M,M,100,100)
+   131  C      CALL BIOUT(' ')
+   132  C     ===============================================================
+   133  C      STOP
+   134  C
+   135  C
+   136  C     Perform the operations to diagonalize S
+   137        CALL MATRIXM(M,UT,256,S,MMAX,TEM,256)
+   138        CALL MATRIXM(M,TEM,256,U,256,SS,256)
+   139  
+   140  C
+   141  C
+   142  C     PRINT-OUT THE DIAGONALIZED S MATRIX:
+   143  C     Uncomment all code between the (===) lines to execute...
+   144  C     ===============================================================
+   145  C      CALL BIOUT(' ')
+   146  C      CALL BIOUT(' Diagonalized (S) matrix: ')
+   147  C      CALL BIOUT(' ----------------------- ' )
+   148  C          CALL TAB(SS,M,M,100,100)
+   149  C      CALL BIOUT(' ')
+   150  C     ===============================================================
+   151  C      STOP
+   152  C
+   153  C
+   154  C     ---------------------------------------------------------------
+   155  C     DIAGONALIZE THE H MATRIX:  PART I
+   156  C     ---------------------------------------------------------------
+   157  C     Create S**(1/2) & S**(-1/2) matrices...
+   158  C
+   159  C
+   160        DO 3130 I=1,M
+   161            DO 3130 J=1,M
+   162                SHALF(I,J)=0.0D+00
+   163  3130          CONTINUE
+   164            DO 3140  II=1,M
+   165  C      WRITE(6,*) 'SS (',II,',',II,') = ',SS(II,II)
+   166  C      WRITE(7,*) 'SS (',II,',',II,') = ',SS(II,II)
+   167                SHALF(II,II)=DSQRT(SS(II,II))
+   168  C              SHALF(II,II)=(SS(II,II)**(1/2))
+   169  3140  CONTINUE
+   170  C
+   171        CALL MATRIXM(M,U,256,SHALF,256,TEM,256)
+
+                                                                        PAGE   4
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  C
+   173        CALL MATRIXM(M,TEM,256,UT,256,SHALF,256)
+   174  C
+   175  C
+   176  C     PRINT-OUT THE S**(1/2) MATRIX:
+   177  C     Uncomment all code between the (===) lines to execute...
+   178  C     ===============================================================
+   179  C      CALL BIOUT(' ')
+   180  C      CALL BIOUT(' S**(1/2) matrix: ')
+   181  C      CALL BIOUT(' ---------------- ')
+   182  C          CALL TAB(SHALF,M,M,100,100)
+   183  C      CALL BIOUT(' ')
+   184  C     ===============================================================
+   185  C      STOP
+   186  C
+   187  C
+   188  C     Blank the values in matrix SNHALF -->0.0D+00
+   189        CALL BLANKM(M,SNHALF,256)
+   190  C
+   191  C
+   192  C     Construct the S**(-1/2) matrix...
+   193        DO 3160 II=1,M
+   194            SNHALF(II,II)=DSQRT(SS(II,II))
+   195  C          SNHALF(II,II)=(SS(II,II)**(1/2))
+   196            SNHALF(II,II)=1.0D+00/SNHALF(II,II)
+   197  3160  CONTINUE
+   198  C
+   199        CALL MATRIXM(M,U,256,SNHALF,256,TEM,256)
+   200  C
+   201  C
+   202        CALL MATRIXM(M,TEM,256,UT,256,SNHALF,256)
+   203  C
+   204  C
+   205  C     PRINT-OUT THE S**(-1/2) MATRIX:
+   206  C     Uncomment all code between the (===) lines to execute...
+   207  C     ===============================================================
+   208  C      CALL BIOUT(' ')
+   209  C      CALL BIOUT(' S**(-1/2) matrix: ')
+   210  C      CALL BIOUT(' ---------------- ')
+   211  C          CALL TAB(SNHALF,M,M,100,100)
+   212  C      CALL BIOUT(' ')
+   213  C     ===============================================================
+   214  C      STOP
+   215  C
+   216  C
+   217  C     CHECK FOR IDENTITY MATRIX:
+   218  C     Uncomment all code between the (===) lines to execute...
+   219  C     ===============================================================
+   220  C      CALL MATRIXM(M,SNHALF,100,SHALF,100,CHECKS,100)
+   221  C      CALL BIOUT(' ')
+   222  C      CALL BIOUT(' S**(-1/2) * S**(1/2) = I CHECK:')
+   223  C      CALL BIOUT(' -------------------------------')
+   224  C      CALL TAB(CHECKS,M,M,100,100)
+   225  C     ===============================================================
+   226  C      STOP 
+   227  C
+   228  C
+
+                                                                        PAGE   5
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229  C     CREATE A NEW MATRIX HH=S**(-1/2) * H * S**(-1/2)
+   230  C
+   231  C
+   232        CALL MATRIXM(M,SNHALF,256,H,MMAX,TEM,256)
+   233  C
+   234  C
+   235        CALL MATRIXM(M,TEM,256,SNHALF,256,HH,256)
+   236  C
+   237  C
+   238  C     PRINT-OUT THE HH MATRIX:
+   239  C     Uncomment all code between the (===) lines to execute...
+   240  C     ===============================================================
+   241  C      CALL BIOUT(' ')
+   242  C      CALL BIOUT(' HH matrix: ')
+   243  C      CALL BIOUT(' ---------- ')
+   244  C          CALL TAB(HH,M,M,100,100)
+   245  C      CALL BIOUT(' ')
+   246  C     ===============================================================
+   247  C      STOP
+   248  C
+   249  C
+   250  C     DIAGNOLIZE HH MATRIX TO GET EIGENVALUE W AND EIGENVECTOR C-----
+   251  C
+   252  C
+#  253  C     Define the one dimensional array AA(II) as the HH matrix for YABOC
+   254        CALL VECH (M,HH,256,AA)
+   255  C
+   256  C
+   257  C     Call YACOBI to get the TRANSPOSE of the ROTATION MATRIX...
+   258        CALL YACOBI(AA,TP,M,NNP1D2,BIG,JB)
+   259  C
+   260  C
+   261  C     Construct the transpose matrix XT FROM the vector TP...
+   262        CALL DEVEC (M,TP,XT,256)
+   263  C
+   264  C
+   265  C     PRINT-OUT THE TRANSPOSE ROTATION MATRIX:
+   266  C     Uncomment all code between the (===) lines to execute...
+   267  C     ===============================================================
+   268  C      CALL BIOUT(' ')
+   269  C      CALL BIOUT(' TRANSPOSE matrix ')
+   270  C      CALL BIOUT(' ---------------------- ')
+   271  C         CALL TAB(XT,M,M,100,100)
+   272  C     ===============================================================
+   273  C      STOP
+   274  C
+   275  C
+   276  C     Construct the regular rotation matrix from its transpose (XT)...
+   277        CALL TRANSPOSE(M,XT,256,XY,256)
+   278  C
+   279  C
+   280  C     SHOW THAT THE ROTATION IS A UNITARY TRANSFORMATION:
+   281  C     Uncomment all code between the (===) lines to execute...
+   282  C     ===============================================================
+   283  C      CALL BIOUT(' ')
+   284  C      CALL BIOUT(' Unitary Transformation?: ')
+   285  C      CALL BIOUT(' ------------------------ ' )
+
+                                                                        PAGE   6
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   286  C          CALL MATRIXM (M,XY,100,XT,100,TEM3,100)
+   287  C          CALL TAB(TEM3,M,M,100,100)
+   288  C      CALL BIOUT(' ')
+   289  C     ===============================================================
+   290  C      STOP
+   291  C
+   292  C
+   293  C     CHECK FOR IDENTITY MATRIX:
+   294  C     Uncomment all code between the (===) lines to execute...
+   295  C     ===============================================================
+   296  C      CALL MATRIXM(M,SNHALF,100,XY,100,TEM,100)
+   297  C      CALL TRANSPOSE(M,TEM,100,TEM1,100)
+   298  C      CALL MATRIXM(M,TEM1,100,S,MMAX,TEM2,100)
+   299  C      CALL MATRIXM(M,TEM2,100,TEM,100,TEM3,100)
+   300  C      CALL BIOUT(' ')
+   301  C      CALL BIOUT(' (UT * ST**(-1/2)) * S * (S**(-1/2) * U) = I CHECK:')
+   302  C      CALL BIOUT(' -------------------------------------------------')
+   303  C      CALL TAB(TEM3,M,M,100,100)
+   304  C     ===============================================================
+   305  C      STOP 
+   306  C
+   307  C
+   308  C     Perform the operations to diagonalize HH
+   309        CALL MATRIXM(M,XT,256,HH,256,TEM,256)
+   310        CALL MATRIXM(M,TEM,256,XY,256,W,256)
+   311  C
+   312  C
+   313  C     PRINT-OUT THE DIAGONALIZED W MATRIX:
+   314  C     Uncomment all code between the (===) lines to execute...
+   315  C     ===============================================================
+   316  C      CALL BIOUT(' ')
+   317  C      CALL BIOUT(' Diagonalized (W) matrix: ')
+   318  C      CALL BIOUT(' ----------------------- ' )
+   319  C          CALL TAB(W,M,M,100,100)
+   320  C      CALL BIOUT(' ')
+   321  C     ===============================================================
+   322  C      STOP
+   323  C
+   324  C
+   325  C     Pull out the Ground State Energy from the Eigenvalues...
+   326        EMIN=W(1,1)
+   327        IX=1
+   328  C
+   329        DO 3211 I=1,M
+   330            CC=0.0D+00
+   331            CC=W(I,I)
+   332            IF(CC .LT. EMIN) THEN
+   333                EMIN=CC
+   334                IX=I
+   335            ENDIF
+   336  3211  CONTINUE
+   337  C
+   338  C
+   339  C     Print out the lowest eigenvalue = Ground State Energy
+   340  C      CALL BIOUT(' ')
+   341  C      WRITE(7,1856) EMIN
+   342  C      WRITE(6,1856) EMIN
+
+                                                                        PAGE   7
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   343  C      RJUICE=EMIN
+   344  C
+   345  C
+   346  C      STOP 
+   347  C
+   348  
+   349  
+   350  
+   351  
+   352  
+   353  
+   354  
+   355  
+   356  
+   357  
+   358  
+   359  
+   360  
+   361  
+   362  
+   363  C ***   FIND EIGENVECTOR C
+   364        CALL MATRIXM(M,SNHALF,256,XY,256,C,256)
+   365        DO 600  I=1,M
+   366        DO 600  J=1,M
+   367        C(I,J)=0.0D+00
+   368        DO 650  K=1,M
+   369        C(I,J)=C(I,J)+SNHALF(I,K)*XY(K,J)
+   370   650   CONTINUE
+   371   600   CONTINUE
+   372  C      open(unit=6,access='append',form='formatted')
+   373  C      CALL BIOUT('CHECK THE EIGENVECTOR C')
+   374  C      DO 220  I=1,M
+   375  C      DO 220  J=1,M
+   376  C      WRITE(6,*) I,J,C(I,J)
+   377  C      WRITE(7,*) I,J,C(I,J)
+   378  C 220   CONTINUE
+   379  C     CLOSE(6)
+   380        DO 226  I=1,M
+   381        CO(I) = C(I,IX)
+   382   226   CONTINUE
+   383  C      DO 230 I=1,M
+   384  C      DO 230 J=1,M
+   385  C      CT(I,J)=C(J,I)
+   386  C 230   CONTINUE
+   387  C      CALL MATRIXM(M,CT,100,S,100,TEM,100)
+   388  C      DO 700  I=1,M
+   389  C      DO 700  J=1,M
+   390  C      TEM(I,J)=0
+   391  C      DO 750  K=1,M
+   392  C      TEM(I,J)=TEM(I,J)+CT(I,K)*S(K,J)
+   393  C 750   CONTINUE
+   394  C 700   CONTINUE
+   395  C      CALL MATRIXM(M,TEM,100,C,100,CHECKS,100)
+   396  C      DO 100  I=1,M
+   397  C      DO 100  J=1,M
+   398  C      CHECKS(I,J)=0
+   399  C      DO 150  K=1,M
+
+                                                                        PAGE   8
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   400  C      CHECKS(I,J)=CHECKS(I,J)+TEM(I,K)*C(K,J)
+   401  C 150   CONTINUE
+   402  C 100   CONTINUE
+   403  C      CALL TAB(CHECKS,M,M,100,100)
+   404  C     STOP
+   405  C       open(unit=6,access='append',form='formatted')
+   406  C     WRITE(6,*) 'CHECK S'
+   407  C     DO 240 I=1,M
+   408  C     DO 240 J=1,M
+   409  C     WRITE(6,*) CHECKS(I,J)
+   410  C240  CONTINUE
+   411  C     close(6)
+   412  C      DO 90 L=1,M
+   413  C      DO 90 K=1,M
+   414  C      SSS = SSS + CO(L)*CO(K)*S(L,K)
+   415  C90    CONTINUE 
+   416  C *** 
+   417  C      open (unit=6,access='append',form='formatted')
+   418  C      WRITE(6,*)' NORMALIZATION = ', SSS
+   419  C      WRITE(7,*)' NORMALIZATION = ', SSS
+   420  C      CALL TAB (C,M,M,100,100)
+   421  C      CALL BIOUT('******************************************')
+   422  C      CALL BIOUT('          EXPANSION COEFFICIENTS')
+   423  C      CALL BIOUT('==========================================')
+   424  C      DO 33 J = 1, M
+   425  	
+   426  C      WRITE(6,698) J, CO(J)
+   427  C      WRITE(7,698) J, CO(J)
+   428  C698   FORMAT(10X, 'CO(', I2,') =' D17.10)
+   429  C33    CONTINUE 
+   430  C      GO TO 1515
+   431   1414  CONTINUE
+   432  C      EMIN = 10.0D+00
+   433  C      open (unit=6,access='append',form='formatted')
+   434  C      write (7,*) ' emin = 10.00 '
+   435  C      close (6)
+   436  1515  DEALLOCATE(SNORM)
+   437  	RETURN
+   438  C
+   439  C     FORMATS:
+   440  C     --------------------------------------------
+   441   11   FORMAT(/,/)
+   442  1855  FORMAT (/)
+   443  1856  FORMAT (' GroundState Energy (CALCULATED) = ',F18.12,' au')
+   444  C     --------------------------------------------
+   445        END
+
+ENERGY@24  Local symbols
+Name                      Class              Type           Size
+
+
+AA. . . . . . . . . . . . local              REAL*8       528000
+BIG . . . . . . . . . . . local              REAL*8         2048
+C . . . . . . . . . . . . local              REAL*8       524288
+CC. . . . . . . . . . . . local              REAL*8            8
+CO. . . . . . . . . . . . param                                4
+EMIN. . . . . . . . . . . param                                4
+
+                                                                        PAGE   9
+                                                                        05-02-96
+                                                                        15:17:06
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+ENERGY@24  Local symbols
+Name                      Class              Type           Size
+
+
+H . . . . . . . . . . . . param                                4
+HH. . . . . . . . . . . . local              REAL*8       524288
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+IX. . . . . . . . . . . . local              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+JB. . . . . . . . . . . . local              INTEGER*4      1024
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+KLM . . . . . . . . . . . param                                4
+M . . . . . . . . . . . . param                                4
+MMAX. . . . . . . . . . . local              INTEGER*4         4
+MNMAX . . . . . . . . . . local              INTEGER*4         4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+NNP1D2. . . . . . . . . . local              INTEGER*4         4
+NPMAX . . . . . . . . . . local              INTEGER*4         4
+S . . . . . . . . . . . . param                                4
+SHALF . . . . . . . . . . local              REAL*8       524288
+SNHALF. . . . . . . . . . local              REAL*8       524288
+SNORM . . . . . . . . . . local              ADDRESS*8         4
+SS. . . . . . . . . . . . local              REAL*8       524288
+TEM . . . . . . . . . . . local              REAL*8       524288
+TP. . . . . . . . . . . . local              REAL*8       528000
+U . . . . . . . . . . . . local              REAL*8       524288
+UT. . . . . . . . . . . . local              REAL*8       524288
+W . . . . . . . . . . . . local              REAL*8       524288
+XT. . . . . . . . . . . . local              REAL*8       524288
+XY. . . . . . . . . . . . local              REAL*8       524288
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BLANKM@12 . . . . . . . . extern             ***             ***
+CRASH . . . . . . . . . . extern             ***             ***
+DEVEC@16. . . . . . . . . extern             ***             ***
+ENERGY@24 . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MATRIXM@28. . . . . . . . extern             ***             ***
+TRANSPOSE@20. . . . . . . extern             ***             ***
+VECH@16 . . . . . . . . . extern             ***             ***
+YACOBI@24 . . . . . . . . extern             ***             ***
+
+
+No errors detected

@@ -1,0 +1,205 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE YACOBI (A,U,N,NNP1D2,BIG,JB)
+     2  C     L(I)=(I*(I-1))/2
+     3  CSW      1
+     4        IMPLICIT REAL*8 (A-H,O-Z)
+     5        DIMENSION A(NNP1D2),U(N*N),BIG(N),JB(N)
+     6        DATA ZERO/0.0D+00/
+     7        DATA EPS/1.0D-14/
+     8        DATA ONE/1.0D+00/
+     9  CSW      2
+    10  C      ABS(X)=DABS(X)
+    11  C      SQRT(X)=DSQRT(X)
+    12        L(I)=(I*(I-1))/2.0D+00
+    13  C ***
+    14  C      WRITE(6,*)'YACOBI: N,NNP1D2', N,NNP1D2
+    15        U(1)=ONE
+    16        IF (N.EQ.1) GO TO 999
+    17        J=0
+    18        K=0
+    19        N2=N*N
+    20        DO 10 I=1,N2
+    21     10 U(I)=ZERO
+    22        DO 30 I=1,N
+    23        J=J+I
+    24        JJ=K+I
+    25        K=K+N
+    26        U(JJ)=ONE
+    27  C     SECTION TO LOCATE BIGGEST OFF-DIAGONAL ELEMENT IN ROW I
+    28     15 IM1=I-1
+    29        IF (IM1.EQ.0) GO TO 30
+    30     16 BIG(I)=ZERO
+    31        DO 20 JJ=1,IM1
+    32        IJ=L(I)+JJ
+    33        B=ABS(A(IJ))
+    34        IF (B.LE.BIG(I)) GO TO 20
+    35     18 BIG(I)=B
+    36        JB(I)=JJ
+    37     20 CONTINUE
+    38     30 CONTINUE
+    39  C     LOCATE ROTATION PIVOT
+    40     31 CONTINUE
+    41        IBIG=2
+    42        DO 35 I=2,N
+    43        IF (BIG(I).GT.BIG(IBIG)) IBIG=I
+    44     35 CONTINUE
+    45        BIGGST=BIG(IBIG)
+    46        JBIG=JB(IBIG)
+    47        IF (BIGGST.LE.EPS) GO TO 999
+    48  C     BEGIN ROTATION
+    49     40 II=L(IBIG)+IBIG
+    50        IJ=L(IBIG)+JBIG
+    51        JJ=L(JBIG)+JBIG
+    52        AB=A(II)-A(JJ)
+    53        AA=A(IJ)+A(IJ)
+    54        D=SQRT(AB*AB+AA*AA)
+    55        IF (AB.LT.ZERO) D=-D
+    56        T=AA/(AB+D)
+    57        TSQ=T*T
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        CSQ=ONE/(ONE+TSQ)
+    59        C=SQRT(CSQ)
+    60        S=C*T
+    61        AB=AA*T
+    62        D=(A(II)+AB+TSQ*A(JJ))*CSQ
+    63        A(JJ)=(A(JJ)-AB+TSQ*A(II))*CSQ
+    64        A(II)=D
+    65        A(IJ)=ZERO
+    66        III=4
+    67        KIX=(IBIG-1)*N
+    68        KJX=(JBIG-1)*N
+    69        DO 60 I=1,N
+    70        KI=KIX+I
+    71        KJ=KJX+I
+    72        D=C*U(KI)+S*U(KJ)
+    73        U(KJ)=C*U(KJ)-S*U(KI)
+    74        U(KI)=D
+    75        IF (I-JBIG) 45,54,46
+    76     45 KJ=L(JBIG)+I
+    77        KI=L(IBIG)+I
+    78        GO TO 50
+    79     46 KJ=L(I)+JBIG
+    80        IF (I-IBIG)47,55,48
+    81     47 KI=L(IBIG)+I
+    82        III=2
+    83        IF (JB(I).EQ.JBIG) III=3
+    84        GO TO 50
+    85     48 KI=L(I)+IBIG
+    86        III=1
+    87        IF (JB(I).EQ.IBIG.OR.JB(I).EQ.JBIG) III=3
+    88     50 D=C*A(KI)+S*A(KJ)
+    89        A(KJ)=C*A(KJ)-S*A(KI)
+    90        A(KI)=D
+    91        GO TO (51,52,55,60),III
+    92     51 B=ABS(A(KI))
+    93        IF (B.LE.BIG(I)) GO TO 52
+    94        BIG(I)=B
+    95        JB(I)=IBIG
+    96     52 B=ABS(A(KJ))
+    97        IF (B.LE.BIG(I)) GO TO 60
+    98     53 BIG(I)=B
+    99        JB(I)=JBIG
+   100        GO TO 60
+   101     54 IF (I.EQ.1) GO TO 60
+   102     55 IM1=I-1
+   103        BIG(I)=ZERO
+   104        DO 58 J=1,IM1
+   105        IJ=L(I)+J
+   106        B=ABS(A(IJ))
+   107        IF (B.LE.BIG(I)) GO TO 58
+   108        BIG(I)=B
+   109        JB(I)=J
+   110     58 CONTINUE
+   111     60 CONTINUE
+   112  C     END OF ROTATION
+   113        GO TO 31
+   114    999 CONTINUE
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115  C LOCK EIGENVECTORS SO THAT FIRST COEFFICIENT IS ALWAYS
+   116  C POSITIVE.
+   117        IJ=1
+   118        DO 501 I=1,N
+   119        IF (U(IJ).GE.ZERO) GO TO 503
+   120        DO 502 J=1,N
+   121        U(IJ+J-1)=-U(IJ+J-1)
+   122    502 CONTINUE
+   123    503 IJ=IJ+N
+   124    501 CONTINUE
+   125        RETURN
+   126        END
+
+YACOBI@24  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+AA. . . . . . . . . . . . local              REAL*8            8
+AB. . . . . . . . . . . . local              REAL*8            8
+B . . . . . . . . . . . . local              REAL*8            8
+BIG . . . . . . . . . . . param                                4
+BIGGST. . . . . . . . . . local              REAL*8            8
+C . . . . . . . . . . . . local              REAL*8            8
+CSQ . . . . . . . . . . . local              REAL*8            8
+D . . . . . . . . . . . . local              REAL*8            8
+EPS . . . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . local              INTEGER*4         4
+IBIG. . . . . . . . . . . local              INTEGER*4         4
+II. . . . . . . . . . . . local              INTEGER*4         4
+III . . . . . . . . . . . local              INTEGER*4         4
+IJ. . . . . . . . . . . . local              INTEGER*4         4
+IM1 . . . . . . . . . . . local              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+JB. . . . . . . . . . . . param                                4
+JBIG. . . . . . . . . . . local              INTEGER*4         4
+JJ. . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+KI. . . . . . . . . . . . local              INTEGER*4         4
+KIX . . . . . . . . . . . local              INTEGER*4         4
+KJ. . . . . . . . . . . . local              INTEGER*4         4
+KJX . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+N2. . . . . . . . . . . . local              INTEGER*4         4
+NNP1D2. . . . . . . . . . param                                4
+ONE . . . . . . . . . . . local              REAL*8            8
+S . . . . . . . . . . . . local              REAL*8            8
+T . . . . . . . . . . . . local              REAL*8            8
+TSQ . . . . . . . . . . . local              REAL*8            8
+U . . . . . . . . . . . . param                                4
+ZERO. . . . . . . . . . . local              REAL*8            8
+
+
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+YACOBI@24 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

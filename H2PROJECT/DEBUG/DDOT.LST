@@ -1,0 +1,95 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:53:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        double precision function ddot(n,dx,incx,dy,incy)
+     2  c
+     3  c     forms the dot product of two vectors.
+     4  c     uses unrolled loops for increments equal to one.
+     5  c     jack dongarra, linpack, 3/11/78.
+     6  c     modified 12/3/93, array(1) declarations changed to array(*)
+     7  c
+     8        double precision dx(*),dy(*),dtemp
+     9        integer i,incx,incy,ix,iy,m,mp1,n
+    10  c
+    11        ddot = 0.0d0
+    12        dtemp = 0.0d0
+    13        if(n.le.0)return
+    14        if(incx.eq.1.and.incy.eq.1)go to 20
+    15  c
+    16  c        code for unequal increments or equal increments
+    17  c          not equal to 1
+    18  c
+    19        ix = 1
+    20        iy = 1
+    21        if(incx.lt.0)ix = (-n+1)*incx + 1
+    22        if(incy.lt.0)iy = (-n+1)*incy + 1
+    23        do 10 i = 1,n
+    24          dtemp = dtemp + dx(ix)*dy(iy)
+    25          ix = ix + incx
+    26          iy = iy + incy
+    27     10 continue
+    28        ddot = dtemp
+    29        return
+    30  c
+    31  c        code for both increments equal to 1
+    32  c
+    33  c
+    34  c        clean-up loop
+    35  c
+    36     20 m = mod(n,5)
+    37        if( m .eq. 0 ) go to 40
+    38        do 30 i = 1,m
+    39          dtemp = dtemp + dx(i)*dy(i)
+    40     30 continue
+    41        if( n .lt. 5 ) go to 60
+    42     40 mp1 = m + 1
+    43        do 50 i = mp1,n,5
+    44          dtemp = dtemp + dx(i)*dy(i) + dx(i + 1)*dy(i + 1) +
+    45       *   dx(i + 2)*dy(i + 2) + dx(i + 3)*dy(i + 3) + dx(i + 4)*dy(i + 4)
+    46     50 continue
+    47     60 ddot = dtemp
+    48        return
+    49        end
+
+DDOT@20  Local symbols
+Name                      Class              Type           Size
+
+
+DTEMP . . . . . . . . . . local              REAL*8            8
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:53:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+DDOT@20  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+INCX. . . . . . . . . . . param                                4
+INCY. . . . . . . . . . . param                                4
+IX. . . . . . . . . . . . local              INTEGER*4         4
+IY. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MP1 . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DDOT@20 . . . . . . . . . FUNCT              REAL*8          ***
+
+
+No errors detected

@@ -1,0 +1,43 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:51:57
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE VECVECMULT (N,A,MAXA,B,MAXB,C)
+     2        IMPLICIT REAL*8 (A-H,O-Z)
+     3        DIMENSION A(MAXA),B(MAXB)
+     4  C
+     5  			C=0.0D+00
+     6  			DO K=1,N
+     7  				C=C+A(K)*B(K)
+     8  			END DO
+     9  C	WRITE(6,*)C
+    10  C
+    11  	RETURN
+    12        END
+
+VECVECMULT@24  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+C . . . . . . . . . . . . param                                4
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+MAXB. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+VECVECMULT@24 . . . . . . FUNCT              ***             ***
+
+
+No errors detected

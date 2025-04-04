@@ -1,0 +1,111 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:32:09
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE powell(p,xi,n,np,ftol,iter,fret)
+     2        INTEGER iter,n,np,NMAX,ITMAX
+     3        DOUBLE PRECISION fret,ftol,p(np),xi(np,np),func
+     4        EXTERNAL func
+     5        PARAMETER (NMAX=20,ITMAX=200)
+     6  CU    USES func,linmin
+     7        INTEGER i,ibig,j
+     8        DOUBLE PRECISION del,fp,fptt,t,pt(NMAX),ptt(NMAX),xit(NMAX)
+     9        fret=func(p)
+    10        do 11 j=1,n
+    11          pt(j)=p(j)
+    12  11    continue
+    13        iter=0
+    14  1     iter=iter+1
+    15          write(6,*) iter,fret
+    16        fp=fret
+    17        ibig=0
+    18        del=0.d0
+    19        do 13 i=1,n
+    20          do 12 j=1,n
+    21            xit(j)=xi(j,i)
+    22  12      continue
+    23          fptt=fret
+    24  
+    25  c        write(7,*) n
+    26  c        do j=1,n
+    27  c        write(7,*) p(j)
+    28  c        end do
+    29        
+    30          call linmin(p,xit,n,fret)
+    31          if(abs(fptt-fret).gt.del)then
+    32            del=abs(fptt-fret)
+    33            ibig=i
+    34          endif
+    35  13    continue
+    36        if(2.d0*abs(fp-fret).le.ftol*(abs(fp)+abs(fret)))return
+    37        if(iter.eq.ITMAX) pause 'powell exceeding maximum iterations'
+    38        
+    39        do 14 j=1,n
+    40          ptt(j)=2.d0*p(j)-pt(j)
+    41          xit(j)=p(j)-pt(j)
+    42          pt(j)=p(j)
+    43  14    continue
+    44        fptt=func(ptt)
+    45        if(fptt.ge.fp)goto 1
+    46        t=2.d0*(fp-2.d0*fret+fptt)*(fp-fret-del)**2-del*(fp-fptt)**2
+    47        if(t.ge.0.d0)goto 1
+    48        call linmin(p,xit,n,fret)
+    49        do 15 j=1,n
+    50          xi(j,ibig)=xi(j,n)
+    51          xi(j,n)=xit(j)
+    52  15    continue
+    53  
+    54        goto 1
+    55        END
+
+                                                                        PAGE   2
+                                                                        02-23-96
+                                                                        13:32:09
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+POWELL@28  Local symbols
+Name                      Class              Type           Size
+
+
+DEL . . . . . . . . . . . local              REAL*8            8
+FP. . . . . . . . . . . . local              REAL*8            8
+FPTT. . . . . . . . . . . local              REAL*8            8
+FRET. . . . . . . . . . . param                                4
+FTOL. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IBIG. . . . . . . . . . . local              INTEGER*4         4
+ITER. . . . . . . . . . . param                                4
+ITMAX . . . . . . . . . . const              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+NP. . . . . . . . . . . . param                                4
+P . . . . . . . . . . . . param                                4
+PT. . . . . . . . . . . . local              REAL*8          160
+PTT . . . . . . . . . . . local              REAL*8          160
+T . . . . . . . . . . . . local              REAL*8            8
+XI. . . . . . . . . . . . param                                4
+XIT . . . . . . . . . . . local              REAL*8          160
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+FUNC@4. . . . . . . . . . extern             REAL*8          ***
+LINMIN@16 . . . . . . . . extern             ***             ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+LWRITE_I. . . . . . . . . extern             INTEGER*0       ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+POWELL@28 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

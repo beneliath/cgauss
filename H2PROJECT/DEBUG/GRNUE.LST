@@ -1,0 +1,350 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C**************************************************
+     2        SUBROUTINE grNUe(L,K,R1LZ,AL1,R1KZ,Ak1,                      
+     3       1              R2LZ,AL2,R2KZ,AK2,BL,BK,EZ,
+     4       2              DENA1,DENA2,DENB,DENR1,DENR2) 
+     5  C**************************************************
+     6        IMPLICIT REAL*8 (A-H,O-Z)
+     7        DIMENSION DELTA(100,100)
+     8        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/               
+     9        PI=3.1415926535898D+00
+    10  
+    11  C ***                                                              ***
+    12  C ***    SUBROUTINE  CALCULATES FIRST DERIVATIVES OF V_ee          ***
+    13  C ***                   
+    14       
+    15        DO 10 iL=1,100
+    16        DO 10 iK=1,100
+    17        DELTA(IL,IK)=0.0
+    18  10    CONTINUE
+    19        DO 11 II=1,100
+    20        DELTA(II,II)=1.0 
+    21  11    CONTINUE
+    22        ALK1=AL1+Ak1                                                      
+    23        ALK2=AL2+Ak2                                                      
+    24        BLK12=BL+BK  
+    25        DETAB=ALK1*ALK2+(ALK1+ALK2)*BLK12
+    26  	DETA1=(1.0+DELTA(L,K))*(ALK2 +BLK12)
+    27  	DETA2=(1.0+DELTA(L,K))*(ALK1 +BLK12)
+    28  	DETB=(1.0+DELTA(L,K))*(ALK1 +ALK2)
+    29  c
+    30        G1=2.0*PI**2.5*(
+    31       1 (1.0/(DETAB*DSQRT(ALK2+BLK12))) +
+    32       2 (1.0/(DETAB*DSQRT(ALK1+BLK12))) )
+    33        G1A1=2.0*PI**2.5*(
+    34       1 -( DETA1*DSQRT(ALK1+BLK12) 
+    35       2   +DETAB*0.5*(1.0+DELTA(L,K))/DSQRT(ALK1+BLK12) )
+    36       3 /(DETAB**2.0*(ALK1+BLK12) ) 
+    37       4 - DETA1/(DETAB**2.0*DSQRT(ALK2+BLK12))   )
+    38  C
+    39        G1A2=2.0*PI**2.5*(
+    40       1 -( DETA2*DSQRT(ALK2+BLK12) 
+    41       2   +DETAB*0.5*(1.0+DELTA(L,K))/DSQRT(ALK2+BLK12) )
+    42       3 /(DETAB**2.0*(ALK2+BLK12) ) 
+    43       4 - DETA2/(DSQRT(ALK1+BLK12)*DETAB**2.0)   )
+    44  C
+    45         G1B=2.0*PI**2.5*(
+    46       1 -( DETB*DSQRT(ALK1+BLK12) 
+    47       2   +DETAB*0.5*(1.0+DELTA(L,K))/DSQRT(ALK1+BLK12) )
+    48       3 /(DETAB**2.0*(ALK1+BLK12) ) 
+    49       4 -( DETB*DSQRT(ALK2+BLK12) 
+    50       5   +DETAB*0.5*(1.0+DELTA(L,K))/DSQRT(ALK2+BLK12) )
+    51       6 /(DETAB**2.0*(ALK2+BLK12) ) )
+    52      
+    53  C     --- CENTERS ---
+    54  C
+    55        XK1=EXP(-((AL1*AK1)/ALK1)*((R1LZ-R1KZ)**2))
+    56        XK2=EXP(-((AL2*AK2)/ALK2)*((R2LZ-R2KZ)**2))
+    57  C
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        RZ1=(AL1*R1LZ+Ak1*R1KZ)/ALK1
+    59        RZ1A1= ( DELTA(L,K)*R1LZ+R1KZ )/ALK1
+    60       1     -( AL1*R1LZ+Ak1*R1KZ )*(1.0+DELTA(L,K))/ALK1**2.0
+    61        RZ1R1=(AL1*DELTA(L,K) + AK1 )/ALK1	
+    62  C
+    63        RZ2=(AL2*R2LZ+Ak2*R2KZ)/ALK2
+    64        RZ2A2=( DELTA(L,K)*R2LZ+R2KZ )/ALK2
+    65       1     -( AL2*R2LZ+Ak2*R2KZ )*(1.0+DELTA(L,K))/ALK2**2.0
+    66        RZ2R2=(AL2*DELTA(L,K) + AK2 )/ALK2	
+    67  C
+    68        DD=(RZ1-RZ2)**2
+    69        DDA1=  2*(RZ1-RZ2)*RZ1A1
+    70        DDA2=- 2*(RZ1-RZ2)*RZ2A2
+    71        DDR1= 2*(RZ1-RZ2)*RZ1R1	
+    72        DDR2=- 2*(RZ1-RZ2)*RZ2R2
+    73  C      RZ1=(AL1*R1LZ+Ak1*R1KZ)/ALK1
+    74  C      RZ2=(AL2*R2LZ+Ak2*R2KZ)/ALK2
+    75  C
+    76        XK3=EXP(-(ALK1*ALK2*BLK12)*DD/DETAB)
+    77        XK=XK1*XK2*XK3
+    78        CALL DK(L,K,R1LZ,AL1,R1KZ,Ak1,                      
+    79       1              R2LZ,AL2,R2KZ,AK2,BL,BK,
+    80       2              DKA1,DKA2,DKB,DKR1,DKR2) 
+    81  C
+    82  C     THIS IS FOR f0 FUNCTION
+    83  C
+    84  C ***  FOR THE FIRST ELECTRON
+    85        XX=ALK1*(ALK2+BLK12)*RZ1+ALK2*BLK12*RZ2
+    86        XXA1=(1.0+DELTA(L,K))*(ALK2+BLK12)*RZ1 +ALK1*(ALK2+BLK12)*RZ1A1
+    87        XXA2=ALK1*(1.0+DELTA(L,K))*RZ1+(1.0+DELTA(L,K))*BLK12*RZ2
+    88       1    +ALK2*BLK12*RZ2A2
+    89        XXB=ALK1*(1.0+DELTA(L,K))*RZ1+ALK2*(1.0+DELTA(L,K))*RZ2
+    90        XXR1=ALK1*(ALK2+BLK12)*RZ1R1
+    91        XXR2=ALK2*BLK12*RZ2R2
+    92  C
+    93        RRZ=XX/DETAB 
+    94        RRZA1=(XXA1*DETAB-XX*DETA1)/DETAB**2.0
+    95        RRZA2=(XXA2*DETAB-XX*DETA2)/DETAB**2.0     
+    96        RRZB=(XXB*DETAB-XX*DETB)/DETAB**2.0
+    97        RRZR1=XXR1/DETAB 
+    98        RRZR2=XXR2/DETAB 
+    99  C
+   100        RENO=(RRZ-EZ)**2
+   101        RENOA1=2.0*(RRZ-EZ)*RRZA1
+   102        RENOA2=2.0*(RRZ-EZ)*RRZA2
+   103        RENOB =2.0*(RRZ-EZ)*RRZB
+   104        RENOR1 =2.0*(RRZ-EZ)*RRZR1
+   105        RENOR2 =2.0*(RRZ-EZ)*RRZR2
+   106  C
+   107        DEL=(ALK2+BLK12)/DETAB
+   108        DELA1=-(ALK2+BLK12)*DETA1/DETAB**2.0
+   109        DELA2=( (1.0+DELTA(L,K))*DETAB-(ALK2+BLK12)*DETA2 )/DETAB**2.0
+   110        DELB= ( (1.0+DELTA(L,K))*DETAB-(ALK2+BLK12)*DETB )/DETAB**2.0
+   111  C
+   112        RE1=RENO/DEL
+   113        RE1A1=( RENOA1*DEL-RENO*DELA1 )/DEL**2.0
+   114        RE1A2=( RENOA2*DEL-RENO*DELA2 )/DEL**2.0
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115        RE1B =( RENOB*DEL-RENO*DELB )/DEL**2.0
+   116        RE1R1=RENOR1/DEL
+   117        RE1R2=RENOR2/DEL
+   118  C ***  FOR THE SECOND ELECTRON
+   119        XX=ALK2*(ALK1+BLK12)*RZ2+ALK1*BLK12*RZ1
+   120        XXA2=(1.0+DELTA(L,K))*(ALK1+BLK12)*RZ2 +ALK2*(ALK1+BLK12)*RZ2A2
+   121        XXA1=ALK2*(1.0+DELTA(L,K))*RZ2+(1.0+DELTA(L,K))*BLK12*RZ1
+   122       1    +ALK1*BLK12*RZ1A1
+   123        XXB=ALK2*(1.0+DELTA(L,K))*RZ2+ALK1*(1.0+DELTA(L,K))*RZ1
+   124        XXR2=ALK2*(ALK1+BLK12)*RZ2R2
+   125        XXR1=ALK1*BLK12*RZ1R1
+   126  C
+   127        RRZ=XX/DETAB 
+   128        RRZA1=(XXA1*DETAB-XX*DETA1)/DETAB**2.0
+   129        RRZA2=(XXA2*DETAB-XX*DETA2)/DETAB**2.0     
+   130        RRZB=(XXB*DETAB-XX*DETB)/DETAB**2.0
+   131        RRZR1=XXR1/DETAB 
+   132        RRZR2=XXR2/DETAB 
+   133  C
+   134        RENO=(RRZ-EZ)**2
+   135        RENOA1=2.0*(RRZ-EZ)*RRZA1
+   136        RENOA2=2.0*(RRZ-EZ)*RRZA2
+   137        RENOB =2.0*(RRZ-EZ)*RRZB
+   138        RENOR1 =2.0*(RRZ-EZ)*RRZR1
+   139        RENOR2 =2.0*(RRZ-EZ)*RRZR2
+   140  C
+   141        DEL=(ALK1+BLK12)/DETAB
+   142        DELA2=-(ALK1+BLK12)*DETA2/DETAB**2.0
+   143        DELA1=( (1.0+DELTA(L,K))*DETAB-(ALK1+BLK12)*DETA1 )/DETAB**2.0
+   144        DELB= ( (1.0+DELTA(L,K))*DETAB-(ALK1+BLK12)*DETB )/DETAB**2.0
+   145  C
+   146        RE2=RENO/DEL
+   147        RE2A1=( RENOA1*DEL-RENO*DELA1 )/DEL**2.0
+   148        RE2A2=( RENOA2*DEL-RENO*DELA2 )/DEL**2.0
+   149        RE2B =( RENOB*DEL-RENO*DELB )/DEL**2.0
+   150        RE2R1=RENOR1/DEL
+   151        RE2R2=RENOR2/DEL
+   152  C
+   153        RE=RE1+RE2
+   154        REA1=RE1A1+RE2A1
+   155        REA2=RE1A2+RE2A2
+   156        REB=RE1B+RE2B
+   157        RER1=RE1R1+RE2R1
+   158        RER2=RE1R2+RE2R2
+   159  C
+   160  c      F0A1=-F1(RE) *REA1
+   161  c      F0A2=-F1(RE) *REA2
+   162  c      F0B =-F1(RE) *REB
+   163  c      F0R1=-F1(RE) *RER1
+   164  c      F0R2=-F1(RE) *RER2
+   165  C
+   166   
+   167  C------THIS IS A TEST--------------------------------
+   168        EN=G1*XK*RE
+   169        DENA1=G1A1*XK*RE +G1*DKA1*RE +G1*XK*REA1
+   170        DENA2=G1A2*XK*RE +G1*DKA2*RE +G1*XK*REA2
+   171        DENB=G1B*XK*RE +G1*DKB*RE +G1*XK*REB
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172        DENR1=G1*DKR1*RE +G1*XK*RER1
+   173        DENR2=G1*DKR2*RE +G1*XK*RER2
+   174  C--------------END OF TEST------------------------------
+   175  
+   176  
+   177  c      EN=G1*XK*F0(RE)
+   178  c      DENA1=G1A1*XK*F0(RE) +G1*DKA1*F0(RE) +G1*XK*F0A1
+   179  c      DENA2=G1A2*XK*F0(RE) +G1*DKA2*F0(RE) +G1*XK*F0A2
+   180  c      DENB=G1B*XK*F0(RE) +G1*DKB*F0(RE) +G1*XK*F0B
+   181  c      DENR1=G1*DKR1*F0(RE) +G1*XK*F0R1
+   182  c      DENR2=G1*DKR2*F0(RE) +G1*XK*F0R2
+   183        
+   184  
+   185  	RETURN
+   186          END
+
+GRNUE@72  Local symbols
+Name                      Class              Type           Size
+
+
+AK1 . . . . . . . . . . . param                                4
+AK2 . . . . . . . . . . . param                                4
+AL1 . . . . . . . . . . . param                                4
+AL2 . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+BK. . . . . . . . . . . . param                                4
+BL. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+DD. . . . . . . . . . . . local              REAL*8            8
+DDA1. . . . . . . . . . . local              REAL*8            8
+DDA2. . . . . . . . . . . local              REAL*8            8
+DDR1. . . . . . . . . . . local              REAL*8            8
+DDR2. . . . . . . . . . . local              REAL*8            8
+DEL . . . . . . . . . . . local              REAL*8            8
+DELA1 . . . . . . . . . . local              REAL*8            8
+DELA2 . . . . . . . . . . local              REAL*8            8
+DELB. . . . . . . . . . . local              REAL*8            8
+DELTA . . . . . . . . . . local              REAL*8        80000
+DENA1 . . . . . . . . . . param                                4
+DENA2 . . . . . . . . . . param                                4
+DENB. . . . . . . . . . . param                                4
+DENR1 . . . . . . . . . . param                                4
+DENR2 . . . . . . . . . . param                                4
+DETA1 . . . . . . . . . . local              REAL*8            8
+DETA2 . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+DETB. . . . . . . . . . . local              REAL*8            8
+DKA1. . . . . . . . . . . local              REAL*8            8
+DKA2. . . . . . . . . . . local              REAL*8            8
+DKB . . . . . . . . . . . local              REAL*8            8
+DKR1. . . . . . . . . . . local              REAL*8            8
+DKR2. . . . . . . . . . . local              REAL*8            8
+EN. . . . . . . . . . . . local              REAL*8            8
+EZ. . . . . . . . . . . . param                                4
+G1. . . . . . . . . . . . local              REAL*8            8
+G1A1. . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRNUE@72  Local symbols
+Name                      Class              Type           Size
+
+
+G1A2. . . . . . . . . . . local              REAL*8            8
+G1B . . . . . . . . . . . local              REAL*8            8
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+IK. . . . . . . . . . . . dynam              INTEGER*4         4
+IL. . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . param                                4
+L . . . . . . . . . . . . param                                4
+PI. . . . . . . . . . . . local              REAL*8            8
+R1KZ. . . . . . . . . . . param                                4
+R1LZ. . . . . . . . . . . param                                4
+R2KZ. . . . . . . . . . . param                                4
+R2LZ. . . . . . . . . . . param                                4
+RE. . . . . . . . . . . . local              REAL*8            8
+RE1 . . . . . . . . . . . local              REAL*8            8
+RE1A1 . . . . . . . . . . local              REAL*8            8
+RE1A2 . . . . . . . . . . local              REAL*8            8
+RE1B. . . . . . . . . . . local              REAL*8            8
+RE1R1 . . . . . . . . . . local              REAL*8            8
+RE1R2 . . . . . . . . . . local              REAL*8            8
+RE2 . . . . . . . . . . . local              REAL*8            8
+RE2A1 . . . . . . . . . . local              REAL*8            8
+RE2A2 . . . . . . . . . . local              REAL*8            8
+RE2B. . . . . . . . . . . local              REAL*8            8
+RE2R1 . . . . . . . . . . local              REAL*8            8
+RE2R2 . . . . . . . . . . local              REAL*8            8
+REA1. . . . . . . . . . . local              REAL*8            8
+REA2. . . . . . . . . . . local              REAL*8            8
+REB . . . . . . . . . . . local              REAL*8            8
+RENO. . . . . . . . . . . local              REAL*8            8
+RENOA1. . . . . . . . . . local              REAL*8            8
+RENOA2. . . . . . . . . . local              REAL*8            8
+RENOB . . . . . . . . . . local              REAL*8            8
+RENOR1. . . . . . . . . . local              REAL*8            8
+RENOR2. . . . . . . . . . local              REAL*8            8
+RER1. . . . . . . . . . . local              REAL*8            8
+RER2. . . . . . . . . . . local              REAL*8            8
+RRZ . . . . . . . . . . . local              REAL*8            8
+RRZA1 . . . . . . . . . . local              REAL*8            8
+RRZA2 . . . . . . . . . . local              REAL*8            8
+RRZB. . . . . . . . . . . local              REAL*8            8
+RRZR1 . . . . . . . . . . local              REAL*8            8
+RRZR2 . . . . . . . . . . local              REAL*8            8
+RZ1 . . . . . . . . . . . local              REAL*8            8
+RZ1A1 . . . . . . . . . . local              REAL*8            8
+RZ1R1 . . . . . . . . . . local              REAL*8            8
+RZ2 . . . . . . . . . . . local              REAL*8            8
+RZ2A2 . . . . . . . . . . local              REAL*8            8
+RZ2R2 . . . . . . . . . . local              REAL*8            8
+XK. . . . . . . . . . . . local              REAL*8            8
+XK1 . . . . . . . . . . . local              REAL*8            8
+XK2 . . . . . . . . . . . local              REAL*8            8
+XK3 . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:53:00
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRNUE@72  Local symbols
+Name                      Class              Type           Size
+
+
+XX. . . . . . . . . . . . local              REAL*8            8
+XXA1. . . . . . . . . . . local              REAL*8            8
+XXA2. . . . . . . . . . . local              REAL*8            8
+XXB . . . . . . . . . . . local              REAL*8            8
+XXR1. . . . . . . . . . . local              REAL*8            8
+XXR2. . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DK@68 . . . . . . . . . . extern             ***             ***
+GRNUE@72. . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

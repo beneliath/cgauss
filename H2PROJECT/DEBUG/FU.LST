@@ -1,0 +1,109 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:43:36
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE FU(I)
+     2        IMPLICIT REAL*8(A-H,O-Z)
+     3        PARAMETER (MMAX=50)
+     4        COMMON /PASSIT/ M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,CO
+     5  	COMMON/T1/ N,NMAX,F,R(500),DR(500),CURVE,ALPHA,NOISE,EXACT,
+     6       1           ALPH(500),RNOT(500), V(500,500), CURV(500),
+     7       2		   RESTART,JSTART, FNOT, TIMLIM,TOLF,TOLR       
+     8        COMMON /VALUE/ EMIN
+     9  	COMMON /LC/RC(50)
+    10        INTEGER I,J,M
+    11        REAL*8 
+    12       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+    13       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+    14       3         B12(MMAX),EVEC(MMAX),S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX)  
+    15        I=0
+    16  C	 REWIND 7
+    17  C      J=1
+    18  C      DO I=1,M
+    19  C		TEMP1=(r(J)**2)+(r(J)*r(J+2))
+    20  C		TEMP2=(r(J+1)**2)+(r(J+2)**2) + (r(J)*r(J+2))
+    21  C		TEMP3=-r(J)*r(J+2)
+    22  C	AA1(I)=TEMP1
+    23  C	AA2(I)=TEMP2
+    24  C	B12(I)=TEMP3
+    25  C	    RZ1(I)=r(J+3)
+    26  C          RZ2(I)=r(J+4)
+    27  C          J=J+5
+    28  CC		 WRITE(7,747)AA1(I),AA2(I),B12(I),RZ1(I),RZ2(I),I
+    29  C      END DO
+    30   747	FORMAT ('A1=',F18.12, '/ A2=',F18.12, '/ B12=',F18.12,'/ Z1=',
+    31       *F18.12, '/ Z2=',F18.12,'   function='I3)
+    32  C
+    33        CALL HAMILTON(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,CO)
+    34  C
+    35  C      CALL BIOUT (' ')          
+    36  C      I=1
+    37  C      J=1
+    38  C      CALL BIOUT('        AA1               AA2               B12')
+#   39  C      CALL BIOUT('        ---------------------------------------------
+    40  C     1--')
+    41  C 606  IF (J .LE. M) THEN
+    42  C          WRITE(6,1111) I,P(I),P(I+1),P(I+2),P(I+3),P(I+4)
+    43  C          WRITE(7,1111) I,AA1(I),AA2(I),B12(I)
+    44  C          I=I+5
+    45  C          J=J+1
+    46  C      GOTO 606
+    47  C      END IF
+    48  C 1111 FORMAT(I3,5D10.4)
+    49  C
+    50        F=EMIN
+    51  C
+    52        RETURN
+    53        END
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:43:36
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+FU@4  Local symbols
+Name                      Class              Type           Size
+
+
+/PASSIT/. . . . . . . . . PASSIT(0)          MULTI*44404   44404
+/T1/. . . . . . . . . . . T1(0)              MULTI*2020088 2020088
+/VALUE/ . . . . . . . . . VALUE(0)           MULTI*8           8
+AA1 . . . . . . . . . . . PASSIT(4)          REAL*8          400
+AA2 . . . . . . . . . . . PASSIT(1604)       REAL*8          400
+B12 . . . . . . . . . . . PASSIT(3204)       REAL*8          400
+CO. . . . . . . . . . . . PASSIT(44004)      REAL*8          400
+EMIN. . . . . . . . . . . VALUE(0)           REAL*8            8
+EVEC. . . . . . . . . . . PASSIT(3604)       REAL*8          400
+F . . . . . . . . . . . . T1(8)              REAL*8            8
+H . . . . . . . . . . . . PASSIT(24004)      REAL*8        20000
+I . . . . . . . . . . . . param                                4
+M . . . . . . . . . . . . PASSIT(0)          INTEGER*4         4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+RX1 . . . . . . . . . . . PASSIT(404)        REAL*8          400
+RX2 . . . . . . . . . . . PASSIT(2004)       REAL*8          400
+RY1 . . . . . . . . . . . PASSIT(804)        REAL*8          400
+RY2 . . . . . . . . . . . PASSIT(2404)       REAL*8          400
+RZ1 . . . . . . . . . . . PASSIT(1204)       REAL*8          400
+RZ2 . . . . . . . . . . . PASSIT(2804)       REAL*8          400
+S . . . . . . . . . . . . PASSIT(4004)       REAL*8        20000
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+FU@4. . . . . . . . . . . FUNCT              ***             ***
+HAMILTON@56 . . . . . . . extern             ***             ***
+LC. . . . . . . . . . . . common             ***             400
+PASSIT. . . . . . . . . . common             ***           44404
+T1. . . . . . . . . . . . common             ***          2020088
+VALUE . . . . . . . . . . common             ***               8
+
+
+No errors detected

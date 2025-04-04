@@ -1,0 +1,45 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:50
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE F(IN)
+     2        IMPLICIT REAL*8 (A-H,O-Z)
+     3        COMMON /T1/ ND,NDMAX,FFF,RR(180)
+     4        COMMON /VALUE/ M,EMIN
+     5        X=RR(1)
+     6        Y=RR(2)
+     7        FFF=(X-1174D+101)**2 + (Y+2325)**2
+     8        WRITE(6,*)X,Y,FFF
+     9  C      F=FFF
+    10        RETURN
+    11        END
+
+F@4  Local symbols
+Name                      Class              Type           Size
+
+
+/T1/. . . . . . . . . . . T1(0)              MULTI*1456     1456
+FFF . . . . . . . . . . . T1(8)              REAL*8            8
+IN. . . . . . . . . . . . param                                4
+RR. . . . . . . . . . . . T1(16)             REAL*8         1440
+X . . . . . . . . . . . . local              REAL*8            8
+Y . . . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F@4 . . . . . . . . . . . FUNCT              ***             ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+T1. . . . . . . . . . . . common             ***            1456
+VALUE . . . . . . . . . . common             ***              12
+
+
+No errors detected

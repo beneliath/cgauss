@@ -1,0 +1,96 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C-----------------------------------
+     2        SUBROUTINE TAB(AX,N,M,NNN,MMM)
+     3  C-----------------------------------
+     4        IMPLICIT REAL*8 (A-H,O-Z)   
+     5        DIMENSION AX(NNN,MMM)
+     6  C
+     7  C     --- PRINT A MATRIX STORED IN RECTANGULAR FORM
+     8  C
+     9        MM=M/10
+    10        IF(MM.EQ.0) GO TO 6
+    11        DO II=1,MM
+    12            JP=(II-1)*10+1
+    13            JK=II*10
+    14            WRITE(7,11)
+    15            WRITE(6,12)(I,I=JP,JK)
+    16  C             ...This comment was left by Zhang
+    17            DO I=1,N
+    18                WRITE(7,1)I,(AX(I,J),J=JP,JK)
+    19                WRITE(6,1)I,(AX(I,J),J=JP,JK)
+    20            END DO
+    21        END DO
+    22  6     CONTINUE 
+    23        MA=MM*10+1
+    24        IF(MA.GT.M) RETURN
+    25        WRITE(7,12)(I,I=MA,M) 
+    26        WRITE(6,12)(I,I=MA,M)
+    27        DO I=1,N
+    28            WRITE(7,1) I,(AX(I,J),J=MA,M)
+    29            WRITE(6,1) I,(AX(I,J),J=MA,M)
+    30        END DO
+    31  C
+    32  C
+    33  C     -----------------------------------------------------
+    34  C     --- OutPut FORMAT(s) ---
+    35  C     -----------------------------------------------------
+    36      1 FORMAT(1X,I3,3X,20F23.15)
+    37     11 FORMAT(/)
+    38     12 FORMAT(6X,10(10X,I3,11X))
+    39  C     -----------------------------------------------------
+    40  C     -----------------------------------------------------
+    41  C
+    42  C
+    43        RETURN
+    44        END
+
+TAB@20  Local symbols
+Name                      Class              Type           Size
+
+
+AX. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+JK. . . . . . . . . . . . local              INTEGER*4         4
+JP. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MA. . . . . . . . . . . . local              INTEGER*4         4
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TAB@20  Local symbols
+Name                      Class              Type           Size
+
+
+MM. . . . . . . . . . . . local              INTEGER*4         4
+MMM . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NNN . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+TAB@20. . . . . . . . . . FUNCT              ***             ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

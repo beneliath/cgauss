@@ -1,0 +1,329 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE GRADOPT(M,T1,RX1,RY1,RZ1,T2,RX2,RY2,RZ2,T3,EVEC,GRAD)
+     2        IMPLICIT REAL*8 (A-H,O-Z)
+     3  C
+     4        INTEGER M,ERROR
+     5  C
+     6        REAL*8, DIMENSION(M) ::	RX1,RY1,RZ1,RX2,RY2,RZ2,
+     7       -						B12,EVEC,T1,T2,T3
+     8  C
+     9  	REAL*8, DIMENSION(M*6) :: GRAD
+    10  C
+    11  	REAL*8	X[ALLOCATABLE](:),XSCALE[ALLOCATABLE](:),
+    12  	-		XGUESS[ALLOCATABLE](:)
+    13  C
+    14  	DIMENSION IPARAM(7),RPARAM(7)
+    15  C
+    16  	EXTERNAL FCN
+    17  	EXTERNAL GRADEN
+    18  	EXTERNAL DU4INF
+    19  C
+    20  	ALLOCATE( X(M*6),XSCALE(M*6),XGUESS(M*6),STAT=ERROR)
+    21  C
+    22  	IF (ERROR .NE. 0) STOP '!NOT ENOUGH MEMORY SPACE AVAILABLE ON THIS
+    23  	- BOX! ...ABORTING!'
+    24  C
+    25  	NB=M
+    26  	N=NB*5+NB
+    27  C
+    28  	K=1
+    29  	DO I=1,NB
+    30  			X(K)  =T1(I)	
+    31  			X(K+1)=T2(I)	
+    32  			X(K+2)=T3(I)	
+    33  			X(K+3)=RZ1(I)	
+    34  			X(K+4)=RZ2(I)	
+    35  C
+    36  			XGUESS(K)  =T1(I)	
+    37  			XGUESS(K+1)=T2(I)	
+    38  			XGUESS(K+2)=T3(I)	
+    39  			XGUESS(K+3)=RZ1(I)	
+    40  			XGUESS(K+4)=RZ2(I)	
+    41  		K=K+5
+    42  	END DO
+    43  C
+    44  	DO I=1,NB
+    45  			X(NB*5+I)=EVEC(I)
+    46  C
+    47  			XGUESS(NB*5+I)=EVEC(I)
+    48  	END DO
+    49  C
+    50  C
+    51  	DO I=1,N
+    52  		XSCALE(I)=1.0D+00
+    53  	END DO
+    54  C
+    55  	FSCALE=1.0D+00
+    56  	CALL DU4INF(IPARAM,RPARAM)
+    57  	IPARAM(3)=5000
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  	IPARAM(4)=5000
+    59  	IPARAM(5)=5000
+    60  C
+    61  C	DO I=1,N
+    62  C		INFO(I)=1
+    63  C	END DO
+    64  C	
+    65  C	CALL DCHGRD(FCN,GRADEN,N,X,INFO)
+    66  C	STOP
+    67  	CALL BIOUT('IMSL:DUMING Optimization Begins...')
+    68  	CALL BIOUT('----------------------------------')
+    69  	CALL DUMING(FCN,GRADEN,N,XGUESS,XSCALE,FSCALE,IPARAM,
+    70  	-		RPARAM,X,FVALUE)
+    71  C
+    72  	CALL BIOUT(' ')     
+    73        WRITE (6,99999)(IPARAM(L),L=3,5)
+    74        WRITE (7,99999)(IPARAM(L),L=3,5)
+    75  C
+    76  99999 FORMAT ('  The number of iterations is ',
+    77       &       10X, I4, /, '  The number of function evaluations is ',
+    78       &       I4, /, '  The number of gradient evaluations is ', I4)
+    79  C
+    80  	K=1
+    81  	DO I=1,NB
+    82  			T1(I)=X(K)
+    83  			T2(I)=X(K+1)
+    84  			T3(I)=X(K+2)	
+    85  			RZ1(I)=X(K+3)
+    86  			RZ2(I)=X(K+4)
+    87  C
+    88  		K=K+5
+    89  	END DO
+    90  	DO I=1,NB
+    91  			EVEC(I)=X(NB*5+I)
+    92  	END DO
+    93  C
+    94  C
+    95  C
+    96  C
+    97  	DEALLOCATE (X,XSCALE,XGUESS)
+    98        RETURN
+    99        END
+
+GRADOPT@48  Local symbols
+Name                      Class              Type           Size
+
+
+B12 . . . . . . . . . . . dynam              ADDRESS*4         4
+ERROR . . . . . . . . . . local              INTEGER*4         4
+EVEC. . . . . . . . . . . param                                4
+FSCALE. . . . . . . . . . local              REAL*8            8
+FVALUE. . . . . . . . . . local              REAL*8            8
+GRAD. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPARAM. . . . . . . . . . local              INTEGER*4        28
+K . . . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . dynam              INTEGER*4         4
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRADOPT@48  Local symbols
+Name                      Class              Type           Size
+
+
+M . . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . local              INTEGER*4         4
+NB. . . . . . . . . . . . local              INTEGER*4         4
+RPARAM. . . . . . . . . . local              REAL*8           56
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+T1. . . . . . . . . . . . param                                4
+T2. . . . . . . . . . . . param                                4
+T3. . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . local              ADDRESS*8         4
+XGUESS. . . . . . . . . . local              ADDRESS*8         4
+XSCALE. . . . . . . . . . local              ADDRESS*8         4
+
+
+   100  
+   101        SUBROUTINE NGRADOPT(M,T1,RX1,RY1,RZ1,T2,RX2,RY2,RZ2,T3,EVEC,GRAD)
+   102        IMPLICIT REAL*8 (A-H,O-Z)
+   103  C
+   104        INTEGER M,ERROR
+   105  C
+   106        REAL*8, DIMENSION(M) ::	RX1,RY1,RZ1,RX2,RY2,RZ2,
+   107       -						B12,EVEC,T1,T2,T3
+   108  C
+   109  	REAL*8, DIMENSION(M*6) :: GRAD
+   110  C
+   111  	REAL*8	X[ALLOCATABLE](:),XSCALE[ALLOCATABLE](:),
+   112  	-		XGUESS[ALLOCATABLE](:)
+   113  C
+   114  	DIMENSION IPARAM(7),RPARAM(7)
+   115  C
+   116  	EXTERNAL FCN
+   117  	EXTERNAL GRADEN
+   118  	EXTERNAL DU4INF
+   119  C
+   120  	ALLOCATE( X(M*6),XSCALE(M*6),XGUESS(M*6),STAT=ERROR)
+   121  C
+   122  	IF (ERROR .NE. 0) STOP '!NOT ENOUGH MEMORY SPACE AVAILABLE ON THIS
+   123  	- BOX! ...ABORTING!'
+   124  C
+   125  	NB=M
+   126  	N=NB*5+NB
+   127  C
+   128  	K=1
+   129  	DO I=1,NB
+   130  			X(K)  =T1(I)	
+   131  			X(K+1)=T2(I)	
+   132  			X(K+2)=T3(I)	
+   133  			X(K+3)=RZ1(I)	
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   134  			X(K+4)=RZ2(I)	
+   135  C
+   136  			XGUESS(K)  =T1(I)	
+   137  			XGUESS(K+1)=T2(I)	
+   138  			XGUESS(K+2)=T3(I)	
+   139  			XGUESS(K+3)=RZ1(I)	
+   140  			XGUESS(K+4)=RZ2(I)	
+   141  		K=K+5
+   142  	END DO
+   143  C
+   144  	DO I=1,NB
+   145  			X(NB*5+I)=EVEC(I)
+   146  C
+   147  			XGUESS(NB*5+I)=EVEC(I)
+   148  	END DO
+   149  C
+   150  C
+   151  	DO I=1,N
+   152  		XSCALE(I)=1.0D+00
+   153  	END DO
+   154  C
+   155  	FSCALE=1.0D+00
+   156  	CALL DU4INF(IPARAM,RPARAM)
+   157  	IPARAM(1)=1
+   158  	IPARAM(3)=5000
+   159  	IPARAM(4)=5000
+   160  	IPARAM(5)=5000
+   161  	CALL DU4INF(IPARAM,RPARAM)
+   162  C
+   163  C	DO I=1,N
+   164  C		INFO(I)=1
+   165  C	END DO
+   166  C	
+   167  C	CALL DCHGRD(FCN,GRADEN,N,X,INFO)
+   168  C	STOP
+   169  	CALL BIOUT('IMSL:DUMINF Optimization Begins...')
+   170  	CALL BIOUT('----------------------------------')
+   171  	CALL DUMINF(FCN,N,XGUESS,XSCALE,FSCALE,IPARAM,RPARAM,X,FVALUE)
+   172  C     
+   173  	K=1
+   174  	DO I=1,NB
+   175  			T1(I)=X(K)
+   176  			T2(I)=X(K+1)
+   177  			T3(I)=X(K+2)	
+   178  			RZ1(I)=X(K+3)
+   179  			RZ2(I)=X(K+4)
+   180  C
+   181  		K=K+5
+   182  	END DO
+   183  	DO I=1,NB
+   184  			EVEC(I)=X(NB*5+I)
+   185  	END DO
+   186  C
+   187  C
+   188  C
+   189  	DEALLOCATE( X,XSCALE,XGUESS)
+   190  C
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   191        RETURN
+   192        END
+
+NGRADOPT@48  Local symbols
+Name                      Class              Type           Size
+
+
+B12 . . . . . . . . . . . dynam              ADDRESS*4         4
+ERROR . . . . . . . . . . local              INTEGER*4         4
+EVEC. . . . . . . . . . . param                                4
+FSCALE. . . . . . . . . . local              REAL*8            8
+FVALUE. . . . . . . . . . local              REAL*8            8
+GRAD. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPARAM. . . . . . . . . . local              INTEGER*4        28
+K . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . local              INTEGER*4         4
+NB. . . . . . . . . . . . local              INTEGER*4         4
+RPARAM. . . . . . . . . . local              REAL*8           56
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+T1. . . . . . . . . . . . param                                4
+T2. . . . . . . . . . . . param                                4
+T3. . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . local              ADDRESS*8         4
+XGUESS. . . . . . . . . . local              ADDRESS*8         4
+XSCALE. . . . . . . . . . local              ADDRESS*8         4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BIOUT@8 . . . . . . . . . extern             ***             ***
+BIOUT@8 . . . . . . . . . extern             ***             ***
+DU4INF@8. . . . . . . . . extern             ***             ***
+DU4INF@8. . . . . . . . . extern             ***             ***
+DUMINF@36 . . . . . . . . extern             ***             ***
+DUMING@40 . . . . . . . . extern             ***             ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GRADOPT@48. . . . . . . . FUNCT              ***             ***
+LBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+LBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+NGRADOPT@48 . . . . . . . FUNCT              ***             ***
+UBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+UBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:52:44
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+No errors detected

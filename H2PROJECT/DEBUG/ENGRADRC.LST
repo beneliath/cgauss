@@ -1,0 +1,160 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        12:59:31
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE ENGRADRC( NXAC, XAC, ENG, GRAD)
+     2  c
+     3  c --- Donald B. Kinghorn
+     4  c     Dept of Chemistry
+     5  c     University of Arizona
+     6  c     Feb 24 1996
+     7  c
+     8  c     Last modified Feb 24 1996 DBK
+     9        IMPLICIT REAL*8 (A-H,O-Z)
+    10  
+    11  c
+    12  	COMMON /GRADIENT2/ EMIN,GRAND
+    13        COMMON /PASSIT/ M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,CO
+    14  	PARAMETER(MMAX=50)
+    15  C
+    16  
+    17        DIMENSION 
+    18       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+    19       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+    20       3         B12(MMAX),EVEC(MMAX)
+    21        DIMENSION S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX)
+    22  
+    23  c     ..Scalar Arguments..    
+    24        INTEGER NXAC
+    25        REAL*8 ENG
+    26  c     ..Array Arguments..
+    27        REAL*8 XAC(*),GRAD(*)
+    28  	REAL*8 GRAND(MMAX*5+MMAX)
+    29  	EXTERNAL HAMILTON
+    30  	
+    31  c =====================================================================
+    32  c Purpose
+    33  c =======
+    34  c
+#   35  c Correlated Gaussian energy and gradient calculation using the Rayliegh
+    36  c This subroutine is set up to be called from the optimization 
+    37  c subroutine TN
+    38  c 
+    39  c This subroutine computes the energy and gradient at a given point XAC 
+    40  c 
+    41  c Arguments
+    42  c =========
+    43  c
+    44  c NXAC      (input) INTEGER
+#   45  c         Size of vectors XAC and GRAD  (NXAC = #of basis functions,(NB)
+#   46  c                                             length of vech[LK], (NN) +
+    47  c
+    48  c XAC       (input) DOUBLE PRECISION vector, dimension (NXAC)
+    49  c         XAC = {vech(LK): K=1..NB : EVEC}
+    50  c         Independent variables for energy functional
+    51  c
+    52  c ENG     (output) DOUBLE PRECISION energy at point X
+    53  c         ENG is the Rayleigh qoutient
+    54  c
+    55  c GRAD    (output) DOUBLE PRECISION gradient at the point XAC 
+    56  c              
+    57  c
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        12:59:31
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  c =====================================================================
+    59  c 
+    60  c     ..
+    61  c     .. Parameters ..
+    62  *********************************************************************
+    63  *********************************************************************
+    64  c     These are the parameters that limit the size of problem
+    65  c     that can be solved with this code.
+    66  c     CHANGE THESE TO INCREASE PROBLEM SIZE LIMITS
+    67  c     ********LOOK IN THE CALLING ROUTIEN FOR THESE PARAMETERS TOO***
+    68  c     #############LOOK AT THE COMMON BLOCKS TOO!###############
+    69  *********************************************************************
+    70  	K=1
+    71  	DO I=1,M
+    72  		AA1(I)=XAC(K)
+    73  		AA2(I)=XAC(K+1)
+    74  		B12(I)=XAC(K+2)
+    75  		RZ1(I)=XAC(K+3)
+    76  		RZ2(I)=XAC(K+4)
+    77  	K=K+5
+    78  	END DO
+    79  	DO I=1,M
+    80  		EVEC(I)=XAC(M*5+I)
+    81  	END DO
+    82        CALL HAMILTON(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,CO)
+    83  	ENG=EMIN
+    84  	DO I=1,M*5+M
+    85  		GRAD(I)=GRAND(I)
+    86  	END DO
+    87  c
+    88  c     END OF ENGRADRC
+    89  c
+    90        END           
+
+ENGRADRC@16  Local symbols
+Name                      Class              Type           Size
+
+
+/GRADIENT2/ . . . . . . . GRADIENT2(0)       MULTI*2408     2408
+/PASSIT/. . . . . . . . . PASSIT(0)          MULTI*44404   44404
+AA1 . . . . . . . . . . . PASSIT(4)          REAL*8          400
+AA2 . . . . . . . . . . . PASSIT(1604)       REAL*8          400
+B12 . . . . . . . . . . . PASSIT(3204)       REAL*8          400
+CO. . . . . . . . . . . . PASSIT(44004)      REAL*8          400
+EMIN. . . . . . . . . . . GRADIENT2(0)       REAL*8            8
+ENG . . . . . . . . . . . param                                4
+EVEC. . . . . . . . . . . PASSIT(3604)       REAL*8          400
+GRAD. . . . . . . . . . . param                                4
+GRAND . . . . . . . . . . GRADIENT2(8)       REAL*8         2400
+H . . . . . . . . . . . . PASSIT(24004)      REAL*8        20000
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . PASSIT(0)          INTEGER*4         4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+NXAC. . . . . . . . . . . param                                4
+RX1 . . . . . . . . . . . PASSIT(404)        REAL*8          400
+RX2 . . . . . . . . . . . PASSIT(2004)       REAL*8          400
+
+                                                                        PAGE   3
+                                                                        03-13-96
+                                                                        12:59:31
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+ENGRADRC@16  Local symbols
+Name                      Class              Type           Size
+
+
+RY1 . . . . . . . . . . . PASSIT(804)        REAL*8          400
+RY2 . . . . . . . . . . . PASSIT(2404)       REAL*8          400
+RZ1 . . . . . . . . . . . PASSIT(1204)       REAL*8          400
+RZ2 . . . . . . . . . . . PASSIT(2804)       REAL*8          400
+S . . . . . . . . . . . . PASSIT(4004)       REAL*8        20000
+XAC . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+ENGRADRC@16 . . . . . . . FUNCT              ***             ***
+GRADIENT2 . . . . . . . . common             ***            2408
+HAMILTON@56 . . . . . . . extern             ***             ***
+PASSIT. . . . . . . . . . common             ***           44404
+
+
+No errors detected

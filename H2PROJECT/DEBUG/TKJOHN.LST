@@ -1,0 +1,126 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:37
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  
+     2  
+     3         SUBROUTINE TKjohn(OVLAP,R1LZ,AL1,R1KZ,AK1,                      
+     4       *             R2LZ,AL2,R2KZ,AK2,BL,BK,TKIN)       
+     5        IMPLICIT real*8 (a-h, o-z)               
+     6  C ***                                                               
+     7  C ***     FOUR CENTER KINETIC ENERGY INTEGRAL                       
+     8  C ***                                                               
+     9  C     COMMON/A2/ PI,PI2,PI3,PI32,PI52                                  
+    10        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/              
+    11        ALK1=AL1+AK1                                                      
+    12        ALK2=AL2+AK2                                                      
+    13        BLK12=BL+BK                                                      
+    14        R1Z=(AL1*R1LZ+AK1*R1KZ)/ALK1                                      
+    15        R2Z=(AL2*R2LZ+AK2*R2KZ)/ALK2                                     
+    16        DETAB=ALK1*ALK2+BLK12*(ALK1+ALK2)                                 
+    17        OVZA11=(R1Z-R1LZ)-(R1Z-R2Z)*ALK2*BLK12/DETAB                
+    18        OVZB11=(R1Z-R1KZ)-(R1Z-R2Z)*ALK2*BLK12/DETAB   
+    19        POM=0.5*(1.0/Alk1-ALK2*BLK12/(DETAB*ALK1) )                       
+    20        OVZA12=(OVZA11*OVZA11+POM)*OVLAP                                  
+    21        OVA12=OVZA12+2.0*POM*OVLAP
+    22        OVA11=2*(OVZA11*(R1LZ-R2LZ))*OVLAP                
+    23        OVZB12=(OVZB11*OVZB11+POM)*OVLAP                                  
+    24        OVB12=OVZB12+2.0*POM*OVLAP 
+    25        OVZC21=(R2Z-R2LZ)+(R1Z-R2Z)*ALK1*BLK12/DETAB             
+    26        OVC21=-2*(OVZC21*(R1LZ-R2LZ))*OVLAP              
+    27        POM=0.5*(1.0/ALK2-ALK1*BLK12/(DETAB*ALK2) )                       
+    28        OVZC22=(OVZC21*OVZC21+POM)*OVLAP                       
+    29        OVC22=OVZC22+2.0*POM*OVLAP
+    30        XX1=(0.5*BLK12/DETAB)
+    31       1  *(1.0-0.5*(R1Z-R2Z)**2.0*ALK1*ALK2*BLK12/DETAB*4.0)
+    32        XX2=(R1Z-R1LZ)*(R2Z-R2LZ)+(R1Z-R2Z)*
+    33       1  ((R1Z-R1LZ)*ALK1*BLK12-(R2Z-R2LZ)*ALK2*BLK12)/DETAB           
+    34        za1zc2=(XX1+XX2)*OVLAP
+    35  c     WRITE(6,*) 'JOHN,ZA1ZC2'
+    36  c     WRITE(6,*)  ZA1ZC2
+    37  	A1C2=-2*(XX1+XX2+BLK12/DETAB)*OVLAP                                 
+    38  
+    39        TKIN=4*BL*BK*(OVA11 +OVA12+OVC22+OVC21+A1C2)                   
+    40         write(6,*) "tk,john tkin=",tkin
+    41        IF(BLK12) 10,12,10                                               
+    42    12  A6DG3=0.5                                                     
+    43        A5DG3=0.5                                                       
+    44        GO TO 14                                                         
+    45    10  A6DG3=BK/BLK12                                                   
+    46        A5DG3=BL/BLK12                                                   
+    47    14  CONTINUE                                                         
+    48        TKIN=TKIN-4*AL1*AL1*A6DG3*OVA12                                 
+    49        TKIN=TKIN-4*Ak1*Ak1*A5DG3*OVB12                                 
+    50        TKIN=TKIN+(6*(AL1*A6DG3+AK1*A5DG3)+                              
+    51       *     4*BL*BK*(R1LZ-R2LZ)**2.0)*OVLAP                 
+    52  
+    53        write(6,*) "tk,john tkin=",tkin
+    54        RETURN  
+    55  900   FORMAT(1x,F10.5)                                                  
+    56        END                                                               
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:37
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TKJOHN@48  Local symbols
+Name                      Class              Type           Size
+
+
+A1C2. . . . . . . . . . . local              REAL*8            8
+A5DG3 . . . . . . . . . . local              REAL*8            8
+A6DG3 . . . . . . . . . . local              REAL*8            8
+AK1 . . . . . . . . . . . param                                4
+AK2 . . . . . . . . . . . param                                4
+AL1 . . . . . . . . . . . param                                4
+AL2 . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+BK. . . . . . . . . . . . param                                4
+BL. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+OVA11 . . . . . . . . . . local              REAL*8            8
+OVA12 . . . . . . . . . . local              REAL*8            8
+OVB12 . . . . . . . . . . local              REAL*8            8
+OVC21 . . . . . . . . . . local              REAL*8            8
+OVC22 . . . . . . . . . . local              REAL*8            8
+OVLAP . . . . . . . . . . param                                4
+OVZA11. . . . . . . . . . local              REAL*8            8
+OVZA12. . . . . . . . . . local              REAL*8            8
+OVZB11. . . . . . . . . . local              REAL*8            8
+OVZB12. . . . . . . . . . local              REAL*8            8
+OVZC21. . . . . . . . . . local              REAL*8            8
+OVZC22. . . . . . . . . . local              REAL*8            8
+POM . . . . . . . . . . . local              REAL*8            8
+R1KZ. . . . . . . . . . . param                                4
+R1LZ. . . . . . . . . . . param                                4
+R1Z . . . . . . . . . . . local              REAL*8            8
+R2KZ. . . . . . . . . . . param                                4
+R2LZ. . . . . . . . . . . param                                4
+R2Z . . . . . . . . . . . local              REAL*8            8
+TKIN. . . . . . . . . . . param                                4
+XX1 . . . . . . . . . . . local              REAL*8            8
+XX2 . . . . . . . . . . . local              REAL*8            8
+ZA1ZC2. . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+TKJOHN@48 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

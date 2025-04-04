@@ -1,0 +1,14 @@
+      SUBROUTINE VMATMULT (N,A,MAXA,B,MAXB,C,MAXC)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION A(MAXA),B(MAXB,MAXB),C(MAXC)
+C
+		DO J=1,N
+			C(J)=0.0D+00
+			DO K=1,N
+				C(J)=C(J)+A(K)*B(K,J)
+			END DO
+C	WRITE(6,*)C(J)
+		END DO
+C
+	RETURN
+      END

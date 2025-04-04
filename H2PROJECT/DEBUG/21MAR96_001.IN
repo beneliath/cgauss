@@ -1,0 +1,24 @@
+H2_Project Input File
+Adamowicz Research Group / University of Arizona
+Doug W. Gilmore
+21MAR96
+=================================================
+:BEGIN:
+NUMBER_OF_FUNCTIONS=
+8
+FUNCTION_GENERATION=
+random
+SYMMETRY=
+on
+OPTIMIZATION_METHOD=
+imsl:duming
+OUTPUT_FILE=
+21mar96_001.out
+RESTART_FILE=
+restart_21mar96_001.dat
+START_FROM_RESTART=
+true
+RESTART_FROM=
+RESTART_H2_PROJECT.BK1
+:END:
+=================================================

@@ -1,0 +1,188 @@
+SUBROUTINE Gradient_Projection_0
+
+	USE scalars_to_be_shared			  
+	USE	vectors_to_be_shared			  
+	USE	matrices_to_be_shared
+	USE projection_0_module
+	
+	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+	IMPLICIT INTEGER (I-N)
+
+
+	DO L=1,M
+
+		J=1
+
+		DO K=1,M
+
+
+             CALL dOVERLAP(RX1(L),RY1(L),RZ1(L),AA1(L),			&
+						RX1(K),RY1(K),RZ1(K),AA1(K),			&                  
+     					RX2(L),RY2(L),RZ2(L),AA2(L),			&
+     					RX2(K),RY2(K),RZ2(K),AA2(K),			&
+    					B12(L),B12(K),							&
+						D1,D2,D3,D4,D5)
+
+			D0SDA1=D1
+			D0SDA2=D2
+			D0SDA5=D3
+			D0SDAZ=D4
+			D0SDBZ=D5
+
+              CALL DTKINET(OVV1(L,K),					&
+				D1,D2,D3,D4,D5,							&
+                RX1(L),RY1(L),RZ1(L),AA1(L),			&
+                RX1(K),RY1(K),RZ1(K),AA1(K),			&                   
+                RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),			&
+                B12(L),B12(K),							&
+				DT1,DT2,DT3,DT4,DT5) 
+
+		D0TDA1=DT1
+		D0TDA2=DT2
+		D0TDA5=DT3
+		D0TDAZ=DT4
+		D0TDBZ=DT5
+
+             CALL DTKINET(OVV1(L,K),					&
+				D2,D1,D3,D5,D4,							&
+	            RX2(L),RY2(L),RZ2(L),AA2(L),			&
+				RX2(K),RY2(K),RZ2(K),AA2(K),			&                   
+				RX1(L),RY1(L),RZ1(L),AA1(L),			&
+				RX1(K),RY1(K),RZ1(K),AA1(K),			&
+		        B12(L),B12(K),							&
+				DT1,DT2,DT3,DT4,DT5)  
+
+		D0TDA1=D0TDA1+DT2
+		D0TDA2=D0TDA2+DT1
+		D0TDA5=D0TDA5+DT3
+		D0TDAZ=D0TDAZ+DT5
+		D0TDBZ=D0TDBZ+DT4
+
+
+
+              CALL dELECREP(OVV1(L,K),					&
+				D1,D2,D3,D4,D5,							&
+				RX1(L),RY1(L),RZ1(L),AA1(L),			&
+                RX1(K),RY1(K),RZ1(K),AA1(K),            &
+                RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),			&
+                B12(L),B12(K),							&
+				DER1,DER2,DER3,DER4,DER5)  
+
+		D0ERDA1=DER1
+		D0ERDA2=DER2
+		D0ERDA5=DER3
+		D0ERDAZ=DER4
+		D0ERDBZ=DER5
+
+
+              CALL dENUCLEAR(OVV1(L,K),					&
+				D1,D2,D3,D4,D5,							&
+				RX1(L),RY1(L),RZ1(L),AA1(L),			&
+				RX1(K),RY1(K),RZ1(K),AA1(K),			&
+                RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),			&
+                B12(L),B12(K),							&
+				EX1,EY1,EZ1,-ONE,						&
+				DEN1,DEN2,DEN3,DEN4,DEN5)
+
+		DENDA1=DEN1
+		DENDA2=DEN2
+		DENDA5=DEN3
+		DENDAZ=DEN4
+		DENDBZ=DEN5
+
+              CALL dENUCLEAR(OVV1(L,K),					&
+				D1,D2,D3,D4,D5,							&
+				RX1(L),RY1(L),RZ1(L),AA1(L),			&
+				RX1(K),RY1(K),RZ1(K),AA1(K),			&
+                RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),			&
+                B12(L),B12(K),							&
+				EX2,EY2,EZ2,ONE,						&
+				DEN1,DEN2,DEN3,DEN4,DEN5)
+
+		DENDA1=DENDA1+DEN1
+		DENDA2=DENDA2+DEN2
+		DENDA5=DENDA5+DEN3
+		DENDAZ=DENDAZ+DEN4
+		DENDBZ=DENDBZ+DEN5
+
+
+              CALL dENUCLEAR(OVV1(L,K),					&
+				D2,D1,D3,D5,D4,							&
+				RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),			&
+                RX1(L),RY1(L),RZ1(L),AA1(L),			&
+                RX1(K),RY1(K),RZ1(K),AA1(K),			&
+                B12(L),B12(K),							&
+				EX1,EY1,EZ1,-ONE,						&
+				DEN1,DEN2,DEN3,DEN4,DEN5)                       
+
+		DENDA1=DENDA1+DEN2
+		DENDA2=DENDA2+DEN1
+		DENDA5=DENDA5+DEN3
+		DENDAZ=DENDAZ+DEN5
+		DENDBZ=DENDBZ+DEN4
+
+
+              CALL dENUCLEAR(OVV1(L,K),					&
+				D2,D1,D3,D5,D4,							&
+				RX2(L),RY2(L),RZ2(L),AA2(L),			&
+                RX2(K),RY2(K),RZ2(K),AA2(K),            &
+                RX1(L),RY1(L),RZ1(L),AA1(L),			&
+                RX1(K),RY1(K),RZ1(K),AA1(K),			&
+                B12(L),B12(K),							&
+                EX2,EY2,EZ2,ONE,						&
+				DEN1,DEN2,DEN3,DEN4,DEN5)                       
+
+		DENDA1=DENDA1+DEN2
+		DENDA2=DENDA2+DEN1
+		DENDA5=DENDA5+DEN3
+		DENDAZ=DENDAZ+DEN5
+		DENDBZ=DENDBZ+DEN4
+
+
+	DHDA1=HALF*DTDA1+DERDA1+(ONE/BD)*DSDA1-DENDA1
+	DHDA2=HALF*DTDA2+DERDA2+(ONE/BD)*DSDA2-DENDA2
+	DHDA5=HALF*DTDA5+DERDA5+(ONE/BD)*DSDA5-DENDA5
+	DHDAZ=HALF*DTDAZ+DERDAZ+(ONE/BD)*DSDAZ-DENDAZ
+	DHDBZ=HALF*DTDBZ+DERDBZ+(ONE/BD)*DSDBZ-DENDBZ
+
+	IF (L.EQ.K) THEN
+		DHDA1=TWO*DHDA1
+		DHDA2=TWO*DHDA2
+		DHDA5=TWO*DHDA5
+		DHDAZ=TWO*DHDAZ
+		DHDBZ=TWO*DHDBZ
+		DSDA1=TWO*DSDA1
+		DSDA2=TWO*DSDA2
+		DSDA5=TWO*DSDA5
+		DSDAZ=TWO*DSDAZ
+		DSDBZ=TWO*DSDBZ
+
+	END IF
+
+
+			DH0(J,L)  =DHDA1
+			DH0(J+1,L)=DHDA2
+			DH0(J+2,L)=DHDA5
+			DH0(J+3,L)=DHDAZ
+			DH0(J+4,L)=DHDBZ
+
+			DS0(J,L)  =DSDA1
+			DS0(J+1,L)=DSDA2
+			DS0(J+2,L)=DSDA5
+			DS0(J+3,L)=DSDAZ
+			DS0(J+4,L)=DSDBZ
+
+			J=J+5
+
+
+		END DO
+
+	END DO
+
+
+END SUBROUTINE Gradient_Projection_0

@@ -1,0 +1,158 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE FCN(N,X,F)
+     2  C
+     3        IMPLICIT REAL*8(A-H,O-Z)
+     4  	INTEGER DFLAG
+     5  C
+     6        PARAMETER (MMAX=500)
+     7  C
+     8        DIMENSION 
+     9       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+    10       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+    11       3         B12(MMAX),EVEC(MMAX),S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX)  
+    12  	DIMENSION X(MMAX*5+MMAX),T1(MMAX),T2(MMAX),T3(MMAX)
+    13  C
+    14  C
+    15  	NB=(N/6)
+    16  C
+    17  C
+    18  C
+    19  	K=1
+    20  	DO I=1,NB
+    21  			T1(I)=X(K)	
+    22  			T2(I)=X(K+1)	
+    23  			T3(I)=X(K+2)	
+    24  			RZ1(I)=X(K+3)	
+    25  			RZ2(I)=X(K+4)	
+    26  		K=K+5
+    27  	END DO
+    28  C
+    29  	DO I=1,NB
+    30  			EVEC(I)=X(NB*5+I)
+    31  	END DO
+    32  C
+    33  C
+    34  	M=NB
+    35  C
+    36        DO I=1,M
+    37  	    AA1(I)=T1(I)**2 + T1(I)*T3(I)
+    38            AA2(I)=T2(I)**2 + T3(I)**2 + T1(I)*T3(I)
+    39            B12(I)=-T1(I)*T3(I)
+    40  	END DO
+    41  
+    42  C
+    43  	DFLAG=3
+    44        CALL HAMILTON(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,EVEC,S,H,
+    45  	-				CO,EMIN,GRAD,T1,T2,T3,DFLAG)
+    46  C
+    47  C	J=1
+    48  C      CALL BIOUT('     LinCoeff:.   AA1:        AA2:        B12:       
+    49  C	1RZ1:       RZ2:')
+#   50  C      CALL BIOUT('FNC: ================================================
+    51  C     1=====================')
+    52  C 606  IF (J .LE. M) THEN
+    53  C 1111 FORMAT(I3,6D12.4)
+    54  C          WRITE(6,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+    55  C          WRITE(7,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+    56  C          J=J+1
+    57  C      GOTO 606
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C      END IF
+#   59  C      CALL BIOUT('-----------------------------------------------------
+    60  C     1---------------------')
+    61  C
+    62  C	DO I=1,N
+    63  C	 WRITE(6,*)INFO(I)
+    64  C	END DO
+    65  
+    66        F=EMIN
+    67  C
+    68  C
+    69  C	J=1
+    70  C      CALL BIOUT('     LinCoeff:.   AA1:        AA2:        B12:       
+    71  C	-RZ1:       RZ2:')
+#   72  C      CALL BIOUT('FNC: ================================================
+    73  C     -=====================')
+    74  C 606  IF (J .LE. M) THEN
+    75  C          WRITE(6,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+    76  C          WRITE(7,1111) J,EVEC(J),AA1(J),AA2(J),B12(J),RZ1(J),RZ2(J)
+    77  C          J=J+1
+    78  C
+    79  C      GOTO 606
+    80  C      END IF
+#   81  C      CALL BIOUT('-----------------------------------------------------
+    82  C     1---------------------')
+    83  CC
+    84  C1111  FORMAT(I3,6D12.4)
+    85  C
+    86  C
+    87        RETURN
+    88        END
+
+FCN@12  Local symbols
+Name                      Class              Type           Size
+
+
+AA1 . . . . . . . . . . . local              REAL*8         4000
+AA2 . . . . . . . . . . . local              REAL*8         4000
+B12 . . . . . . . . . . . local              REAL*8         4000
+CO. . . . . . . . . . . . local              REAL*8         4000
+DFLAG . . . . . . . . . . local              INTEGER*4         4
+EMIN. . . . . . . . . . . local              REAL*8            8
+EVEC. . . . . . . . . . . local              REAL*8         4000
+F . . . . . . . . . . . . param                                4
+GRAD. . . . . . . . . . . local              REAL*8            8
+H . . . . . . . . . . . . local              REAL*8       2000000
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NB. . . . . . . . . . . . local              INTEGER*4         4
+RX1 . . . . . . . . . . . local              REAL*8         4000
+RX2 . . . . . . . . . . . local              REAL*8         4000
+RY1 . . . . . . . . . . . local              REAL*8         4000
+RY2 . . . . . . . . . . . local              REAL*8         4000
+RZ1 . . . . . . . . . . . local              REAL*8         4000
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:52:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+FCN@12  Local symbols
+Name                      Class              Type           Size
+
+
+RZ2 . . . . . . . . . . . local              REAL*8         4000
+S . . . . . . . . . . . . local              REAL*8       2000000
+T1. . . . . . . . . . . . local              REAL*8         4000
+T2. . . . . . . . . . . . local              REAL*8         4000
+T3. . . . . . . . . . . . local              REAL*8         4000
+X . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+FCN@12. . . . . . . . . . FUNCT              ***             ***
+HAMILTON@80 . . . . . . . extern             ***             ***
+
+
+No errors detected

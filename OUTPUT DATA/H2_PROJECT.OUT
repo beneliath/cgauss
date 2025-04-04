@@ -1,0 +1,29 @@
+ Correlated Gaussian Geminal Output:  H_2
+ ===================================================
+ Adamowicz Research /            [Univ. of AZ, CHEM]
+ Programming:[D. Gilmore, L. Adamowicz, D. Kinghorn]
+  PROGRAM BEGINS:  TIME STAMP...
+      6/07/1996
+     10:33:15:17 
+ OUTPUT STREAM BEGINS...
+  
+ NUMBER OF FUNCTIONS=          3
+ FUNCTION GENERATION=RANDOM                                                     
+        
+ OPTIMIZATION METHOD=IMSL:DUMING                                                
+        
+     OUTPUT FILENAME=H2_PROJECT.OUT                                             
+        
+  NEW RESTART OUTPUT=RESTART_H2_PROJECT.DAT                                     
+        
+  
+ GENERATING RANDOM GAUSSIAN GEMINAL DATA...
+  
+       T1                T2               T12              LinCoeff.
+      --------------------------------------------------------------------------
+ 
+     .24690250E-01     .23014697E-01     .42442301E-12     .32265750E-02     .70000000E+00    -.70000000E+00
+     .99948949E-01     .35584283E-01     .88870013E-12     .44275555E-02     .70000000E+00    -.70000000E+00
+     .25254166E-01     .43907595E-01     .63517308E-12     .44068170E-02     .70000000E+00    -.70000000E+00
+  
+  

@@ -1,0 +1,111 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:32:13
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE mnbrak(ax,bx,cx,fa,fb,fc,func)
+     2        DOUBLE PRECISION ax,bx,cx,fa,fb,fc,func,GOLD,GLIMIT,TINY
+     3        EXTERNAL func
+     4        PARAMETER (GOLD=1.618034d0, GLIMIT=100.0d0, TINY=1.d-20)
+     5        DOUBLE PRECISION dum,fu,q,r,u,ulim
+     6        fa=func(ax)
+     7        fb=func(bx)
+     8  c      WRITE(6,*) FA,FB
+     9        if(fb.gt.fa)then
+    10          dum=ax
+    11          ax=bx
+    12          bx=dum
+    13          dum=fb
+    14          fb=fa
+    15          fa=dum
+    16        endif
+    17        cx=bx+GOLD*(bx-ax)
+    18        fc=func(cx)
+    19  1     if(fb.gt.fc)then
+    20          r=(bx-ax)*(fb-fc)
+    21          q=(bx-cx)*(fb-fa)
+    22          u=bx-((bx-cx)*q-(bx-ax)*r)/(2.d0*sign(max(abs(q-r),TINY),q-r))
+    23          ulim=bx+GLIMIT*(cx-bx)
+    24          if((bx-u)*(u-cx).gt.0.d0)then
+    25            fu=func(u)
+    26            if(fu.lt.fc)then
+    27              ax=bx
+    28              fa=fb
+    29              bx=u
+    30              fb=fu
+    31              return
+    32            else if(fu.gt.fb)then
+    33              cx=u
+    34              fc=fu
+    35              return
+    36            endif
+    37            u=cx+GOLD*(cx-bx)
+    38            fu=func(u)
+    39          else if((cx-u)*(u-ulim).gt.0.d0)then
+    40            fu=func(u)
+    41            if(fu.lt.fc)then
+    42              bx=cx
+    43              cx=u
+    44              u=cx+GOLD*(cx-bx)
+    45              fb=fc
+    46              fc=fu
+    47              fu=func(u)
+    48            endif
+    49          else if((u-ulim)*(ulim-cx).ge.0.d0)then
+    50            u=ulim
+    51            fu=func(u)
+    52          else
+    53            u=cx+GOLD*(cx-bx)
+    54            fu=func(u)
+    55          endif
+    56          ax=bx
+    57          bx=cx
+
+                                                                        PAGE   2
+                                                                        02-23-96
+                                                                        13:32:13
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58          cx=u
+    59          fa=fb
+    60          fb=fc
+    61          fc=fu
+    62          goto 1
+    63        endif
+    64        return
+    65        END
+
+MNBRAK@28  Local symbols
+Name                      Class              Type           Size
+
+
+AX. . . . . . . . . . . . param                                4
+BX. . . . . . . . . . . . param                                4
+CX. . . . . . . . . . . . param                                4
+DUM . . . . . . . . . . . local              REAL*8            8
+FA. . . . . . . . . . . . param                                4
+FB. . . . . . . . . . . . param                                4
+FC. . . . . . . . . . . . param                                4
+FU. . . . . . . . . . . . local              REAL*8            8
+FUNC. . . . . . . . . . . param                                4
+GLIMIT. . . . . . . . . . const              REAL*8            8
+GOLD. . . . . . . . . . . const              REAL*8            8
+Q . . . . . . . . . . . . local              REAL*8            8
+R . . . . . . . . . . . . local              REAL*8            8
+TINY. . . . . . . . . . . const              REAL*8            8
+U . . . . . . . . . . . . local              REAL*8            8
+ULIM. . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MNBRAK@28 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

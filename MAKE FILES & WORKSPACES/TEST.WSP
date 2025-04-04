@@ -1,0 +1,71 @@
+[Header]
+Version=1.00a.0619
+WinVer=4
+WorkspaceName0=&Edit
+WorkspaceName1=&Debug
+WorkspaceName2=&Custom
+Initial=3
+PromptWhenSave=1
+CloseWindow=1
+Status=-1 -1 -1 5
+[Workspace3]
+Coord=26 25 1148 786
+Style=399441920
+RibbonHidden=0
+StatusHidden=0
+WindowNumber=5
+[WindowWorkspace30]
+Type=13
+DuplicateNb=1
+Coord=22 24 1152 521
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\GUESS.FOR
+CursorPosition=112 0 0
+[WindowWorkspace31]
+Type=13
+DuplicateNb=1
+Coord=44 48 1152 545
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\HAMILTON.FOR
+CursorPosition=56 75 1
+[WindowWorkspace32]
+Type=13
+DuplicateNb=1
+Coord=88 97 1152 594
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TEST.FOR
+CursorPosition=60 80 54
+[WindowWorkspace33]
+Type=13
+DuplicateNb=1
+Coord=154 0 1152 665
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\OVERLP.FOR
+CursorPosition=85 110 18
+[WindowWorkspace34]
+Type=13
+DuplicateNb=1
+Coord=176 192 1152 689
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=1
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\KFACT.FOR
+CursorPosition=41 61 20

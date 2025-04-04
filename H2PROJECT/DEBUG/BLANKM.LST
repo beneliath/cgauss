@@ -1,0 +1,52 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:43
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  D. Gilmore
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE BLANKM (N,A,MAXA)
+     7  C      
+     8  C     BLANKM places zeros in all positions on the NxN matrix A
+     9  C
+    10        IMPLICIT REAL*8 (A-H,O-Z)
+    11        DIMENSION A(MAXA,MAXA)
+    12  C
+    13  C     A=output matrix
+    14  C     MAXA=maximum dimension of A (MUST BE SQUARE)
+    15  C     N=square dimension of matrix (i.e. 3 if A->3x3 matrix)
+    16  C
+    17                DO 1000 I=1,N
+    18                DO 1000 J=1,N
+    19                    A(I,J)=0.0D+00
+    20   1000         CONTINUE 
+    21  C
+    22        RETURN
+    23        END
+
+BLANKM@12  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BLANKM@12 . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+
+
+No errors detected

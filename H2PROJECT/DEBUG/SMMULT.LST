@@ -1,0 +1,59 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:42
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  D. Gilmore
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE SMMULT (N,A,B,MAXB,C,MAXC)
+     7  C
+     8  C     SMMULT multiplies scalar A into the matrix B and
+     9  C         passes the result back as matrix C
+    10  C
+    11        IMPLICIT REAL*8 (A-H,O-Z)
+    12        DIMENSION B(MAXB,MAXB),C(MAXC,MAXC)
+    13  C
+    14  C     A=input scalar
+    15  C     B=input matrix
+    16  C     MAXB=maximum dimension of B (MUST BE SQUARE)
+    17  C     MAXC=maximum dimension of C (MUST BE SQUARE and
+    18  C         equal to MAXB
+    19  C     N=square dimension of matrix (i.e. 3 if A->3x3 matrix)
+    20  C
+    21                DO 1000 I=1,N
+    22                DO 1000 J=1,N
+    23                    C(I,J)=A*B(I,J)
+    24   1000         CONTINUE 
+    25  C
+    26        RETURN
+    27        END
+
+SMMULT@24  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+C . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXB. . . . . . . . . . . param                                4
+MAXC. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+SMMULT@24 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

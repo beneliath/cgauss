@@ -1,0 +1,102 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:59
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE ludcmp(a,n,np,indx,d)
+     2        INTEGER n,np,indx(n),NMAX
+     3        DOUBLE PRECISION d,a(np,np),TINY
+     4        PARAMETER (NMAX=500,TINY=1.0d-20)
+     5        INTEGER i,imax,j,k
+     6        DOUBLE PRECISION aamax,dum,sum,vv(NMAX)
+     7        d=1.d0
+     8        do 12 i=1,n
+     9          aamax=0.d0
+    10          do 11 j=1,n
+    11            if (abs(a(i,j)).gt.aamax) aamax=abs(a(i,j))
+    12  11      continue
+    13          if (aamax.eq.0.d0) pause 'singular matrix in ludcmp'
+    14          vv(i)=1.d0/aamax
+    15  12    continue
+    16        do 19 j=1,n
+    17          do 14 i=1,j-1
+    18            sum=a(i,j)
+    19            do 13 k=1,i-1
+    20              sum=sum-a(i,k)*a(k,j)
+    21  13        continue
+    22            a(i,j)=sum
+    23  14      continue
+    24          aamax=0.d0
+    25          do 16 i=j,n
+    26            sum=a(i,j)
+    27            do 15 k=1,j-1
+    28              sum=sum-a(i,k)*a(k,j)
+    29  15        continue
+    30            a(i,j)=sum
+    31            dum=vv(i)*abs(sum)
+    32            if (dum.ge.aamax) then
+    33              imax=i
+    34              aamax=dum
+    35            endif
+    36  16      continue
+    37          if (j.ne.imax)then
+    38            do 17 k=1,n
+    39              dum=a(imax,k)
+    40              a(imax,k)=a(j,k)
+    41              a(j,k)=dum
+    42  17        continue
+    43            d=-d
+    44            vv(imax)=vv(j)
+    45          endif
+    46          indx(j)=imax
+    47          if(a(j,j).eq.0.d0)a(j,j)=TINY
+    48          if(j.ne.n)then
+    49            dum=1.d0/a(j,j)
+    50            do 18 i=j+1,n
+    51              a(i,j)=a(i,j)*dum
+    52  18        continue
+    53          endif
+    54  19    continue
+    55        return
+    56        END
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:59
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+LUDCMP@20  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+AAMAX . . . . . . . . . . local              REAL*8            8
+D . . . . . . . . . . . . param                                4
+DUM . . . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IMAX. . . . . . . . . . . local              INTEGER*4         4
+INDX. . . . . . . . . . . param                                4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+NP. . . . . . . . . . . . param                                4
+SUM . . . . . . . . . . . local              REAL*8            8
+TINY. . . . . . . . . . . const              REAL*8            8
+VV. . . . . . . . . . . . local              REAL*8         4000
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+LUDCMP@20 . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+
+
+No errors detected

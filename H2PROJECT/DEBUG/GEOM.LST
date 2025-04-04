@@ -1,0 +1,89 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang
+     2  C           Modified By:  D. Gilmore ---> (24 May 95)
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE GEOM(X1,Y1,Z1,X2,Y2,Z2)
+     7  C     -----------------------------------------------------
+     8        IMPLICIT REAL*8 (A-H,O-Z)
+     9  C     -----------------------------------------------------
+    10  C     --- GEOMETRY (INPUT DATA) --- 
+    11  C     -----------------------------------------------------
+    12        PARAMETER(BD=1.4011)
+    13  C         ...BD = H2 Bond Distance in Atomic Units (Bohrs)
+    14  C
+    15        X1= 0.00D+00
+    16        Y1= 0.00D+00
+    17        Z1= BD/2.0D+00
+    18        X2= 0.00D+00
+    19        Y2= 0.00D+00
+    20        Z2= -BD/2.0D+00
+    21  C      rab= 1.4D+00
+    22  C     -----------------------------------------------------
+    23  C     INTERNUCLEAR DISTANCE:  BOND = R = 
+    24  C                             Sqr(x**2 + y**2 + z**2)
+    25  C     -----------------------------------------------------
+    26  C      BOND=((X1-X2)**2 +(Y1-Y2)**2 +(Z1-Z2)**2)**(0.5)
+    27  C      WRITE(6,707) BOND
+    28  C      WRITE(6,709)
+    29  C      WRITE(7,707) BOND
+    30  C      WRITE(7,709)
+    31  C     -----------------------------------------------------
+    32  C         ...DEVICE = 6 ---> CRT Screen
+    33  C            DEVICE = 7 ---> OUTPUT Text File
+    34  C
+    35  C
+    36  C     -----------------------------------------------------
+    37  C     --- OutPut FORMAT(s) ---
+    38  C     -----------------------------------------------------
+    39  707   FORMAT(/,
+    40       1    ' Absolute Bond Distance (PARAMATER) =',F13.9, 'au')
+    41  709   FORMAT(/)   
+    42  C     -----------------------------------------------------
+    43  C     -----------------------------------------------------
+    44  C
+    45  C
+    46        RETURN 
+    47        END
+
+GEOM@24  Local symbols
+Name                      Class              Type           Size
+
+
+BD. . . . . . . . . . . . const              REAL*8            8
+X1. . . . . . . . . . . . param                                4
+X2. . . . . . . . . . . . param                                4
+Y1. . . . . . . . . . . . param                                4
+Y2. . . . . . . . . . . . param                                4
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GEOM@24  Local symbols
+Name                      Class              Type           Size
+
+
+Z1. . . . . . . . . . . . param                                4
+Z2. . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+GEOM@24 . . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

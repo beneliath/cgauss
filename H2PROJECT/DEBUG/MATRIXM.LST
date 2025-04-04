@@ -1,0 +1,53 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:42
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  
+     2        SUBROUTINE MATRIXM (N,A,MAXA,B,MAXB,C,MAXC)
+     3        IMPLICIT REAL*8 (A-H,O-Z)
+     4        DIMENSION A(MAXA,MAXA),B(MAXB,MAXB),C(MAXC,MAXC)
+     5  C     OPEN (UNIT=6,ACCESS='APPEND',FORM='FORMATTED')
+     6        DO 10 I=1,N
+     7        DO 10 J=1,N
+     8  C     WRITE(6,*) I,J,A(I,J),B(I,J)
+     9  10    CONTINUE
+    10  C     CLOSE(6)
+    11        DO 100  I=1,N
+    12        DO 100  J=1,N
+    13        C(I,J)=0.0D+00
+    14        DO 50  K=1,N
+    15        C(I,J)=C(I,J)+A(I,K)*B(K,J)
+    16   50   CONTINUE
+    17   100  CONTINUE
+    18        RETURN
+    19        END
+
+MATRIXM@28  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+C . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+MAXB. . . . . . . . . . . param                                4
+MAXC. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+MATRIXM@28. . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

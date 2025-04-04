@@ -1,0 +1,62 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:42
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE lubksb(a,n,np,indx,b)
+     2        INTEGER n,np,indx(n)
+     3        DOUBLE PRECISION a(np,np),b(n)
+     4        INTEGER i,ii,j,ll
+     5        DOUBLE PRECISION sum
+     6        ii=0
+     7        do 12 i=1,n
+     8          ll=indx(i)
+     9          sum=b(ll)
+    10          b(ll)=b(i)
+    11          if (ii.ne.0)then
+    12            do 11 j=ii,i-1
+    13              sum=sum-a(i,j)*b(j)
+    14  11        continue
+    15          else if (sum.ne.0.d0) then
+    16            ii=i
+    17          endif
+    18          b(i)=sum
+    19  12    continue
+    20        do 14 i=n,1,-1
+    21          sum=b(i)
+    22          do 13 j=i+1,n
+    23            sum=sum-a(i,j)*b(j)
+    24  13      continue
+    25          b(i)=sum/a(i,i)
+    26  14    continue
+    27        return
+    28        END
+
+LUBKSB@20  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+II. . . . . . . . . . . . local              INTEGER*4         4
+INDX. . . . . . . . . . . param                                4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+LL. . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NP. . . . . . . . . . . . param                                4
+SUM . . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+LUBKSB@20 . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+
+
+No errors detected

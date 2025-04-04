@@ -1,0 +1,3350 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C%% TRUNCATED-NEWTON METHOD:  SUBROUTINES
+     2  C   FOR OTHER MACHINES, MODIFY ROUTINE MCHPR1 (MACHINE EPSILON)
+     3  C   WRITTEN BY:  STEPHEN G. NASH
+     4  C                OPERATIONS RESEARCH AND APPLIED STATISTICS DEPT.
+     5  C                GEORGE MASON UNIVERSITY
+     6  C                FAIRFAX, VA 22030
+     7  C
+     8  C+++++++++++MODIFIED BY DON KINGHORN 5/22/95++++++++++++++++++
+     9  C     ADDED STEPHEN NASH'S (BLAS VARIANT)  DXPY ROUTINE TO THE 
+    10  C     END OF THIS FILE SO THAT LOCAL BLAS CAN BE LINKED TO CODE
+    11  C     RATHER THAN THE BLAS INCLUDED BY NASH
+    12  C
+    13  C     ADDED MCHPR1 VALUES FOR 486 PC, DEC ALPHA
+    14  C
+    15  C     1/2/96 ADDED CODE TO WRITE A PUNCH FILE AFTER EACH MAJOR ITERATION
+    16  C     TO BE USED FOR RESTATRING JOBS
+    17  C
+    18  C******************************************************************
+    19        SUBROUTINE TN (IERROR, N, X, F, G, W, LW, SFUN)
+    20        IMPLICIT          DOUBLE PRECISION (A-H,O-Z)
+    21        INTEGER           IERROR, N, LW
+    22        DOUBLE PRECISION  X(N), G(N), F, W(LW)
+    23  C
+    24  C THIS ROUTINE SOLVES THE OPTIMIZATION PROBLEM
+    25  C
+    26  C            MINIMIZE F(X)
+    27  C               X
+    28  C
+    29  C WHERE X IS A VECTOR OF N REAL VARIABLES.  THE METHOD USED IS
+    30  C A TRUNCATED-NEWTON ALGORITHM (SEE "NEWTON-TYPE MINIMIZATION VIA
+    31  C THE LANCZOS METHOD" BY S.G. NASH (SIAM J. NUMER. ANAL. 21 (1984),
+    32  C PP. 770-778).  THIS ALGORITHM FINDS A LOCAL MINIMUM OF F(X).  IT DOES
+    33  C NOT ASSUME THAT THE FUNCTION F IS CONVEX (AND SO CANNOT GUARANTEE A
+    34  C GLOBAL SOLUTION), BUT DOES ASSUME THAT THE FUNCTION IS BOUNDED BELOW.
+    35  C IT CAN SOLVE PROBLEMS HAVING ANY NUMBER OF VARIABLES, BUT IT IS
+    36  C ESPECIALLY USEFUL WHEN THE NUMBER OF VARIABLES (N) IS LARGE.
+    37  C
+    38  C SUBROUTINE PARAMETERS:
+    39  C
+    40  C IERROR - (INTEGER) ERROR CODE
+    41  C          ( 0 => NORMAL RETURN)
+    42  C          ( 2 => MORE THAN MAXFUN EVALUATIONS)
+    43  C          ( 3 => LINE SEARCH FAILED TO FIND
+    44  C          (          LOWER POINT (MAY NOT BE SERIOUS)
+    45  C          (-1 => ERROR IN INPUT PARAMETERS)
+    46  C N      - (INTEGER) NUMBER OF VARIABLES
+    47  C X      - (REAL*8) VECTOR OF LENGTH AT LEAST N; ON INPUT, AN INITIAL
+    48  C          ESTIMATE OF THE SOLUTION; ON OUTPUT, THE COMPUTED SOLUTION.
+    49  C G      - (REAL*8) VECTOR OF LENGTH AT LEAST N; ON OUTPUT, THE FINAL
+    50  C          VALUE OF THE GRADIENT
+    51  C F      - (REAL*8) ON INPUT, A ROUGH ESTIMATE OF THE VALUE OF THE
+    52  C          OBJECTIVE FUNCTION AT THE SOLUTION; ON OUTPUT, THE VALUE
+    53  C          OF THE OBJECTIVE FUNCTION AT THE SOLUTION
+    54  C W      - (REAL*8) WORK VECTOR OF LENGTH AT LEAST 14*N
+    55  C LW     - (INTEGER) THE DECLARED DIMENSION OF W
+    56  C SFUN   - A USER-SPECIFIED SUBROUTINE THAT COMPUTES THE FUNCTION
+    57  C          AND GRADIENT OF THE OBJECTIVE FUNCTION.  IT MUST HAVE
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C          THE CALLING SEQUENCE
+    59  C             SUBROUTINE SFUN (N, X, F, G)
+    60  C             INTEGER           N
+    61  C             DOUBLE PRECISION  X(N), G(N), F
+    62  C
+    63  C THIS IS AN EASY-TO-USE DRIVER FOR THE MAIN OPTIMIZATION ROUTINE
+    64  C LMQN.  MORE EXPERIENCED USERS WHO WISH TO CUSTOMIZE PERFORMANCE
+    65  C OF THIS ALGORITHM SHOULD CALL LMQN DIRECTLY.
+    66  C
+    67  C----------------------------------------------------------------------
+    68  C THIS ROUTINE SETS UP ALL THE PARAMETERS FOR THE TRUNCATED-NEWTON
+    69  C ALGORITHM.  THE PARAMETERS ARE:
+    70  C
+    71  C ETA    - SEVERITY OF THE LINESEARCH
+    72  C MAXFUN - MAXIMUM ALLOWABLE NUMBER OF FUNCTION EVALUATIONS
+    73  C XTOL   - DESIRED ACCURACY FOR THE SOLUTION X*
+    74  C STEPMX - MAXIMUM ALLOWABLE STEP IN THE LINESEARCH
+    75  C ACCRCY - ACCURACY OF COMPUTED FUNCTION VALUES
+    76  C MSGLVL - DETERMINES QUANTITY OF PRINTED OUTPUT
+    77  C          0 = NONE, 1 = ONE LINE PER MAJOR ITERATION.
+    78  C MAXIT  - MAXIMUM NUMBER OF INNER ITERATIONS PER STEP
+    79  C
+    80        DOUBLE PRECISION ETA, ACCRCY, XTOL, STEPMX, DSQRT, MCHPR1
+    81        EXTERNAL         SFUN
+    82  C
+    83  C SET UP PARAMETERS FOR THE OPTIMIZATION ROUTINE
+    84  C
+    85        MAXIT = N/2
+    86        IF (MAXIT .GT. 50) MAXIT = 50
+    87        IF (MAXIT .LE. 0) MAXIT = 1
+    88        MSGLVL = 1
+    89        MAXFUN = 150*N
+    90        ETA = .25D0
+    91        STEPMX = 1.D1
+    92        ACCRCY = 1.D2*MCHPR1()
+    93        XTOL = DSQRT(ACCRCY)
+    94  C
+    95  C MINIMIZE THE FUNCTION
+    96  C
+    97        CALL LMQN (IERROR, N, X, F, G, W, LW, SFUN,
+    98       *     MSGLVL, MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
+    99  C
+   100  C PRINT THE RESULTS
+   101  C
+   102        IF (IERROR .NE. 0) WRITE(*,800) IERROR
+   103        WRITE(*,810) F
+   104        IF (MSGLVL .LT. 1) RETURN
+   105        WRITE(*,820)
+   106        NMAX = 10
+   107        IF (N .LT. NMAX) NMAX = N
+   108        WRITE(*,830) (I,X(I),I=1,NMAX)
+   109        RETURN
+   110  800   FORMAT(//,' ERROR CODE =', I3)
+   111  810   FORMAT(//,' OPTIMAL FUNCTION VALUE = ', 1PD22.15)
+   112  820   FORMAT(10X, 'CURRENT SOLUTION IS (AT MOST 10 COMPONENTS)', /,
+   113       *       14X, 'I', 11X, 'X(I)')
+   114  830   FORMAT(10X, I5, 2X, 1PD22.15)
+
+                                                                        PAGE   3
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115        END
+
+TN@32  Local symbols
+Name                      Class              Type           Size
+
+
+ACCRCY. . . . . . . . . . local              REAL*8            8
+ETA . . . . . . . . . . . local              REAL*8            8
+F . . . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IERROR. . . . . . . . . . param                                4
+LW. . . . . . . . . . . . param                                4
+MAXFUN. . . . . . . . . . local              INTEGER*4         4
+MAXIT . . . . . . . . . . local              INTEGER*4         4
+MSGLVL. . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NMAX. . . . . . . . . . . local              INTEGER*4         4
+SFUN. . . . . . . . . . . param                                4
+STEPMX. . . . . . . . . . local              REAL*8            8
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XTOL. . . . . . . . . . . local              REAL*8            8
+
+
+   116  C
+   117  C
+   118        SUBROUTINE TNBC (IERROR, N, X, F, G, W, LW, SFUN, LOW, UP, IPIVOT)
+   119        IMPLICIT          DOUBLE PRECISION (A-H,O-Z)
+   120        INTEGER           IERROR, N, LW, IPIVOT(N)
+   121        DOUBLE PRECISION  X(N), G(N), F, W(LW), LOW(N), UP(N)
+   122  C
+   123  C THIS ROUTINE SOLVES THE OPTIMIZATION PROBLEM
+   124  C
+   125  C   MINIMIZE     F(X)
+   126  C      X
+   127  C   SUBJECT TO   LOW <= X <= UP
+   128  C
+   129  C WHERE X IS A VECTOR OF N REAL VARIABLES.  THE METHOD USED IS
+   130  C A TRUNCATED-NEWTON ALGORITHM (SEE "NEWTON-TYPE MINIMIZATION VIA
+   131  C THE LANCZOS ALGORITHM" BY S.G. NASH (TECHNICAL REPORT 378, MATH.
+   132  C THE LANCZOS METHOD" BY S.G. NASH (SIAM J. NUMER. ANAL. 21 (1984),
+   133  C PP. 770-778).  THIS ALGORITHM FINDS A LOCAL MINIMUM OF F(X).  IT DOES
+   134  C NOT ASSUME THAT THE FUNCTION F IS CONVEX (AND SO CANNOT GUARANTEE A
+   135  C GLOBAL SOLUTION), BUT DOES ASSUME THAT THE FUNCTION IS BOUNDED BELOW.
+   136  C IT CAN SOLVE PROBLEMS HAVING ANY NUMBER OF VARIABLES, BUT IT IS
+   137  C ESPECIALLY USEFUL WHEN THE NUMBER OF VARIABLES (N) IS LARGE.
+   138  C
+   139  C SUBROUTINE PARAMETERS:
+   140  C
+   141  C IERROR  - (INTEGER) ERROR CODE
+   142  C           ( 0 => NORMAL RETURN
+   143  C           ( 2 => MORE THAN MAXFUN EVALUATIONS
+   144  C           ( 3 => LINE SEARCH FAILED TO FIND LOWER
+   145  C           (          POINT (MAY NOT BE SERIOUS)
+   146  C           (-1 => ERROR IN INPUT PARAMETERS
+   147  C N       - (INTEGER) NUMBER OF VARIABLES
+
+                                                                        PAGE   4
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   148  C X       - (REAL*8) VECTOR OF LENGTH AT LEAST N; ON INPUT, AN INITIAL
+   149  C           ESTIMATE OF THE SOLUTION; ON OUTPUT, THE COMPUTED SOLUTION.
+   150  C G       - (REAL*8) VECTOR OF LENGTH AT LEAST N; ON OUTPUT, THE FINAL
+   151  C           VALUE OF THE GRADIENT
+   152  C F       - (REAL*8) ON INPUT, A ROUGH ESTIMATE OF THE VALUE OF THE
+   153  C           OBJECTIVE FUNCTION AT THE SOLUTION; ON OUTPUT, THE VALUE
+   154  C           OF THE OBJECTIVE FUNCTION AT THE SOLUTION
+   155  C W       - (REAL*8) WORK VECTOR OF LENGTH AT LEAST 14*N
+   156  C LW      - (INTEGER) THE DECLARED DIMENSION OF W
+   157  C SFUN    - A USER-SPECIFIED SUBROUTINE THAT COMPUTES THE FUNCTION
+   158  C           AND GRADIENT OF THE OBJECTIVE FUNCTION.  IT MUST HAVE
+   159  C           THE CALLING SEQUENCE
+   160  C             SUBROUTINE SFUN (N, X, F, G)
+   161  C             INTEGER           N
+   162  C             DOUBLE PRECISION  X(N), G(N), F
+   163  C LOW, UP - (REAL*8) VECTORS OF LENGTH AT LEAST N CONTAINING
+   164  C           THE LOWER AND UPPER BOUNDS ON THE VARIABLES.  IF
+   165  C           THERE ARE NO BOUNDS ON A PARTICULAR VARIABLE, SET
+   166  C           THE BOUNDS TO -1.D38 AND 1.D38, RESPECTIVELY.
+   167  C IPIVOT  - (INTEGER) WORK VECTOR OF LENGTH AT LEAST N, USED
+   168  C           TO RECORD WHICH VARIABLES ARE AT THEIR BOUNDS.
+   169  C
+   170  C THIS IS AN EASY-TO-USE DRIVER FOR THE MAIN OPTIMIZATION ROUTINE
+   171  C LMQNBC.  MORE EXPERIENCED USERS WHO WISH TO CUSTOMIZE PERFORMANCE
+   172  C OF THIS ALGORITHM SHOULD CALL LMQBC DIRECTLY.
+   173  C
+   174  C----------------------------------------------------------------------
+   175  C THIS ROUTINE SETS UP ALL THE PARAMETERS FOR THE TRUNCATED-NEWTON
+   176  C ALGORITHM.  THE PARAMETERS ARE:
+   177  C
+   178  C ETA    - SEVERITY OF THE LINESEARCH
+   179  C MAXFUN - MAXIMUM ALLOWABLE NUMBER OF FUNCTION EVALUATIONS
+   180  C XTOL   - DESIRED ACCURACY FOR THE SOLUTION X*
+   181  C STEPMX - MAXIMUM ALLOWABLE STEP IN THE LINESEARCH
+   182  C ACCRCY - ACCURACY OF COMPUTED FUNCTION VALUES
+   183  C MSGLVL - CONTROLS QUANTITY OF PRINTED OUTPUT
+   184  C          0 = NONE, 1 = ONE LINE PER MAJOR ITERATION.
+   185  C MAXIT  - MAXIMUM NUMBER OF INNER ITERATIONS PER STEP
+   186  C
+   187        DOUBLE PRECISION  ETA, ACCRCY, XTOL, STEPMX, DSQRT, MCHPR1
+   188        EXTERNAL          SFUN
+   189  C
+   190  C SET PARAMETERS FOR THE OPTIMIZATION ROUTINE
+   191  C
+   192        MAXIT = N/2
+   193        IF (MAXIT .GT. 50) MAXIT = 50
+   194        IF (MAXIT .LE. 0) MAXIT = 1
+   195        MSGLVL = 1
+   196        MAXFUN = 150*N
+   197        ETA = .25D0
+   198        STEPMX = 1.D1
+   199        ACCRCY = 1.D2*MCHPR1()
+   200        XTOL = DSQRT(ACCRCY)
+   201  C
+   202  C MINIMIZE FUNCTION
+   203  C
+   204        CALL LMQNBC (IERROR, N, X, F, G, W, LW, SFUN, LOW, UP, IPIVOT,
+
+                                                                        PAGE   5
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   205       *            MSGLVL, MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
+   206  C
+   207  C PRINT RESULTS
+   208  C
+   209        IF (IERROR .NE. 0) WRITE(*,800) IERROR
+   210        WRITE(*,810) F
+   211        IF (MSGLVL .LT. 1) RETURN
+   212        WRITE(*,820)
+   213        NMAX = 10
+   214        IF (N .LT. NMAX) NMAX = N
+   215        WRITE(*,830) (I,X(I),I=1,NMAX)
+   216        RETURN
+   217  800   FORMAT(//,' ERROR CODE =', I3)
+   218  810   FORMAT(//,' OPTIMAL FUNCTION VALUE = ', 1PD22.15)
+   219  820   FORMAT(10X, 'CURRENT SOLUTION IS (AT MOST 10 COMPONENTS)', /,
+   220       *       14X, 'I', 11X, 'X(I)')
+   221  830   FORMAT(10X, I5, 2X, 1PD22.15)
+   222        END
+
+TNBC@44  Local symbols
+Name                      Class              Type           Size
+
+
+ACCRCY. . . . . . . . . . local              REAL*8            8
+ETA . . . . . . . . . . . local              REAL*8            8
+F . . . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IERROR. . . . . . . . . . param                                4
+IPIVOT. . . . . . . . . . param                                4
+LOW . . . . . . . . . . . param                                4
+LW. . . . . . . . . . . . param                                4
+MAXFUN. . . . . . . . . . local              INTEGER*4         4
+MAXIT . . . . . . . . . . local              INTEGER*4         4
+MSGLVL. . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NMAX. . . . . . . . . . . local              INTEGER*4         4
+SFUN. . . . . . . . . . . param                                4
+STEPMX. . . . . . . . . . local              REAL*8            8
+UP. . . . . . . . . . . . param                                4
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XTOL. . . . . . . . . . . local              REAL*8            8
+
+
+   223  C
+   224  C
+   225        SUBROUTINE LMQN (IFAIL, N, X, F, G, W, LW, SFUN,
+   226       *            MSGLVL, MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
+   227        IMPLICIT          DOUBLE PRECISION (A-H,O-Z)
+   228        INTEGER           MSGLVL, N, MAXFUN, IFAIL, LW
+   229        DOUBLE PRECISION  X(N), G(N), W(LW), ETA, XTOL, STEPMX, F, ACCRCY
+   230  C
+   231  C THIS ROUTINE IS A TRUNCATED-NEWTON METHOD.
+   232  C THE TRUNCATED-NEWTON METHOD IS PRECONDITIONED BY A LIMITED-MEMORY
+   233  C QUASI-NEWTON METHOD (THIS PRECONDITIONING STRATEGY IS DEVELOPED
+   234  C IN THIS ROUTINE) WITH A FURTHER DIAGONAL SCALING (SEE ROUTINE NDIA3).
+
+                                                                        PAGE   6
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   235  C FOR FURTHER DETAILS ON THE PARAMETERS, SEE ROUTINE TN.
+   236  C
+   237        INTEGER I, ICYCLE, IOLDG, IPK, IYK, LOLDG, LPK, LSR,
+   238       *     LWTEST, LYK, LYR, NFTOTL, NITER, NM1, NUMF, NWHY
+   239        DOUBLE PRECISION ABSTOL, ALPHA, DIFNEW, DIFOLD, EPSMCH,
+   240       *     EPSRED, FKEEP, FM, FNEW, FOLD, FSTOP, FTEST, GNORM, GSK,
+   241       *     GTG, GTPNEW, OLDF, OLDGTP, ONE, PE, PEPS, PNORM, RELTOL,
+   242       *     RTEPS, RTLEPS, RTOL, RTOLSQ, SMALL, SPE, TINY,
+   243       *     TNYTOL, TOLEPS, XNORM, YKSK, YRSR, ZERO
+   244        LOGICAL LRESET, UPD1
+   245  C
+   246  C THE FOLLOWING IMSL AND STANDARD FUNCTIONS ARE USED
+   247  C
+   248        DOUBLE PRECISION DABS, DDOT, DSQRT, STEP1, DNRM2
+   249        EXTERNAL SFUN
+   250        COMMON /SUBSCR/ LGV,LZ1,LZK,LV,LSK,LYK,LDIAGB,LSR,LYR,
+   251       *     LOLDG,LHG,LHYK,LPK,LEMAT,LWTEST
+   252  C
+   253  C INITIALIZE PARAMETERS AND CONSTANTS
+   254  C
+   255        IF (MSGLVL .GE. -2) WRITE(*,800)
+   256        CALL SETPAR(N)
+   257        UPD1 = .TRUE.
+   258        IRESET = 0
+   259        NFEVAL = 0
+   260        NMODIF = 0
+   261        NLINCG = 0
+   262        FSTOP = F
+   263        ZERO = 0.D0
+   264        ONE = 1.D0
+   265        NM1 = N - 1
+   266  C
+   267  C WITHIN THIS ROUTINE THE ARRAY W(LOLDG) IS SHARED BY W(LHYR)
+   268  C
+   269        LHYR = LOLDG
+   270  C
+   271  C CHECK PARAMETERS AND SET CONSTANTS
+   272  C
+   273        CALL CHKUCP(LWTEST,MAXFUN,NWHY,N,ALPHA,EPSMCH,
+   274       *     ETA,PEPS,RTEPS,RTOL,RTOLSQ,STEPMX,FTEST,
+   275       *     XTOL,XNORM,X,LW,SMALL,TINY,ACCRCY)
+   276        IF (NWHY .LT. 0) GO TO 120
+   277        CALL SETUCR(SMALL,NFTOTL,NITER,N,F,FNEW,
+   278       *     FM,GTG,OLDF,SFUN,G,X)
+   279        FOLD = FNEW
+   280        IF (MSGLVL .GE. 1) WRITE(*,810) NITER,NFTOTL,NLINCG,FNEW,GTG
+   281  C
+   282  C CHECK FOR SMALL GRADIENT AT THE STARTING POINT.
+   283  C
+   284        FTEST = ONE + DABS(FNEW)
+   285        IF (GTG .LT. 1.D-4*EPSMCH*FTEST*FTEST) GO TO 90
+   286  C
+   287  C SET INITIAL VALUES TO OTHER PARAMETERS
+   288  C
+   289        ICYCLE = NM1
+   290        TOLEPS = RTOL + RTEPS
+   291        RTLEPS = RTOLSQ + EPSMCH
+
+                                                                        PAGE   7
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   292        GNORM  = DSQRT(GTG)
+   293        DIFNEW = ZERO
+   294        EPSRED = 5.0D-2
+   295        FKEEP  = FNEW
+   296  C
+   297  C SET THE DIAGONAL OF THE APPROXIMATE HESSIAN TO UNITY.
+   298  C
+   299        IDIAGB = LDIAGB
+   300        DO 10 I = 1,N
+   301           W(IDIAGB) = ONE
+   302           IDIAGB = IDIAGB + 1
+   303  10    CONTINUE
+   304  C
+   305  C ..................START OF MAIN ITERATIVE LOOP..........
+   306  C
+   307  C COMPUTE THE NEW SEARCH DIRECTION
+   308  C
+   309        MODET = MSGLVL - 3
+   310        CALL MODLNP(MODET,W(LPK),W(LGV),W(LZ1),W(LV),
+   311       *     W(LDIAGB),W(LEMAT),X,G,W(LZK),
+   312       *     N,W,LW,NITER,MAXIT,NFEVAL,NMODIF,
+   313       *     NLINCG,UPD1,YKSK,GSK,YRSR,LRESET,SFUN,.FALSE.,IPIVOT,
+   314       *     ACCRCY,GTPNEW,GNORM,XNORM)
+   315  20    CONTINUE
+   316        CALL DCOPY(N,G,1,W(LOLDG),1)
+   317        PNORM = DNRM2(N,W(LPK),1)
+   318        OLDF = FNEW
+   319        OLDGTP = GTPNEW
+   320  
+   321  C     CODE ADDED BY D B KINGHORN 1/2/96 FOR CREATING A PUNCH FILE 
+   322  C     FOR RESTARTS AFTER A MAJOR ITERATION
+   323        OPEN( UNIT=10, FILE='TNRESTRT.PT', STATUS='UNKNOWN' )
+   324        DO I=1,N
+   325              WRITE(10,*) X(I)
+   326        END DO
+   327        CLOSE( UNIT=10, STATUS='KEEP')
+   328  
+   329  C
+   330  C PREPARE TO COMPUTE THE STEP LENGTH
+   331  C
+   332        PE = PNORM + EPSMCH
+   333  C
+   334  C COMPUTE THE ABSOLUTE AND RELATIVE TOLERANCES FOR THE LINEAR SEARCH
+   335  C
+   336        RELTOL = RTEPS*(XNORM + ONE)/PE
+   337        ABSTOL = - EPSMCH*FTEST/(OLDGTP - EPSMCH)
+   338  C
+   339  C COMPUTE THE SMALLEST ALLOWABLE SPACING BETWEEN POINTS IN
+   340  C THE LINEAR SEARCH
+   341  C
+   342        TNYTOL = EPSMCH*(XNORM + ONE)/PE
+   343        SPE = STEPMX/PE
+   344  C
+   345  C SET THE INITIAL STEP LENGTH.
+   346  C
+   347        ALPHA = STEP1(FNEW,FM,OLDGTP,SPE)
+   348  C
+
+                                                                        PAGE   8
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   349  C PERFORM THE LINEAR SEARCH
+   350  C
+   351        CALL LINDER(N,SFUN,SMALL,EPSMCH,RELTOL,ABSTOL,TNYTOL,
+   352       *     ETA,ZERO,SPE,W(LPK),OLDGTP,X,FNEW,ALPHA,G,NUMF,
+   353       *     NWHY,W,LW)
+   354  C
+   355        FOLD = FNEW
+   356        NITER = NITER + 1
+   357        NFTOTL = NFTOTL + NUMF
+   358        GTG = DDOT(N,G,1,G,1)
+   359        IF (MSGLVL .GE. 1) WRITE(*,810) NITER,NFTOTL,NLINCG,FNEW,GTG
+   360        IF (NWHY .LT. 0) GO TO 120
+   361        IF (NWHY .EQ. 0 .OR. NWHY .EQ. 2) GO TO 30
+   362  C
+   363  C THE LINEAR SEARCH HAS FAILED TO FIND A LOWER POINT
+   364  C
+   365        NWHY = 3
+   366        GO TO 100
+   367  30    IF (NWHY .LE. 1) GO TO 40
+   368        CALL SFUN(N,X,FNEW,G)
+   369        NFTOTL = NFTOTL + 1
+   370  C
+   371  C TERMINATE IF MORE THAN MAXFUN EVALUTATIONS HAVE BEEN MADE
+   372  C
+   373  40    NWHY = 2
+   374        IF (NFTOTL .GT. MAXFUN) GO TO 110
+   375        NWHY = 0
+   376  C
+   377  C SET UP PARAMETERS USED IN CONVERGENCE AND RESETTING TESTS
+   378  C
+   379        DIFOLD = DIFNEW
+   380        DIFNEW = OLDF - FNEW
+   381  C
+   382  C IF THIS IS THE FIRST ITERATION OF A NEW CYCLE, COMPUTE THE
+   383  C PERCENTAGE REDUCTION FACTOR FOR THE RESETTING TEST.
+   384  C
+   385        IF (ICYCLE .NE. 1) GO TO 50
+   386        IF (DIFNEW .GT. 2.0D0 *DIFOLD) EPSRED = EPSRED + EPSRED
+   387        IF (DIFNEW .LT. 5.0D-1*DIFOLD) EPSRED = 5.0D-1*EPSRED
+   388  50    CONTINUE
+   389        GNORM = DSQRT(GTG)
+   390        FTEST = ONE + DABS(FNEW)
+   391        XNORM = DNRM2(N,X,1)
+   392  C
+   393  C TEST FOR CONVERGENCE
+   394  C
+   395        IF ((ALPHA*PNORM .LT. TOLEPS*(ONE + XNORM)
+   396       *     .AND. DABS(DIFNEW) .LT. RTLEPS*FTEST
+   397       *     .AND. GTG .LT. PEPS*FTEST*FTEST)
+   398       *     .OR. GTG .LT. 1.D-4*ACCRCY*FTEST*FTEST) GO TO 90
+   399  C
+   400  C COMPUTE THE CHANGE IN THE ITERATES AND THE CORRESPONDING CHANGE
+   401  C IN THE GRADIENTS
+   402  C
+   403        ISK = LSK
+   404        IPK = LPK
+   405        IYK = LYK
+
+                                                                        PAGE   9
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   406        IOLDG = LOLDG
+   407        DO 60 I = 1,N
+   408           W(IYK) = G(I) - W(IOLDG)
+   409           W(ISK) = ALPHA*W(IPK)
+   410           IPK = IPK + 1
+   411           ISK = ISK + 1
+   412           IYK = IYK + 1
+   413           IOLDG = IOLDG + 1
+   414  60    CONTINUE
+   415  C
+   416  C SET UP PARAMETERS USED IN UPDATING THE DIRECTION OF SEARCH.
+   417  C
+   418        YKSK = DDOT(N,W(LYK),1,W(LSK),1)
+   419        LRESET = .FALSE.
+   420        IF (ICYCLE .EQ. NM1 .OR. DIFNEW .LT.
+   421       *     EPSRED*(FKEEP-FNEW)) LRESET = .TRUE.
+   422        IF (LRESET) GO TO 70
+   423        YRSR = DDOT(N,W(LYR),1,W(LSR),1)
+   424        IF (YRSR .LE. ZERO) LRESET = .TRUE.
+   425  70    CONTINUE
+   426        UPD1 = .FALSE.
+   427  C
+   428  C      COMPUTE THE NEW SEARCH DIRECTION
+   429  C
+   430        MODET = MSGLVL - 3
+   431        CALL MODLNP(MODET,W(LPK),W(LGV),W(LZ1),W(LV),
+   432       *     W(LDIAGB),W(LEMAT),X,G,W(LZK),
+   433       *     N,W,LW,NITER,MAXIT,NFEVAL,NMODIF,
+   434       *     NLINCG,UPD1,YKSK,GSK,YRSR,LRESET,SFUN,.FALSE.,IPIVOT,
+   435       *     ACCRCY,GTPNEW,GNORM,XNORM)
+   436        IF (LRESET) GO TO 80
+   437  C
+   438  C      STORE THE ACCUMULATED CHANGE IN THE POINT AND GRADIENT AS AN
+   439  C      "AVERAGE" DIRECTION FOR PRECONDITIONING.
+   440  C
+   441        CALL DXPY(N,W(LSK),1,W(LSR),1)
+   442        CALL DXPY(N,W(LYK),1,W(LYR),1)
+   443        ICYCLE = ICYCLE + 1
+   444        GOTO 20
+   445  C
+   446  C RESET
+   447  C
+   448  80    IRESET = IRESET + 1
+   449  C
+   450  C INITIALIZE THE SUM OF ALL THE CHANGES IN X.
+   451  C
+   452        CALL DCOPY(N,W(LSK),1,W(LSR),1)
+   453        CALL DCOPY(N,W(LYK),1,W(LYR),1)
+   454        FKEEP = FNEW
+   455        ICYCLE = 1
+   456        GO TO 20
+   457  C
+   458  C ...............END OF MAIN ITERATION.......................
+   459  C
+   460  90    IFAIL = 0
+   461        F = FNEW
+   462        RETURN
+
+                                                                        PAGE  10
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   463  100   OLDF = FNEW
+   464  C
+   465  C LOCAL SEARCH HERE COULD BE INSTALLED HERE
+   466  C
+   467  110    F = OLDF
+   468  C
+   469  C SET IFAIL
+   470  C
+   471  120   IFAIL = NWHY
+   472        RETURN
+   473  800   FORMAT(//' NIT   NF   CG', 9X, 'F', 21X, 'GTG',//)
+   474  810   FORMAT(' ',I3,1X,I4,1X,I4,1X,1PD22.15,2X,1PD15.8)
+   475        END
+
+LMQN@60  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+ABSTOL. . . . . . . . . . local              REAL*8            8
+ACCRCY. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . local              REAL*8            8
+DIFNEW. . . . . . . . . . local              REAL*8            8
+DIFOLD. . . . . . . . . . local              REAL*8            8
+EPSMCH. . . . . . . . . . local              REAL*8            8
+EPSRED. . . . . . . . . . local              REAL*8            8
+ETA . . . . . . . . . . . param                                4
+F . . . . . . . . . . . . param                                4
+FKEEP . . . . . . . . . . local              REAL*8            8
+FM. . . . . . . . . . . . local              REAL*8            8
+FNEW. . . . . . . . . . . local              REAL*8            8
+FOLD. . . . . . . . . . . local              REAL*8            8
+FSTOP . . . . . . . . . . local              REAL*8            8
+FTEST . . . . . . . . . . local              REAL*8            8
+G . . . . . . . . . . . . param                                4
+GNORM . . . . . . . . . . local              REAL*8            8
+GSK . . . . . . . . . . . local              REAL*8            8
+GTG . . . . . . . . . . . local              REAL*8            8
+GTPNEW. . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+ICYCLE. . . . . . . . . . local              INTEGER*4         4
+IDIAGB. . . . . . . . . . local              INTEGER*4         4
+IFAIL . . . . . . . . . . param                                4
+IOLDG . . . . . . . . . . local              INTEGER*4         4
+IPIVOT. . . . . . . . . . local              INTEGER*4         4
+IPK . . . . . . . . . . . local              INTEGER*4         4
+IRESET. . . . . . . . . . local              INTEGER*4         4
+ISK . . . . . . . . . . . local              INTEGER*4         4
+IYK . . . . . . . . . . . local              INTEGER*4         4
+LDIAGB. . . . . . . . . . SUBSCR(24)         INTEGER*4         4
+LEMAT . . . . . . . . . . SUBSCR(52)         INTEGER*4         4
+LGV . . . . . . . . . . . SUBSCR(0)          INTEGER*4         4
+LHYR. . . . . . . . . . . local              INTEGER*4         4
+LOLDG . . . . . . . . . . SUBSCR(36)         INTEGER*4         4
+LPK . . . . . . . . . . . SUBSCR(48)         INTEGER*4         4
+LRESET. . . . . . . . . . local              INTEGER*4         4
+LSK . . . . . . . . . . . SUBSCR(16)         INTEGER*4         4
+
+                                                                        PAGE  11
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+LMQN@60  Local symbols
+Name                      Class              Type           Size
+
+
+LSR . . . . . . . . . . . SUBSCR(28)         INTEGER*4         4
+LV. . . . . . . . . . . . SUBSCR(12)         INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+LWTEST. . . . . . . . . . SUBSCR(56)         INTEGER*4         4
+LYK . . . . . . . . . . . SUBSCR(20)         INTEGER*4         4
+LYR . . . . . . . . . . . SUBSCR(32)         INTEGER*4         4
+LZ1 . . . . . . . . . . . SUBSCR(4)          INTEGER*4         4
+LZK . . . . . . . . . . . SUBSCR(8)          INTEGER*4         4
+MAXFUN. . . . . . . . . . param                                4
+MAXIT . . . . . . . . . . param                                4
+MODET . . . . . . . . . . local              INTEGER*4         4
+MSGLVL. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NFEVAL. . . . . . . . . . local              INTEGER*4         4
+NFTOTL. . . . . . . . . . local              INTEGER*4         4
+NITER . . . . . . . . . . local              INTEGER*4         4
+NLINCG. . . . . . . . . . local              INTEGER*4         4
+NM1 . . . . . . . . . . . local              INTEGER*4         4
+NMODIF. . . . . . . . . . local              INTEGER*4         4
+NUMF. . . . . . . . . . . local              INTEGER*4         4
+NWHY. . . . . . . . . . . local              INTEGER*4         4
+OLDF. . . . . . . . . . . local              REAL*8            8
+OLDGTP. . . . . . . . . . local              REAL*8            8
+ONE . . . . . . . . . . . local              REAL*8            8
+PE. . . . . . . . . . . . local              REAL*8            8
+PEPS. . . . . . . . . . . local              REAL*8            8
+PNORM . . . . . . . . . . local              REAL*8            8
+RELTOL. . . . . . . . . . local              REAL*8            8
+RTEPS . . . . . . . . . . local              REAL*8            8
+RTLEPS. . . . . . . . . . local              REAL*8            8
+RTOL. . . . . . . . . . . local              REAL*8            8
+RTOLSQ. . . . . . . . . . local              REAL*8            8
+SFUN. . . . . . . . . . . param                                4
+SMALL . . . . . . . . . . local              REAL*8            8
+SPE . . . . . . . . . . . local              REAL*8            8
+STEPMX. . . . . . . . . . param                                4
+TINY. . . . . . . . . . . local              REAL*8            8
+TNYTOL. . . . . . . . . . local              REAL*8            8
+TOLEPS. . . . . . . . . . local              REAL*8            8
+UPD1. . . . . . . . . . . local              INTEGER*4         4
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XNORM . . . . . . . . . . local              REAL*8            8
+XTOL. . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . local              REAL*8            8
+YRSR. . . . . . . . . . . local              REAL*8            8
+ZERO. . . . . . . . . . . local              REAL*8            8
+
+
+   476  C
+   477  C
+   478        SUBROUTINE LMQNBC (IFAIL, N, X, F, G, W, LW, SFUN, LOW, UP,
+
+                                                                        PAGE  12
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   479       *   IPIVOT, MSGLVL, MAXIT, MAXFUN, ETA, STEPMX, ACCRCY, XTOL)
+   480        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+   481        INTEGER          MSGLVL,N,MAXFUN,IFAIL,LW
+   482        INTEGER          IPIVOT(N)
+   483        DOUBLE PRECISION ETA,XTOL,STEPMX,F,ACCRCY
+   484        DOUBLE PRECISION X(N),G(N),W(LW),LOW(N),UP(N)
+   485  C
+   486  C THIS ROUTINE IS A BOUNDS-CONSTRAINED TRUNCATED-NEWTON METHOD.
+   487  C THE TRUNCATED-NEWTON METHOD IS PRECONDITIONED BY A LIMITED-MEMORY
+   488  C QUASI-NEWTON METHOD (THIS PRECONDITIONING STRATEGY IS DEVELOPED
+   489  C IN THIS ROUTINE) WITH A FURTHER DIAGONAL SCALING (SEE ROUTINE NDIA3).
+   490  C FOR FURTHER DETAILS ON THE PARAMETERS, SEE ROUTINE TNBC.
+   491  C
+   492        INTEGER I, ICYCLE, IOLDG, IPK, IYK, LOLDG, LPK, LSR,
+   493       *     LWTEST, LYK, LYR, NFTOTL, NITER, NM1, NUMF, NWHY
+   494        DOUBLE PRECISION ABSTOL, ALPHA, DIFNEW, DIFOLD, EPSMCH, EPSRED,
+   495       *     FKEEP, FLAST, FM, FNEW, FOLD, FSTOP, FTEST, GNORM, GSK,
+   496       *     GTG, GTPNEW, OLDF, OLDGTP, ONE, PE, PEPS, PNORM, RELTOL,
+   497       *     RTEPS, RTLEPS, RTOL, RTOLSQ, SMALL, SPE, TINY,
+   498       *     TNYTOL, TOLEPS, XNORM, YKSK, YRSR, ZERO
+   499        LOGICAL CONV, LRESET, UPD1, NEWCON
+   500  C
+   501  C THE FOLLOWING STANDARD FUNCTIONS AND SYSTEM FUNCTIONS ARE USED
+   502  C
+   503        DOUBLE PRECISION DABS, DDOT, DNRM2, DSQRT, STEP1
+   504        EXTERNAL SFUN
+   505        COMMON/SUBSCR/ LGV, LZ1, LZK, LV, LSK, LYK, LDIAGB, LSR, LYR,
+   506       *     LOLDG, LHG, LHYK, LPK, LEMAT, LWTEST
+   507  C
+   508  C CHECK THAT INITIAL X IS FEASIBLE AND THAT THE BOUNDS ARE CONSISTENT
+   509  C
+   510        CALL CRASH(N,X,IPIVOT,LOW,UP,IER)
+   511        IF (IER .NE. 0) WRITE(*,800)
+   512        IF (IER .NE. 0) RETURN
+   513        IF (MSGLVL .GE. 1) WRITE(*,810)
+   514  C
+   515  C INITIALIZE VARIABLES
+   516  C
+   517        CALL SETPAR(N)
+   518        UPD1 = .TRUE.
+   519        IRESET = 0
+   520        NFEVAL = 0
+   521        NMODIF = 0
+   522        NLINCG = 0
+   523        FSTOP = F
+   524        CONV = .FALSE.
+   525        ZERO = 0.D0
+   526        ONE = 1.D0
+   527        NM1 = N - 1
+   528  C
+   529  C WITHIN THIS ROUTINE THE ARRAY W(LOLDG) IS SHARED BY W(LHYR)
+   530  C
+   531        LHYR = LOLDG
+   532  C
+   533  C CHECK PARAMETERS AND SET CONSTANTS
+   534  C
+   535        CALL CHKUCP(LWTEST,MAXFUN,NWHY,N,ALPHA,EPSMCH,
+
+                                                                        PAGE  13
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   536       *     ETA,PEPS,RTEPS,RTOL,RTOLSQ,STEPMX,FTEST,
+   537       *     XTOL,XNORM,X,LW,SMALL,TINY,ACCRCY)
+   538        IF (NWHY .LT. 0) GO TO 160
+   539        CALL SETUCR(SMALL,NFTOTL,NITER,N,F,FNEW,
+   540       *     FM,GTG,OLDF,SFUN,G,X)
+   541        FOLD = FNEW
+   542        FLAST = FNEW
+   543  C
+   544  C TEST THE LAGRANGE MULTIPLIERS TO SEE IF THEY ARE NON-NEGATIVE.
+   545  C BECAUSE THE CONSTRAINTS ARE ONLY LOWER BOUNDS, THE COMPONENTS
+   546  C OF THE GRADIENT CORRESPONDING TO THE ACTIVE CONSTRAINTS ARE THE
+   547  C LAGRANGE MULTIPLIERS.  AFTERWORDS, THE PROJECTED GRADIENT IS FORMED.
+   548  C
+   549        DO 10 I = 1,N
+   550           IF (IPIVOT(I) .EQ. 2) GO TO 10
+   551           IF (-IPIVOT(I)*G(I) .GE. 0.D0) GO TO 10
+   552           IPIVOT(I) = 0
+   553  10    CONTINUE
+   554        CALL ZTIME(N,G,IPIVOT)
+   555        GTG = DDOT(N,G,1,G,1)
+   556        IF (MSGLVL .GE. 1)
+   557       *    CALL MONIT(N,X,FNEW,G,NITER,NFTOTL,NFEVAL,LRESET,IPIVOT)
+   558  C
+   559  C CHECK IF THE INITIAL POINT IS A LOCAL MINIMUM.
+   560  C
+   561        FTEST = ONE + DABS(FNEW)
+   562        IF (GTG .LT. 1.D-4*EPSMCH*FTEST*FTEST) GO TO 130
+   563  C
+   564  C SET INITIAL VALUES TO OTHER PARAMETERS
+   565  C
+   566        ICYCLE = NM1
+   567        TOLEPS = RTOL + RTEPS
+   568        RTLEPS = RTOLSQ + EPSMCH
+   569        GNORM  = DSQRT(GTG)
+   570        DIFNEW = ZERO
+   571        EPSRED = 5.0D-2
+   572        FKEEP  = FNEW
+   573  C
+   574  C SET THE DIAGONAL OF THE APPROXIMATE HESSIAN TO UNITY.
+   575  C
+   576        IDIAGB = LDIAGB
+   577        DO 15 I = 1,N
+   578           W(IDIAGB) = ONE
+   579           IDIAGB = IDIAGB + 1
+   580  15    CONTINUE
+   581  C
+   582  C ..................START OF MAIN ITERATIVE LOOP..........
+   583  C
+   584  C COMPUTE THE NEW SEARCH DIRECTION
+   585  C
+   586        MODET = MSGLVL - 3
+   587        CALL MODLNP(MODET,W(LPK),W(LGV),W(LZ1),W(LV),
+   588       *     W(LDIAGB),W(LEMAT),X,G,W(LZK),
+   589       *     N,W,LW,NITER,MAXIT,NFEVAL,NMODIF,
+   590       *     NLINCG,UPD1,YKSK,GSK,YRSR,LRESET,SFUN,.TRUE.,IPIVOT,
+   591       *     ACCRCY,GTPNEW,GNORM,XNORM)
+   592  20    CONTINUE
+
+                                                                        PAGE  14
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   593        CALL DCOPY(N,G,1,W(LOLDG),1)
+   594        PNORM = DNRM2(N,W(LPK),1)
+   595        OLDF = FNEW
+   596        OLDGTP = GTPNEW
+   597  C
+   598  C PREPARE TO COMPUTE THE STEP LENGTH
+   599  C
+   600        PE = PNORM + EPSMCH
+   601  C
+   602  C COMPUTE THE ABSOLUTE AND RELATIVE TOLERANCES FOR THE LINEAR SEARCH
+   603  C
+   604        RELTOL = RTEPS*(XNORM + ONE)/PE
+   605        ABSTOL = - EPSMCH*FTEST/(OLDGTP - EPSMCH)
+   606  C
+   607  C COMPUTE THE SMALLEST ALLOWABLE SPACING BETWEEN POINTS IN
+   608  C THE LINEAR SEARCH
+   609  C
+   610        TNYTOL = EPSMCH*(XNORM + ONE)/PE
+   611        CALL STPMAX(STEPMX,PE,SPE,N,X,W(LPK),IPIVOT,LOW,UP)
+   612  C
+   613  C SET THE INITIAL STEP LENGTH.
+   614  C
+   615        ALPHA = STEP1(FNEW,FM,OLDGTP,SPE)
+   616  C
+   617  C PERFORM THE LINEAR SEARCH
+   618  C
+   619        CALL LINDER(N,SFUN,SMALL,EPSMCH,RELTOL,ABSTOL,TNYTOL,
+   620       *     ETA,ZERO,SPE,W(LPK),OLDGTP,X,FNEW,ALPHA,G,NUMF,
+   621       *     NWHY,W,LW)
+   622        NEWCON = .FALSE.
+   623        IF (DABS(ALPHA-SPE) .GT. 1.D1*EPSMCH) GO TO 30
+   624        NEWCON = .TRUE.
+   625        NWHY   = 0
+   626        CALL MODZ(N,X,W(LPK),IPIVOT,EPSMCH,LOW,UP,FLAST,FNEW)
+   627        FLAST = FNEW
+   628  C
+   629  30    IF (MSGLVL .GE. 3) WRITE(*,820) ALPHA,PNORM
+   630        FOLD = FNEW
+   631        NITER = NITER + 1
+   632        NFTOTL = NFTOTL + NUMF
+   633  C
+   634  C IF REQUIRED, PRINT THE DETAILS OF THIS ITERATION
+   635  C
+   636        IF (MSGLVL .GE. 1)
+   637       *    CALL MONIT(N,X,FNEW,G,NITER,NFTOTL,NFEVAL,LRESET,IPIVOT)
+   638        IF (NWHY .LT. 0) GO TO 160
+   639        IF (NWHY .EQ. 0 .OR. NWHY .EQ. 2) GO TO 40
+   640  C
+   641  C THE LINEAR SEARCH HAS FAILED TO FIND A LOWER POINT
+   642  C
+   643        NWHY = 3
+   644        GO TO 140
+   645  40    IF (NWHY .LE. 1) GO TO 50
+   646        CALL SFUN(N,X,FNEW,G)
+   647        NFTOTL = NFTOTL + 1
+   648  C
+   649  C TERMINATE IF MORE THAN MAXFUN EVALUATIONS HAVE BEEN MADE
+
+                                                                        PAGE  15
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   650  C
+   651  50    NWHY = 2
+   652        IF (NFTOTL .GT. MAXFUN) GO TO 150
+   653        NWHY = 0
+   654  C
+   655  C SET UP PARAMETERS USED IN CONVERGENCE AND RESETTING TESTS
+   656  C
+   657        DIFOLD = DIFNEW
+   658        DIFNEW = OLDF - FNEW
+   659  C
+   660  C IF THIS IS THE FIRST ITERATION OF A NEW CYCLE, COMPUTE THE
+   661  C PERCENTAGE REDUCTION FACTOR FOR THE RESETTING TEST.
+   662  C
+   663        IF (ICYCLE .NE. 1) GO TO 60
+   664        IF (DIFNEW .GT. 2.D0*DIFOLD) EPSRED = EPSRED + EPSRED
+   665        IF (DIFNEW .LT. 5.0D-1*DIFOLD) EPSRED = 5.0D-1*EPSRED
+   666  60    CALL DCOPY(N,G,1,W(LGV),1)
+   667        CALL ZTIME(N,W(LGV),IPIVOT)
+   668        GTG = DDOT(N,W(LGV),1,W(LGV),1)
+   669        GNORM = DSQRT(GTG)
+   670        FTEST = ONE + DABS(FNEW)
+   671        XNORM = DNRM2(N,X,1)
+   672  C
+   673  C TEST FOR CONVERGENCE
+   674  C
+   675        CALL CNVTST(CONV,ALPHA,PNORM,TOLEPS,XNORM,DIFNEW,RTLEPS,
+   676       *     FTEST,GTG,PEPS,EPSMCH,GTPNEW,FNEW,FLAST,G,IPIVOT,N,ACCRCY)
+   677        IF (CONV) GO TO 130
+   678        CALL ZTIME(N,G,IPIVOT)
+   679  C
+   680  C COMPUTE THE CHANGE IN THE ITERATES AND THE CORRESPONDING CHANGE
+   681  C IN THE GRADIENTS
+   682  C
+   683        IF (NEWCON) GO TO 90
+   684        ISK = LSK
+   685        IPK = LPK
+   686        IYK = LYK
+   687        IOLDG = LOLDG
+   688        DO 70 I = 1,N
+   689           W(IYK) = G(I) - W(IOLDG)
+   690           W(ISK) = ALPHA*W(IPK)
+   691           IPK = IPK + 1
+   692           ISK = ISK + 1
+   693           IYK = IYK + 1
+   694           IOLDG = IOLDG + 1
+   695  70    CONTINUE
+   696  C
+   697  C SET UP PARAMETERS USED IN UPDATING THE PRECONDITIONING STRATEGY.
+   698  C
+   699        YKSK = DDOT(N,W(LYK),1,W(LSK),1)
+   700        LRESET = .FALSE.
+   701        IF (ICYCLE .EQ. NM1 .OR. DIFNEW .LT.
+   702       *     EPSRED*(FKEEP-FNEW)) LRESET = .TRUE.
+   703        IF (LRESET) GO TO 80
+   704        YRSR = DDOT(N,W(LYR),1,W(LSR),1)
+   705        IF (YRSR .LE. ZERO) LRESET = .TRUE.
+   706  80    CONTINUE
+
+                                                                        PAGE  16
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   707        UPD1 = .FALSE.
+   708  C
+   709  C      COMPUTE THE NEW SEARCH DIRECTION
+   710  C
+   711  90    IF (UPD1 .AND. MSGLVL .GE. 3) WRITE(*,830)
+   712        IF (NEWCON .AND. MSGLVL .GE. 3) WRITE(*,840)
+   713        MODET = MSGLVL - 3
+   714        CALL MODLNP(MODET,W(LPK),W(LGV),W(LZ1),W(LV),
+   715       *     W(LDIAGB),W(LEMAT),X,G,W(LZK),
+   716       *     N,W,LW,NITER,MAXIT,NFEVAL,NMODIF,
+   717       *     NLINCG,UPD1,YKSK,GSK,YRSR,LRESET,SFUN,.TRUE.,IPIVOT,
+   718       *     ACCRCY,GTPNEW,GNORM,XNORM)
+   719        IF (NEWCON) GO TO 20
+   720        IF (LRESET) GO TO 110
+   721  C
+   722  C COMPUTE THE ACCUMULATED STEP AND ITS CORRESPONDING
+   723  C GRADIENT DIFFERENCE.
+   724  C
+   725        CALL DXPY(N,W(LSK),1,W(LSR),1)
+   726        CALL DXPY(N,W(LYK),1,W(LYR),1)
+   727        ICYCLE = ICYCLE + 1
+   728        GOTO 20
+   729  C
+   730  C RESET
+   731  C
+   732  110   IRESET = IRESET + 1
+   733  C
+   734  C INITIALIZE THE SUM OF ALL THE CHANGES IN X.
+   735  C
+   736        CALL DCOPY(N,W(LSK),1,W(LSR),1)
+   737        CALL DCOPY(N,W(LYK),1,W(LYR),1)
+   738        FKEEP = FNEW
+   739        ICYCLE = 1
+   740        GO TO 20
+   741  C
+   742  C ...............END OF MAIN ITERATION.......................
+   743  C
+   744  130   IFAIL = 0
+   745        F = FNEW
+   746        RETURN
+   747  140   OLDF = FNEW
+   748  C
+   749  C LOCAL SEARCH COULD BE INSTALLED HERE
+   750  C
+   751  150   F = OLDF
+   752        IF (MSGLVL .GE. 1) CALL MONIT(N,X,
+   753       *     F,G,NITER,NFTOTL,NFEVAL,IRESET,IPIVOT)
+   754  C
+   755  C SET IFAIL
+   756  C
+   757  160   IFAIL = NWHY
+   758        RETURN
+   759  800   FORMAT(' THERE IS NO FEASIBLE POINT; TERMINATING ALGORITHM')
+   760  810   FORMAT(//'  NIT   NF   CG', 9X, 'F', 21X, 'GTG',//)
+   761  820   FORMAT('        LINESEARCH RESULTS:  ALPHA,PNORM',2(1PD12.4))
+   762  830   FORMAT(' UPD1 IS TRUE - TRIVIAL PRECONDITIONING')
+   763  840   FORMAT(' NEWCON IS TRUE - CONSTRAINT ADDED IN LINESEARCH')
+
+                                                                        PAGE  17
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   764        END
+
+LMQNBC@72  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+ABSTOL. . . . . . . . . . local              REAL*8            8
+ACCRCY. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . local              REAL*8            8
+CONV. . . . . . . . . . . local              INTEGER*4         4
+DIFNEW. . . . . . . . . . local              REAL*8            8
+DIFOLD. . . . . . . . . . local              REAL*8            8
+EPSMCH. . . . . . . . . . local              REAL*8            8
+EPSRED. . . . . . . . . . local              REAL*8            8
+ETA . . . . . . . . . . . param                                4
+F . . . . . . . . . . . . param                                4
+FKEEP . . . . . . . . . . local              REAL*8            8
+FLAST . . . . . . . . . . local              REAL*8            8
+FM. . . . . . . . . . . . local              REAL*8            8
+FNEW. . . . . . . . . . . local              REAL*8            8
+FOLD. . . . . . . . . . . local              REAL*8            8
+FSTOP . . . . . . . . . . local              REAL*8            8
+FTEST . . . . . . . . . . local              REAL*8            8
+G . . . . . . . . . . . . param                                4
+GNORM . . . . . . . . . . local              REAL*8            8
+GSK . . . . . . . . . . . local              REAL*8            8
+GTG . . . . . . . . . . . local              REAL*8            8
+GTPNEW. . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+ICYCLE. . . . . . . . . . local              INTEGER*4         4
+IDIAGB. . . . . . . . . . local              INTEGER*4         4
+IER . . . . . . . . . . . local              INTEGER*4         4
+IFAIL . . . . . . . . . . param                                4
+IOLDG . . . . . . . . . . local              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+IPK . . . . . . . . . . . local              INTEGER*4         4
+IRESET. . . . . . . . . . local              INTEGER*4         4
+ISK . . . . . . . . . . . local              INTEGER*4         4
+IYK . . . . . . . . . . . local              INTEGER*4         4
+LDIAGB. . . . . . . . . . SUBSCR(24)         INTEGER*4         4
+LEMAT . . . . . . . . . . SUBSCR(52)         INTEGER*4         4
+LGV . . . . . . . . . . . SUBSCR(0)          INTEGER*4         4
+LHYR. . . . . . . . . . . local              INTEGER*4         4
+LOLDG . . . . . . . . . . SUBSCR(36)         INTEGER*4         4
+LOW . . . . . . . . . . . param                                4
+LPK . . . . . . . . . . . SUBSCR(48)         INTEGER*4         4
+LRESET. . . . . . . . . . local              INTEGER*4         4
+LSK . . . . . . . . . . . SUBSCR(16)         INTEGER*4         4
+LSR . . . . . . . . . . . SUBSCR(28)         INTEGER*4         4
+LV. . . . . . . . . . . . SUBSCR(12)         INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+LWTEST. . . . . . . . . . SUBSCR(56)         INTEGER*4         4
+LYK . . . . . . . . . . . SUBSCR(20)         INTEGER*4         4
+LYR . . . . . . . . . . . SUBSCR(32)         INTEGER*4         4
+LZ1 . . . . . . . . . . . SUBSCR(4)          INTEGER*4         4
+LZK . . . . . . . . . . . SUBSCR(8)          INTEGER*4         4
+
+                                                                        PAGE  18
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+LMQNBC@72  Local symbols
+Name                      Class              Type           Size
+
+
+MAXFUN. . . . . . . . . . param                                4
+MAXIT . . . . . . . . . . param                                4
+MODET . . . . . . . . . . local              INTEGER*4         4
+MSGLVL. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NEWCON. . . . . . . . . . local              INTEGER*4         4
+NFEVAL. . . . . . . . . . local              INTEGER*4         4
+NFTOTL. . . . . . . . . . local              INTEGER*4         4
+NITER . . . . . . . . . . local              INTEGER*4         4
+NLINCG. . . . . . . . . . local              INTEGER*4         4
+NM1 . . . . . . . . . . . local              INTEGER*4         4
+NMODIF. . . . . . . . . . local              INTEGER*4         4
+NUMF. . . . . . . . . . . local              INTEGER*4         4
+NWHY. . . . . . . . . . . local              INTEGER*4         4
+OLDF. . . . . . . . . . . local              REAL*8            8
+OLDGTP. . . . . . . . . . local              REAL*8            8
+ONE . . . . . . . . . . . local              REAL*8            8
+PE. . . . . . . . . . . . local              REAL*8            8
+PEPS. . . . . . . . . . . local              REAL*8            8
+PNORM . . . . . . . . . . local              REAL*8            8
+RELTOL. . . . . . . . . . local              REAL*8            8
+RTEPS . . . . . . . . . . local              REAL*8            8
+RTLEPS. . . . . . . . . . local              REAL*8            8
+RTOL. . . . . . . . . . . local              REAL*8            8
+RTOLSQ. . . . . . . . . . local              REAL*8            8
+SFUN. . . . . . . . . . . param                                4
+SMALL . . . . . . . . . . local              REAL*8            8
+SPE . . . . . . . . . . . local              REAL*8            8
+STEPMX. . . . . . . . . . param                                4
+TINY. . . . . . . . . . . local              REAL*8            8
+TNYTOL. . . . . . . . . . local              REAL*8            8
+TOLEPS. . . . . . . . . . local              REAL*8            8
+UP. . . . . . . . . . . . param                                4
+UPD1. . . . . . . . . . . local              INTEGER*4         4
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XNORM . . . . . . . . . . local              REAL*8            8
+XTOL. . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . local              REAL*8            8
+YRSR. . . . . . . . . . . local              REAL*8            8
+ZERO. . . . . . . . . . . local              REAL*8            8
+
+
+   765  C
+   766  C
+   767        SUBROUTINE MONIT(N,X,F,G,NITER,NFTOTL,NFEVAL,IRESET,IPIVOT)
+   768  C
+   769  C PRINT RESULTS OF CURRENT ITERATION
+   770  C
+   771        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+   772        DOUBLE PRECISION X(N),F,G(N),GTG
+   773        INTEGER          IPIVOT(N)
+
+                                                                        PAGE  19
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   774  C
+   775        GTG = 0.D0
+   776        DO 10 I = 1,N
+   777           IF (IPIVOT(I) .NE. 0) GO TO 10
+   778           GTG = GTG + G(I)*G(I)
+   779  10    CONTINUE
+   780        WRITE(*,800) NITER,NFTOTL,NFEVAL,F,GTG
+   781        RETURN
+   782  800   FORMAT(' ',I4,1X,I4,1X,I4,1X,1PD22.15,2X,1PD15.8)
+   783        END
+
+MONIT@36  Local symbols
+Name                      Class              Type           Size
+
+
+F . . . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GTG . . . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+IRESET. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NFEVAL. . . . . . . . . . param                                4
+NFTOTL. . . . . . . . . . param                                4
+NITER . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+   784  C
+   785  C
+   786        SUBROUTINE ZTIME(N,X,IPIVOT)
+   787        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+   788        DOUBLE PRECISION X(N)
+   789        INTEGER          IPIVOT(N)
+   790  C
+   791  C THIS ROUTINE MULTIPLIES THE VECTOR X BY THE CONSTRAINT MATRIX Z
+   792  C
+   793        DO 10 I = 1,N
+   794           IF (IPIVOT(I) .NE. 0) X(I) = 0.D0
+   795  10    CONTINUE
+   796        RETURN
+   797        END
+
+ZTIME@12  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+   798  C
+   799  C
+   800        SUBROUTINE STPMAX(STEPMX,PE,SPE,N,X,P,IPIVOT,LOW,UP)
+   801        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+
+                                                                        PAGE  20
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   802        DOUBLE PRECISION LOW(N),UP(N),X(N),P(N),STEPMX,PE,SPE,T
+   803        INTEGER          IPIVOT(N)
+   804  C
+   805  C COMPUTE THE MAXIMUM ALLOWABLE STEP LENGTH
+   806  C
+   807        SPE = STEPMX / PE
+   808  C SPE IS THE STANDARD (UNCONSTRAINED) MAX STEP
+   809        DO 10 I = 1,N
+   810           IF (IPIVOT(I) .NE. 0) GO TO 10
+   811           IF (P(I) .EQ. 0.D0) GO TO 10
+   812           IF (P(I) .GT. 0.D0) GO TO 5
+   813           T = LOW(I) - X(I)
+   814           IF (T .GT. SPE*P(I)) SPE = T / P(I)
+   815           GO TO 10
+   816  5        T = UP(I) - X(I)
+   817           IF (T .LT. SPE*P(I)) SPE = T / P(I)
+   818  10    CONTINUE
+   819        RETURN
+   820        END
+
+STPMAX@36  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+LOW . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+P . . . . . . . . . . . . param                                4
+PE. . . . . . . . . . . . param                                4
+SPE . . . . . . . . . . . param                                4
+STEPMX. . . . . . . . . . param                                4
+T . . . . . . . . . . . . local              REAL*8            8
+UP. . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+   821  C
+   822  C
+   823        SUBROUTINE MODZ(N,X,P,IPIVOT,EPSMCH,LOW,UP,FLAST,FNEW)
+   824        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+   825        DOUBLE PRECISION X(N), P(N), EPSMCH, DABS, TOL, LOW(N), UP(N),
+   826       *                 FLAST, FNEW
+   827        INTEGER          IPIVOT(N)
+   828  C
+   829  C UPDATE THE CONSTRAINT MATRIX IF A NEW CONSTRAINT IS ENCOUNTERED
+   830  C
+   831        DO 10 I = 1,N
+   832           IF (IPIVOT(I) .NE. 0) GO TO 10
+   833           IF (P(I) .EQ. 0.D0) GO TO 10
+   834           IF (P(I) .GT. 0.D0) GO TO 5
+   835           TOL = 1.D1 * EPSMCH * (DABS(LOW(I)) + 1.D0)
+   836           IF (X(I)-LOW(I) .GT. TOL) GO TO 10
+   837           FLAST = FNEW
+   838           IPIVOT(I) = -1
+   839           X(I) = LOW(I)
+   840           GO TO 10
+
+                                                                        PAGE  21
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   841  5        TOL = 1.D1 * EPSMCH * (DABS(UP(I)) + 1.D0)
+   842           IF (UP(I)-X(I) .GT. TOL) GO TO 10
+   843           FLAST = FNEW
+   844           IPIVOT(I) = 1
+   845           X(I) = UP(I)
+   846  10    CONTINUE
+   847        RETURN
+   848        END
+
+MODZ@36  Local symbols
+Name                      Class              Type           Size
+
+
+EPSMCH. . . . . . . . . . param                                4
+FLAST . . . . . . . . . . param                                4
+FNEW. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+LOW . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+P . . . . . . . . . . . . param                                4
+TOL . . . . . . . . . . . local              REAL*8            8
+UP. . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+   849  C
+   850  C
+   851        SUBROUTINE CNVTST(CONV,ALPHA,PNORM,TOLEPS,XNORM,DIFNEW,RTLEPS,
+   852       *     FTEST,GTG,PEPS,EPSMCH,GTPNEW,FNEW,FLAST,G,IPIVOT,N,ACCRCY)
+   853        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+   854        LOGICAL CONV,LTEST
+   855        INTEGER IPIVOT(N)
+   856        DOUBLE PRECISION G(N), ALPHA, PNORM, TOLEPS, XNORM, DIFNEW,
+   857       *     RTLEPS, FTEST, GTG, PEPS, EPSMCH, GTPNEW, FNEW, FLAST, ONE,
+   858       *     CMAX, T, ACCRCY
+   859  C
+   860  C TEST FOR CONVERGENCE
+   861  C
+   862        IMAX = 0
+   863        CMAX = 0.D0
+   864        LTEST = FLAST - FNEW .LE. -5.D-1*GTPNEW
+   865        DO 10 I = 1,N
+   866           IF (IPIVOT(I) .EQ. 0 .OR. IPIVOT(I) .EQ. 2) GO TO 10
+   867           T = -IPIVOT(I)*G(I)
+   868           IF (T .GE. 0.D0) GO TO 10
+   869           CONV = .FALSE.
+   870           IF (LTEST) GO TO 10
+   871           IF (CMAX .LE. T) GO TO 10
+   872           CMAX = T
+   873           IMAX = I
+   874  10    CONTINUE
+   875        IF (IMAX .EQ. 0) GO TO 15
+   876        IPIVOT(IMAX) = 0
+   877        FLAST = FNEW
+   878        RETURN
+   879  15    CONTINUE
+
+                                                                        PAGE  22
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   880        CONV = .FALSE.
+   881        ONE = 1.D0
+   882        IF ((ALPHA*PNORM .GE. TOLEPS*(ONE + XNORM)
+   883       *     .OR. DABS(DIFNEW) .GE. RTLEPS*FTEST
+   884       *     .OR. GTG .GE. PEPS*FTEST*FTEST)
+   885       *     .AND. GTG .GE. 1.D-4*ACCRCY*FTEST*FTEST) RETURN
+   886        CONV = .TRUE.
+   887  C
+   888  C FOR DETAILS, SEE GILL, MURRAY, AND WRIGHT (1981, P. 308) AND
+   889  C FLETCHER (1981, P. 116).  THE MULTIPLIER TESTS (HERE, TESTING
+   890  C THE SIGN OF THE COMPONENTS OF THE GRADIENT) MAY STILL NEED TO
+   891  C MODIFIED TO INCORPORATE TOLERANCES FOR ZERO.
+   892  C
+   893        RETURN
+   894        END
+
+CNVTST@72  Local symbols
+Name                      Class              Type           Size
+
+
+ACCRCY. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . param                                4
+CMAX. . . . . . . . . . . local              REAL*8            8
+CONV. . . . . . . . . . . param                                4
+DIFNEW. . . . . . . . . . param                                4
+EPSMCH. . . . . . . . . . param                                4
+FLAST . . . . . . . . . . param                                4
+FNEW. . . . . . . . . . . param                                4
+FTEST . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GTG . . . . . . . . . . . param                                4
+GTPNEW. . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IMAX. . . . . . . . . . . local              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+LTEST . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+ONE . . . . . . . . . . . local              REAL*8            8
+PEPS. . . . . . . . . . . param                                4
+PNORM . . . . . . . . . . param                                4
+RTLEPS. . . . . . . . . . param                                4
+T . . . . . . . . . . . . local              REAL*8            8
+TOLEPS. . . . . . . . . . param                                4
+XNORM . . . . . . . . . . param                                4
+
+
+   895  C
+   896  C
+   897        SUBROUTINE CRASH(N,X,IPIVOT,LOW,UP,IER)
+   898        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+   899        DOUBLE PRECISION X(N),LOW(N),UP(N)
+   900        INTEGER IPIVOT(N)
+   901  C
+   902  C THIS INITIALIZES THE CONSTRAINT INFORMATION, AND ENSURES THAT THE
+   903  C INITIAL POINT SATISFIES  LOW <= X <= UP.
+   904  C THE CONSTRAINTS ARE CHECKED FOR CONSISTENCY.
+   905  C
+
+                                                                        PAGE  23
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   906        IER = 0
+   907        DO 30 I = 1,N
+   908           IF (X(I) .LT. LOW(I)) X(I) = LOW(I)
+   909           IF (X(I) .GT. UP(I)) X(I) = UP(I)
+   910           IPIVOT(I) = 0
+   911           IF (X(I) .EQ. LOW(I)) IPIVOT(I) = -1
+   912           IF (X(I) .EQ. UP(I)) IPIVOT(I) = 1
+   913           IF (UP(I) .EQ. LOW(I)) IPIVOT(I) = 2
+   914           IF (LOW(I) .GT. UP(I)) IER = -I
+   915  30    CONTINUE
+   916        RETURN
+   917        END
+
+CRASH@24  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IER . . . . . . . . . . . param                                4
+IPIVOT. . . . . . . . . . param                                4
+LOW . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+UP. . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+   918  C
+   919  C THE VECTORS SK AND YK, ALTHOUGH NOT IN THE CALL,
+   920  C ARE USED (VIA THEIR POSITION IN W) BY THE ROUTINE MSOLVE.
+   921  C
+   922        SUBROUTINE MODLNP(MODET,ZSOL,GV,R,V,DIAGB,EMAT,
+   923       *     X,G,ZK,N,W,LW,NITER,MAXIT,NFEVAL,NMODIF,NLINCG,
+   924       *     UPD1,YKSK,GSK,YRSR,LRESET,SFUN,BOUNDS,IPIVOT,ACCRCY,
+   925       *     GTP,GNORM,XNORM)
+   926        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+   927        INTEGER MODET,N,NITER,IPIVOT(1)
+   928        DOUBLE PRECISION ZSOL(N),G(N),GV(N),R(N),V(N),DIAGB(N),W(LW)
+   929        DOUBLE PRECISION EMAT(N),ZK(N),X(N),ACCRCY
+   930        DOUBLE PRECISION ALPHA,BETA,DELTA,GSK,GTP,PR,
+   931       *     QOLD,QNEW,QTEST,RHSNRM,RNORM,RZ,RZOLD,TOL,VGV,YKSK,YRSR
+   932        DOUBLE PRECISION GNORM,XNORM
+   933        DOUBLE PRECISION DDOT,DNRM2
+   934        LOGICAL FIRST,UPD1,LRESET,BOUNDS
+   935        EXTERNAL SFUN
+   936  C
+   937  C THIS ROUTINE PERFORMS A PRECONDITIONED CONJUGATE-GRADIENT
+   938  C ITERATION IN ORDER TO SOLVE THE NEWTON EQUATIONS FOR A SEARCH
+   939  C DIRECTION FOR A TRUNCATED-NEWTON ALGORITHM.  WHEN THE VALUE OF THE
+   940  C QUADRATIC MODEL IS SUFFICIENTLY REDUCED,
+   941  C THE ITERATION IS TERMINATED.
+   942  C
+   943  C PARAMETERS
+   944  C
+   945  C MODET       - INTEGER WHICH CONTROLS AMOUNT OF OUTPUT
+   946  C ZSOL        - COMPUTED SEARCH DIRECTION
+   947  C G           - CURRENT GRADIENT
+   948  C GV,GZ1,V    - SCRATCH VECTORS
+
+                                                                        PAGE  24
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   949  C R           - RESIDUAL
+   950  C DIAGB,EMAT  - DIAGONAL PRECONDITONING MATRIX
+   951  C NITER       - NONLINEAR ITERATION #
+   952  C FEVAL       - VALUE OF QUADRATIC FUNCTION
+   953  C
+   954  C *************************************************************
+   955  C INITIALIZATION
+   956  C *************************************************************
+   957  C
+   958  C GENERAL INITIALIZATION
+   959  C
+   960        IF (MODET .GT. 0) WRITE(*,800)
+   961        IF (MAXIT .EQ. 0) RETURN
+   962        FIRST = .TRUE.
+   963        RHSNRM = GNORM
+   964        TOL = 1.D-12
+   965        QOLD = 0.D0
+   966  C
+   967  C INITIALIZATION FOR PRECONDITIONED CONJUGATE-GRADIENT ALGORITHM
+   968  C
+   969        CALL INITPC(DIAGB,EMAT,N,W,LW,MODET,
+   970       *            UPD1,YKSK,GSK,YRSR,LRESET)
+   971        DO 10 I = 1,N
+   972           R(I) = -G(I)
+   973           V(I) = 0.D0
+   974           ZSOL(I) = 0.D0
+   975  10    CONTINUE
+   976  C
+   977  C ************************************************************
+   978  C MAIN ITERATION
+   979  C ************************************************************
+   980  C
+   981        DO 30 K = 1,MAXIT
+   982           NLINCG = NLINCG + 1
+   983           IF (MODET .GT. 1) WRITE(*,810) K
+   984  C
+   985  C CG ITERATION TO SOLVE SYSTEM OF EQUATIONS
+   986  C
+   987           IF (BOUNDS) CALL ZTIME(N,R,IPIVOT)
+   988           CALL MSOLVE(R,ZK,N,W,LW,UPD1,YKSK,GSK,
+   989       *                 YRSR,LRESET,FIRST)
+   990           IF (BOUNDS) CALL ZTIME(N,ZK,IPIVOT)
+   991           RZ = DDOT(N,R,1,ZK,1)
+   992           IF (RZ/RHSNRM .LT. TOL) GO TO 80
+   993           IF (K .EQ. 1) BETA = 0.D0
+   994           IF (K .GT. 1) BETA = RZ/RZOLD
+   995           DO 20 I = 1,N
+   996              V(I) = ZK(I) + BETA*V(I)
+   997  20       CONTINUE
+   998           IF (BOUNDS) CALL ZTIME(N,V,IPIVOT)
+   999           CALL GTIMS(V,GV,N,X,G,W,LW,SFUN,FIRST,DELTA,ACCRCY,XNORM)
+  1000           IF (BOUNDS) CALL ZTIME(N,GV,IPIVOT)
+  1001           NFEVAL = NFEVAL + 1
+  1002           VGV = DDOT(N,V,1,GV,1)
+  1003           IF (VGV/RHSNRM .LT. TOL) GO TO 50
+  1004           CALL NDIA3(N,EMAT,V,GV,R,VGV,MODET)
+  1005  C
+
+                                                                        PAGE  25
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1006  C COMPUTE LINEAR STEP LENGTH
+  1007  C
+  1008           ALPHA = RZ / VGV
+  1009           IF (MODET .GE. 1) WRITE(*,820) ALPHA
+  1010  C
+  1011  C COMPUTE CURRENT SOLUTION AND RELATED VECTORS
+  1012  C
+  1013           CALL DAXPY(N,ALPHA,V,1,ZSOL,1)
+  1014           CALL DAXPY(N,-ALPHA,GV,1,R,1)
+  1015  C
+  1016  C TEST FOR CONVERGENCE
+  1017  C
+  1018           GTP = DDOT(N,ZSOL,1,G,1)
+  1019           PR = DDOT(N,R,1,ZSOL,1)
+  1020           QNEW = 5.D-1 * (GTP + PR)
+  1021           QTEST = K * (1.D0 - QOLD/QNEW)
+  1022           IF (QTEST .LT. 0.D0) GO TO 70
+  1023           QOLD = QNEW
+  1024           IF (QTEST .LE. 5.D-1) GO TO 70
+  1025  C
+  1026  C PERFORM CAUTIONARY TEST
+  1027  C
+  1028           IF (GTP .GT. 0) GO TO 40
+  1029           RZOLD = RZ
+  1030  30    CONTINUE
+  1031  C
+  1032  C TERMINATE ALGORITHM
+  1033  C
+  1034        K = K-1
+  1035        GO TO 70
+  1036  C
+  1037  C TRUNCATE ALGORITHM IN CASE OF AN EMERGENCY
+  1038  C
+  1039  40    IF (MODET .GE. -1) WRITE(*,830) K
+  1040        CALL DAXPY(N,-ALPHA,V,1,ZSOL,1)
+  1041        GTP = DDOT(N,ZSOL,1,G,1)
+  1042        GO TO 90
+  1043  50    CONTINUE
+  1044        IF (MODET .GT. -2) WRITE(*,840)
+  1045  60    IF (K .GT. 1) GO TO 70
+  1046        CALL MSOLVE(G,ZSOL,N,W,LW,UPD1,YKSK,GSK,YRSR,LRESET,FIRST)
+  1047        CALL NEGVEC(N,ZSOL)
+  1048        IF (BOUNDS) CALL ZTIME(N,ZSOL,IPIVOT)
+  1049        GTP = DDOT(N,ZSOL,1,G,1)
+  1050  70    CONTINUE
+  1051        IF (MODET .GE. -1) WRITE(*,850) K,RNORM
+  1052        GO TO 90
+  1053  80    CONTINUE
+  1054        IF (MODET .GE. -1) WRITE(*,860)
+  1055        IF (K .GT. 1) GO TO 70
+  1056        CALL DCOPY(N,G,1,ZSOL,1)
+  1057        CALL NEGVEC(N,ZSOL)
+  1058        IF (BOUNDS) CALL ZTIME(N,ZSOL,IPIVOT)
+  1059        GTP = DDOT(N,ZSOL,1,G,1)
+  1060        GO TO 70
+  1061  C
+  1062  C STORE (OR RESTORE) DIAGONAL PRECONDITIONING
+
+                                                                        PAGE  26
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1063  C
+  1064  90    CONTINUE
+  1065        CALL DCOPY(N,EMAT,1,DIAGB,1)
+  1066        RETURN
+  1067  800   FORMAT(' ',//,' ENTERING MODLNP')
+  1068  810   FORMAT(' ',//,' ### ITERATION ',I2,' ###')
+  1069  820   FORMAT(' ALPHA',1PD16.8)
+  1070  830   FORMAT(' G(T)Z POSITIVE AT ITERATION ',I2,
+  1071       *     ' - TRUNCATING METHOD',/)
+  1072  840   FORMAT(' ',10X,'HESSIAN NOT POSITIVE-DEFINITE')
+  1073  850   FORMAT(' ',/,8X,'MODLAN TRUNCATED AFTER ',I3,' ITERATIONS',
+  1074       *     '  RNORM = ',1PD14.6)
+  1075  860   FORMAT(' PRECONDITIONING NOT POSITIVE-DEFINITE')
+  1076        END
+
+MODLNP@120  Local symbols
+Name                      Class              Type           Size
+
+
+ACCRCY. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . local              REAL*8            8
+BETA. . . . . . . . . . . local              REAL*8            8
+BOUNDS. . . . . . . . . . param                                4
+DELTA . . . . . . . . . . local              REAL*8            8
+DIAGB . . . . . . . . . . param                                4
+EMAT. . . . . . . . . . . param                                4
+FIRST . . . . . . . . . . local              INTEGER*4         4
+G . . . . . . . . . . . . param                                4
+GNORM . . . . . . . . . . param                                4
+GSK . . . . . . . . . . . param                                4
+GTP . . . . . . . . . . . param                                4
+GV. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IPIVOT. . . . . . . . . . param                                4
+K . . . . . . . . . . . . dynam              INTEGER*4         4
+LRESET. . . . . . . . . . param                                4
+LW. . . . . . . . . . . . param                                4
+MAXIT . . . . . . . . . . param                                4
+MODET . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NFEVAL. . . . . . . . . . param                                4
+NITER . . . . . . . . . . param                                4
+NLINCG. . . . . . . . . . param                                4
+NMODIF. . . . . . . . . . param                                4
+PR. . . . . . . . . . . . local              REAL*8            8
+QNEW. . . . . . . . . . . local              REAL*8            8
+QOLD. . . . . . . . . . . local              REAL*8            8
+QTEST . . . . . . . . . . local              REAL*8            8
+R . . . . . . . . . . . . param                                4
+RHSNRM. . . . . . . . . . local              REAL*8            8
+RNORM . . . . . . . . . . local              REAL*8            8
+RZ. . . . . . . . . . . . local              REAL*8            8
+RZOLD . . . . . . . . . . local              REAL*8            8
+SFUN. . . . . . . . . . . param                                4
+TOL . . . . . . . . . . . local              REAL*8            8
+UPD1. . . . . . . . . . . param                                4
+V . . . . . . . . . . . . param                                4
+
+                                                                        PAGE  27
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+MODLNP@120  Local symbols
+Name                      Class              Type           Size
+
+
+VGV . . . . . . . . . . . local              REAL*8            8
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XNORM . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . param                                4
+YRSR. . . . . . . . . . . param                                4
+ZK. . . . . . . . . . . . param                                4
+ZSOL. . . . . . . . . . . param                                4
+
+
+  1077  C
+  1078  C
+  1079        SUBROUTINE NDIA3(N,E,V,GV,R,VGV,MODET)
+  1080        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1081        DOUBLE PRECISION E(N),V(N),GV(N),R(N),VGV,VR,DDOT
+  1082  C
+  1083  C UPDATE THE PRECONDITIOING MATRIX BASED ON A DIAGONAL VERSION
+  1084  C OF THE BFGS QUASI-NEWTON UPDATE.
+  1085  C
+  1086        VR = DDOT(N,V,1,R,1)
+  1087        DO 10 I = 1,N
+  1088           E(I) = E(I) - R(I)*R(I)/VR + GV(I)*GV(I)/VGV
+  1089           IF (E(I) .GT. 1.D-6) GO TO 10
+  1090           IF (MODET .GT. -2) WRITE(*,800) E(I)
+  1091           E(I) = 1.D0
+  1092  10    CONTINUE
+  1093        RETURN
+  1094  800   FORMAT(' *** EMAT NEGATIVE:  ',1PD16.8)
+  1095        END
+
+NDIA3@28  Local symbols
+Name                      Class              Type           Size
+
+
+E . . . . . . . . . . . . param                                4
+GV. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+MODET . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+R . . . . . . . . . . . . param                                4
+V . . . . . . . . . . . . param                                4
+VGV . . . . . . . . . . . param                                4
+VR. . . . . . . . . . . . local              REAL*8            8
+
+
+  1096  C
+  1097  C      SERVICE ROUTINES FOR OPTIMIZATION
+  1098  C
+  1099        SUBROUTINE NEGVEC(N,V)
+  1100        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1101        INTEGER N
+  1102        DOUBLE PRECISION V(N)
+
+                                                                        PAGE  28
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1103  C
+  1104  C NEGATIVE OF THE VECTOR V
+  1105  C
+  1106        INTEGER I
+  1107        DO 10 I = 1,N
+  1108           V(I) = -V(I)
+  1109  10    CONTINUE
+  1110        RETURN
+  1111        END
+
+NEGVEC@8  Local symbols
+Name                      Class              Type           Size
+
+
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+V . . . . . . . . . . . . param                                4
+
+
+  1112  C
+  1113  C
+  1114        SUBROUTINE LSOUT(ILOC,ITEST,XMIN,FMIN,GMIN,XW,FW,GW,U,A,
+  1115       *     B,TOL,EPS,SCXBD,XLAMDA)
+  1116        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1117        DOUBLE PRECISION XMIN,FMIN,GMIN,XW,FW,GW,U,A,B,
+  1118       *     TOL,EPS,SCXBD,XLAMDA
+  1119  C
+  1120  C ERROR PRINTOUTS FOR GETPTC
+  1121  C
+  1122        DOUBLE PRECISION YA,YB,YBND,YW,YU
+  1123        YU = XMIN + U
+  1124        YA = A + XMIN
+  1125        YB = B + XMIN
+  1126        YW = XW + XMIN
+  1127        YBND = SCXBD + XMIN
+  1128        WRITE(*,800)
+  1129        WRITE(*,810) TOL,EPS
+  1130        WRITE(*,820) YA,YB
+  1131        WRITE(*,830) YBND
+  1132        WRITE(*,840) YW,FW,GW
+  1133        WRITE(*,850) XMIN,FMIN,GMIN
+  1134        WRITE(*,860) YU
+  1135        WRITE(*,870) ILOC,ITEST
+  1136        RETURN
+  1137  800   FORMAT(///' OUTPUT FROM LINEAR SEARCH')
+  1138  810   FORMAT('  TOL AND EPS'/2D25.14)
+  1139  820   FORMAT('  CURRENT UPPER AND LOWER BOUNDS'/2D25.14)
+  1140  830   FORMAT('  STRICT UPPER BOUND'/D25.14)
+  1141  840   FORMAT('  XW, FW, GW'/3D25.14)
+  1142  850   FORMAT('  XMIN, FMIN, GMIN'/3D25.14)
+  1143  860   FORMAT('  NEW ESTIMATE'/2D25.14)
+  1144  870   FORMAT('  ILOC AND ITEST'/2I3)
+  1145        END
+
+                                                                        PAGE  29
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+LSOUT@60  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+EPS . . . . . . . . . . . param                                4
+FMIN. . . . . . . . . . . param                                4
+FW. . . . . . . . . . . . param                                4
+GMIN. . . . . . . . . . . param                                4
+GW. . . . . . . . . . . . param                                4
+ILOC. . . . . . . . . . . param                                4
+ITEST . . . . . . . . . . param                                4
+SCXBD . . . . . . . . . . param                                4
+TOL . . . . . . . . . . . param                                4
+U . . . . . . . . . . . . param                                4
+XLAMDA. . . . . . . . . . param                                4
+XMIN. . . . . . . . . . . param                                4
+XW. . . . . . . . . . . . param                                4
+YA. . . . . . . . . . . . local              REAL*8            8
+YB. . . . . . . . . . . . local              REAL*8            8
+YBND. . . . . . . . . . . local              REAL*8            8
+YU. . . . . . . . . . . . local              REAL*8            8
+YW. . . . . . . . . . . . local              REAL*8            8
+
+
+  1146  C
+  1147  C
+  1148        DOUBLE PRECISION FUNCTION STEP1(FNEW,FM,GTP,SMAX)
+  1149        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1150        DOUBLE PRECISION FNEW,FM,GTP,SMAX
+  1151  C
+  1152  C ********************************************************
+  1153  C STEP1 RETURNS THE LENGTH OF THE INITIAL STEP TO BE TAKEN ALONG THE
+  1154  C VECTOR P IN THE NEXT LINEAR SEARCH.
+  1155  C ********************************************************
+  1156  C
+  1157        DOUBLE PRECISION ALPHA,D,EPSMCH
+  1158        DOUBLE PRECISION DABS,MCHPR1
+  1159        EPSMCH = MCHPR1()
+  1160        D = DABS(FNEW-FM)
+  1161        ALPHA = 1.D0
+  1162        IF (2.D0*D .LE. (-GTP) .AND. D .GE. EPSMCH)
+  1163       *     ALPHA = -2.D0*D/GTP
+  1164        IF (ALPHA .GE. SMAX) ALPHA = SMAX
+  1165        STEP1 = ALPHA
+  1166        RETURN
+  1167        END
+
+STEP1@16  Local symbols
+Name                      Class              Type           Size
+
+
+ALPHA . . . . . . . . . . local              REAL*8            8
+D . . . . . . . . . . . . local              REAL*8            8
+EPSMCH. . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  30
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+STEP1@16  Local symbols
+Name                      Class              Type           Size
+
+
+FM. . . . . . . . . . . . param                                4
+FNEW. . . . . . . . . . . param                                4
+GTP . . . . . . . . . . . param                                4
+SMAX. . . . . . . . . . . param                                4
+
+
+  1168  C
+  1169  C
+  1170        DOUBLE PRECISION FUNCTION MCHPR1()
+  1171        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1172        DOUBLE PRECISION X
+  1173  C
+  1174  C RETURNS THE VALUE OF EPSMCH, WHERE EPSMCH IS THE SMALLEST POSSIBLE
+  1175  C REAL NUMBER SUCH THAT 1.0 + EPSMCH .GT. 1.0
+  1176  C
+  1177  C FOR 486 PC
+  1178        MCHPR1 = 1.110223024625157D-16
+  1179  C
+  1180  C FOR VAX
+  1181  C
+  1182  C      MCHPR1 = 1.D-17
+  1183  C
+  1184  C FOR SUN
+  1185  C
+  1186  C     MCHPR1 = 1.0842021724855D-19
+  1187        RETURN
+  1188        END
+
+MCHPR1@0  Local symbols
+Name                      Class              Type           Size
+
+
+
+
+  1189  C
+  1190  C
+  1191        SUBROUTINE CHKUCP(LWTEST,MAXFUN,NWHY,N,ALPHA,EPSMCH,
+  1192       *     ETA,PEPS,RTEPS,RTOL,RTOLSQ,STEPMX,TEST,
+  1193       *     XTOL,XNORM,X,LW,SMALL,TINY,ACCRCY)
+  1194        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1195        INTEGER LW,LWTEST,MAXFUN,NWHY,N
+  1196        DOUBLE PRECISION ACCRCY,ALPHA,EPSMCH,ETA,PEPS,RTEPS,RTOL,
+  1197       *     RTOLSQ,STEPMX,TEST,XTOL,XNORM,SMALL,TINY
+  1198        DOUBLE PRECISION X(N)
+  1199  C
+  1200  C CHECKS PARAMETERS AND SETS CONSTANTS WHICH ARE COMMON TO BOTH
+  1201  C DERIVATIVE AND NON-DERIVATIVE ALGORITHMS
+  1202  C
+  1203        DOUBLE PRECISION DABS,DSQRT,MCHPR1
+  1204        EPSMCH = MCHPR1()
+  1205        SMALL = EPSMCH*EPSMCH
+  1206        TINY = SMALL
+
+                                                                        PAGE  31
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1207        NWHY = -1
+  1208        RTEPS = DSQRT(EPSMCH)
+  1209        RTOL = XTOL
+  1210        IF (DABS(RTOL) .LT. ACCRCY) RTOL = 1.D1*RTEPS
+  1211  C
+  1212  C CHECK FOR ERRORS IN THE INPUT PARAMETERS
+  1213  C
+  1214        IF (LW .LT. LWTEST
+  1215       *      .OR. N .LT. 1 .OR. RTOL .LT. 0.D0 .OR. ETA .GE. 1.D0 .OR.
+  1216       *      ETA .LT. 0.D0 .OR. STEPMX .LT. RTOL .OR.
+  1217       *      MAXFUN .LT. 1) RETURN
+  1218        NWHY = 0
+  1219  C
+  1220  C SET CONSTANTS FOR LATER
+  1221  C
+  1222        RTOLSQ = RTOL*RTOL
+  1223        PEPS = ACCRCY**0.6666D0
+  1224        XNORM = DNRM2(N,X,1)
+  1225        ALPHA = 0.D0
+  1226        TEST = 0.D0
+  1227        RETURN
+  1228        END
+
+CHKUCP@80  Local symbols
+Name                      Class              Type           Size
+
+
+ACCRCY. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . param                                4
+EPSMCH. . . . . . . . . . param                                4
+ETA . . . . . . . . . . . param                                4
+LW. . . . . . . . . . . . param                                4
+LWTEST. . . . . . . . . . param                                4
+MAXFUN. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NWHY. . . . . . . . . . . param                                4
+PEPS. . . . . . . . . . . param                                4
+RTEPS . . . . . . . . . . param                                4
+RTOL. . . . . . . . . . . param                                4
+RTOLSQ. . . . . . . . . . param                                4
+SMALL . . . . . . . . . . param                                4
+STEPMX. . . . . . . . . . param                                4
+TEST. . . . . . . . . . . param                                4
+TINY. . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XNORM . . . . . . . . . . param                                4
+XTOL. . . . . . . . . . . param                                4
+
+
+  1229  C
+  1230  C
+  1231        SUBROUTINE SETUCR(SMALL,NFTOTL,NITER,N,F,FNEW,
+  1232       *            FM,GTG,OLDF,SFUN,G,X)
+  1233        IMPLICIT         DOUBLE PRECISION (A-H,O-Z)
+  1234        INTEGER          NFTOTL,NITER,N
+  1235        DOUBLE PRECISION F,FNEW,FM,GTG,OLDF,SMALL
+  1236        DOUBLE PRECISION G(N),X(N)
+
+                                                                        PAGE  32
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1237        EXTERNAL         SFUN
+  1238  C
+  1239  C CHECK INPUT PARAMETERS, COMPUTE THE INITIAL FUNCTION VALUE, SET
+  1240  C CONSTANTS FOR THE SUBSEQUENT MINIMIZATION
+  1241  C
+  1242        FM = F
+  1243  C
+  1244  C COMPUTE THE INITIAL FUNCTION VALUE
+  1245  C
+  1246        CALL SFUN(N,X,FNEW,G)
+  1247        NFTOTL = 1
+  1248  C
+  1249  C SET CONSTANTS FOR LATER
+  1250  C
+  1251        NITER = 0
+  1252        OLDF = FNEW
+  1253        GTG = DDOT(N,G,1,G,1)
+  1254        RETURN
+  1255        END
+
+SETUCR@48  Local symbols
+Name                      Class              Type           Size
+
+
+F . . . . . . . . . . . . param                                4
+FM. . . . . . . . . . . . param                                4
+FNEW. . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GTG . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+NFTOTL. . . . . . . . . . param                                4
+NITER . . . . . . . . . . param                                4
+OLDF. . . . . . . . . . . param                                4
+SFUN. . . . . . . . . . . param                                4
+SMALL . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+
+
+  1256  C
+  1257  C
+  1258        SUBROUTINE GTIMS(V,GV,N,X,G,W,LW,SFUN,FIRST,DELTA,ACCRCY,XNORM)
+  1259        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1260        DOUBLE PRECISION V(N),GV(N),DINV,DELTA,G(N)
+  1261        DOUBLE PRECISION F,X(N),W(LW),ACCRCY,DSQRT,XNORM
+  1262        LOGICAL FIRST
+  1263        EXTERNAL SFUN
+  1264        COMMON/SUBSCR/ LGV,LZ1,LZK,LV,LSK,LYK,LDIAGB,LSR,LYR,
+  1265       *     LHYR,LHG,LHYK,LPK,LEMAT,LWTEST
+  1266  C
+  1267  C THIS ROUTINE COMPUTES THE PRODUCT OF THE MATRIX G TIMES THE VECTOR
+  1268  C V AND STORES THE RESULT IN THE VECTOR GV (FINITE-DIFFERENCE VERSION)
+  1269  C
+  1270        IF (.NOT. FIRST) GO TO 20
+  1271        DELTA = DSQRT(ACCRCY)*(1.D0+XNORM)
+  1272        FIRST = .FALSE.
+  1273  20    CONTINUE
+  1274        DINV = 1.D0/DELTA
+
+                                                                        PAGE  33
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1275        IHG = LHG
+  1276        DO 30 I = 1,N
+  1277           W(IHG) = X(I) + DELTA*V(I)
+  1278           IHG = IHG + 1
+  1279  30    CONTINUE
+  1280        CALL SFUN(N,W(LHG),F,GV)
+  1281        DO 40 I = 1,N
+  1282           GV(I) = (GV(I) - G(I))*DINV
+  1283  40    CONTINUE
+  1284        RETURN
+  1285        END
+
+GTIMS@48  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+ACCRCY. . . . . . . . . . param                                4
+DELTA . . . . . . . . . . param                                4
+DINV. . . . . . . . . . . local              REAL*8            8
+F . . . . . . . . . . . . local              REAL*8            8
+FIRST . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GV. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IHG . . . . . . . . . . . local              INTEGER*4         4
+LHG . . . . . . . . . . . SUBSCR(40)         INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+SFUN. . . . . . . . . . . param                                4
+V . . . . . . . . . . . . param                                4
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XNORM . . . . . . . . . . param                                4
+
+
+  1286  C
+  1287  C
+  1288        SUBROUTINE MSOLVE(G,Y,N,W,LW,UPD1,YKSK,GSK,
+  1289       *     YRSR,LRESET,FIRST)
+  1290        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1291        DOUBLE PRECISION G(N),Y(N),W(LW),YKSK,GSK,YRSR
+  1292        LOGICAL UPD1,LRESET,FIRST
+  1293  C
+  1294  C THIS ROUTINE SETS UPT THE ARRAYS FOR MSLV
+  1295  C
+  1296        COMMON/SUBSCR/ LGV,LZ1,LZK,LV,LSK,LYK,LDIAGB,LSR,LYR,
+  1297       *     LHYR,LHG,LHYK,LPK,LEMAT,LWTEST
+  1298        CALL MSLV(G,Y,N,W(LSK),W(LYK),W(LDIAGB),W(LSR),W(LYR),W(LHYR),
+  1299       *     W(LHG),W(LHYK),UPD1,YKSK,GSK,YRSR,LRESET,FIRST)
+  1300        RETURN
+  1301        END
+
+                                                                        PAGE  34
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+MSOLVE@44  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+FIRST . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GSK . . . . . . . . . . . param                                4
+LDIAGB. . . . . . . . . . SUBSCR(24)         INTEGER*4         4
+LHG . . . . . . . . . . . SUBSCR(40)         INTEGER*4         4
+LHYK. . . . . . . . . . . SUBSCR(44)         INTEGER*4         4
+LHYR. . . . . . . . . . . SUBSCR(36)         INTEGER*4         4
+LRESET. . . . . . . . . . param                                4
+LSK . . . . . . . . . . . SUBSCR(16)         INTEGER*4         4
+LSR . . . . . . . . . . . SUBSCR(28)         INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+LYK . . . . . . . . . . . SUBSCR(20)         INTEGER*4         4
+LYR . . . . . . . . . . . SUBSCR(32)         INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+UPD1. . . . . . . . . . . param                                4
+W . . . . . . . . . . . . param                                4
+Y . . . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . param                                4
+YRSR. . . . . . . . . . . param                                4
+
+
+  1302        SUBROUTINE MSLV(G,Y,N,SK,YK,DIAGB,SR,YR,HYR,HG,HYK,
+  1303       *     UPD1,YKSK,GSK,YRSR,LRESET,FIRST)
+  1304        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1305        DOUBLE PRECISION G(N),Y(N)
+  1306  C
+  1307  C THIS ROUTINE ACTS AS A PRECONDITIONING STEP FOR THE
+  1308  C LINEAR CONJUGATE-GRADIENT ROUTINE.  IT IS ALSO THE
+  1309  C METHOD OF COMPUTING THE SEARCH DIRECTION FROM THE
+  1310  C GRADIENT FOR THE NON-LINEAR CONJUGATE-GRADIENT CODE.
+  1311  C IT REPRESENTS A TWO-STEP SELF-SCALED BFGS FORMULA.
+  1312  C
+  1313        DOUBLE PRECISION DDOT,YKSK,GSK,YRSR,RDIAGB,YKHYK,GHYK,
+  1314       *     YKSR,YKHYR,YRHYR,GSR,GHYR
+  1315        DOUBLE PRECISION SK(N),YK(N),DIAGB(N),SR(N),YR(N),HYR(N),HG(N),
+  1316       *     HYK(N),ONE
+  1317        LOGICAL LRESET,UPD1,FIRST
+  1318        IF (UPD1) GO TO 100
+  1319        ONE = 1.D0
+  1320        GSK = DDOT(N,G,1,SK,1)
+  1321        IF (LRESET) GO TO 60
+  1322  C
+  1323  C COMPUTE HG AND HY WHERE H IS THE INVERSE OF THE DIAGONALS
+  1324  C
+  1325        DO 57 I = 1,N
+  1326           RDIAGB = 1.0D0/DIAGB(I)
+  1327           HG(I) = G(I)*RDIAGB
+  1328           IF (FIRST) HYK(I) = YK(I)*RDIAGB
+  1329           IF (FIRST) HYR(I) = YR(I)*RDIAGB
+  1330  57    CONTINUE
+  1331        IF (FIRST) YKSR = DDOT(N,YK,1,SR,1)
+
+                                                                        PAGE  35
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1332        IF (FIRST) YKHYR = DDOT(N,YK,1,HYR,1)
+  1333        GSR = DDOT(N,G,1,SR,1)
+  1334        GHYR = DDOT(N,G,1,HYR,1)
+  1335        IF (FIRST) YRHYR = DDOT(N,YR,1,HYR,1)
+  1336        CALL SSBFGS(N,ONE,SR,YR,HG,HYR,YRSR,
+  1337       *     YRHYR,GSR,GHYR,HG)
+  1338        IF (FIRST) CALL SSBFGS(N,ONE,SR,YR,HYK,HYR,YRSR,
+  1339       *     YRHYR,YKSR,YKHYR,HYK)
+  1340        YKHYK = DDOT(N,HYK,1,YK,1)
+  1341        GHYK = DDOT(N,HYK,1,G,1)
+  1342        CALL SSBFGS(N,ONE,SK,YK,HG,HYK,YKSK,
+  1343       *     YKHYK,GSK,GHYK,Y)
+  1344        RETURN
+  1345  60    CONTINUE
+  1346  C
+  1347  C COMPUTE GH AND HY WHERE H IS THE INVERSE OF THE DIAGONALS
+  1348  C
+  1349        DO 65 I = 1,N
+  1350           RDIAGB = 1.D0/DIAGB(I)
+  1351           HG(I) = G(I)*RDIAGB
+  1352           IF (FIRST) HYK(I) = YK(I)*RDIAGB
+  1353  65    CONTINUE
+  1354        IF (FIRST) YKHYK = DDOT(N,YK,1,HYK,1)
+  1355        GHYK = DDOT(N,G,1,HYK,1)
+  1356        CALL SSBFGS(N,ONE,SK,YK,HG,HYK,YKSK,
+  1357       *     YKHYK,GSK,GHYK,Y)
+  1358        RETURN
+  1359  100   CONTINUE
+  1360        DO 110 I = 1,N
+  1361  110      Y(I) = G(I) / DIAGB(I)
+  1362        RETURN
+  1363        END
+
+MSLV@68  Local symbols
+Name                      Class              Type           Size
+
+
+DIAGB . . . . . . . . . . param                                4
+FIRST . . . . . . . . . . param                                4
+G . . . . . . . . . . . . param                                4
+GHYK. . . . . . . . . . . local              REAL*8            8
+GHYR. . . . . . . . . . . local              REAL*8            8
+GSK . . . . . . . . . . . param                                4
+GSR . . . . . . . . . . . local              REAL*8            8
+HG. . . . . . . . . . . . param                                4
+HYK . . . . . . . . . . . param                                4
+HYR . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+LRESET. . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+ONE . . . . . . . . . . . local              REAL*8            8
+RDIAGB. . . . . . . . . . local              REAL*8            8
+SK. . . . . . . . . . . . param                                4
+SR. . . . . . . . . . . . param                                4
+UPD1. . . . . . . . . . . param                                4
+Y . . . . . . . . . . . . param                                4
+YK. . . . . . . . . . . . param                                4
+
+                                                                        PAGE  36
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+MSLV@68  Local symbols
+Name                      Class              Type           Size
+
+
+YKHYK . . . . . . . . . . local              REAL*8            8
+YKHYR . . . . . . . . . . local              REAL*8            8
+YKSK. . . . . . . . . . . param                                4
+YKSR. . . . . . . . . . . local              REAL*8            8
+YR. . . . . . . . . . . . param                                4
+YRHYR . . . . . . . . . . local              REAL*8            8
+YRSR. . . . . . . . . . . param                                4
+
+
+  1364  C
+  1365  C
+  1366        SUBROUTINE SSBFGS(N,GAMMA,SJ,YJ,HJV,HJYJ,YJSJ,YJHYJ,
+  1367       *     VSJ,VHYJ,HJP1V)
+  1368        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1369        INTEGER N
+  1370        DOUBLE PRECISION GAMMA,YJSJ,YJHYJ,VSJ,VHYJ
+  1371        DOUBLE PRECISION SJ(N),YJ(N),HJV(N),HJYJ(N),HJP1V(N)
+  1372  C
+  1373  C SELF-SCALED BFGS
+  1374  C
+  1375        INTEGER I
+  1376        DOUBLE PRECISION BETA,DELTA
+  1377        DELTA = (1.D0 + GAMMA*YJHYJ/YJSJ)*VSJ/YJSJ
+  1378       *     - GAMMA*VHYJ/YJSJ
+  1379        BETA = -GAMMA*VSJ/YJSJ
+  1380        DO 10 I = 1,N
+  1381           HJP1V(I) = GAMMA*HJV(I) + DELTA*SJ(I) + BETA*HJYJ(I)
+  1382  10    CONTINUE
+  1383        RETURN
+  1384        END
+
+SSBFGS@44  Local symbols
+Name                      Class              Type           Size
+
+
+BETA. . . . . . . . . . . local              REAL*8            8
+DELTA . . . . . . . . . . local              REAL*8            8
+GAMMA . . . . . . . . . . param                                4
+HJP1V . . . . . . . . . . param                                4
+HJV . . . . . . . . . . . param                                4
+HJYJ. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+SJ. . . . . . . . . . . . param                                4
+VHYJ. . . . . . . . . . . param                                4
+VSJ . . . . . . . . . . . param                                4
+YJ. . . . . . . . . . . . param                                4
+YJHYJ . . . . . . . . . . param                                4
+YJSJ. . . . . . . . . . . param                                4
+
+
+  1385  C
+
+                                                                        PAGE  37
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1386  C ROUTINES TO INITIALIZE PRECONDITIONER
+  1387  C
+  1388        SUBROUTINE INITPC(DIAGB,EMAT,N,W,LW,MODET,
+  1389       *     UPD1,YKSK,GSK,YRSR,LRESET)
+  1390        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1391        DOUBLE PRECISION DIAGB(N),EMAT(N),W(LW)
+  1392        DOUBLE PRECISION YKSK,GSK,YRSR
+  1393        LOGICAL LRESET,UPD1
+  1394        COMMON/SUBSCR/ LGV,LZ1,LZK,LV,LSK,LYK,LDIAGB,LSR,LYR,
+  1395       *     LHYR,LHG,LHYK,LPK,LEMAT,LWTEST
+  1396        CALL INITP3(DIAGB,EMAT,N,LRESET,YKSK,YRSR,W(LHYK),
+  1397       *     W(LSK),W(LYK),W(LSR),W(LYR),MODET,UPD1)
+  1398        RETURN
+  1399        END
+
+INITPC@44  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+DIAGB . . . . . . . . . . param                                4
+EMAT. . . . . . . . . . . param                                4
+GSK . . . . . . . . . . . param                                4
+LHYK. . . . . . . . . . . SUBSCR(44)         INTEGER*4         4
+LRESET. . . . . . . . . . param                                4
+LSK . . . . . . . . . . . SUBSCR(16)         INTEGER*4         4
+LSR . . . . . . . . . . . SUBSCR(28)         INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+LYK . . . . . . . . . . . SUBSCR(20)         INTEGER*4         4
+LYR . . . . . . . . . . . SUBSCR(32)         INTEGER*4         4
+MODET . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+UPD1. . . . . . . . . . . param                                4
+W . . . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . param                                4
+YRSR. . . . . . . . . . . param                                4
+
+
+  1400        SUBROUTINE INITP3(DIAGB,EMAT,N,LRESET,YKSK,YRSR,BSK,
+  1401       *     SK,YK,SR,YR,MODET,UPD1)
+  1402        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1403        DOUBLE PRECISION DIAGB(N),EMAT(N),YKSK,YRSR,BSK(N),SK(N),
+  1404       *     YK(N),COND,SR(N),YR(N),DDOT,SDS,SRDS,YRSK,TD,D1,DN
+  1405        LOGICAL LRESET,UPD1
+  1406        IF (UPD1) GO TO 90
+  1407        IF (LRESET) GO TO 60
+  1408        DO 10 I = 1,N
+  1409           BSK(I) = DIAGB(I)*SR(I)
+  1410  10    CONTINUE
+  1411        SDS = DDOT(N,SR,1,BSK,1)
+  1412        SRDS = DDOT(N,SK,1,BSK,1)
+  1413        YRSK = DDOT(N,YR,1,SK,1)
+  1414        DO 20 I = 1,N
+  1415           TD = DIAGB(I)
+  1416           BSK(I) = TD*SK(I) - BSK(I)*SRDS/SDS+YR(I)*YRSK/YRSR
+  1417           EMAT(I) = TD-TD*TD*SR(I)*SR(I)/SDS+YR(I)*YR(I)/YRSR
+  1418  20    CONTINUE
+
+                                                                        PAGE  38
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1419        SDS = DDOT(N,SK,1,BSK,1)
+  1420        DO 30 I = 1,N
+  1421           EMAT(I) = EMAT(I) - BSK(I)*BSK(I)/SDS+YK(I)*YK(I)/YKSK
+  1422  30    CONTINUE
+  1423        GO TO 110
+  1424  60    CONTINUE
+  1425        DO 70 I = 1,N
+  1426           BSK(I) = DIAGB(I)*SK(I)
+  1427  70    CONTINUE
+  1428        SDS = DDOT(N,SK,1,BSK,1)
+  1429        DO 80 I = 1,N
+  1430           TD = DIAGB(I)
+  1431           EMAT(I) = TD - TD*TD*SK(I)*SK(I)/SDS + YK(I)*YK(I)/YKSK
+  1432  80    CONTINUE
+  1433        GO TO 110
+  1434  90    CONTINUE
+  1435        CALL DCOPY(N,DIAGB,1,EMAT,1)
+  1436  110   CONTINUE
+  1437        IF (MODET .LT. 1) RETURN
+  1438        D1 = EMAT(1)
+  1439        DN = EMAT(1)
+  1440        DO 120 I = 1,N
+  1441           IF (EMAT(I) .LT. D1) D1 = EMAT(I)
+  1442           IF (EMAT(I) .GT. DN) DN = EMAT(I)
+  1443  120   CONTINUE
+  1444        COND = DN/D1
+  1445        WRITE(*,800) D1,DN,COND
+  1446  800   FORMAT(' ',//8X,'DMIN =',1PD12.4,'  DMAX =',1PD12.4,
+  1447       *     ' COND =',1PD12.4,/)
+  1448        RETURN
+  1449        END
+
+INITP3@52  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+BSK . . . . . . . . . . . param                                4
+COND. . . . . . . . . . . local              REAL*8            8
+D1. . . . . . . . . . . . local              REAL*8            8
+DIAGB . . . . . . . . . . param                                4
+DN. . . . . . . . . . . . local              REAL*8            8
+EMAT. . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+LRESET. . . . . . . . . . param                                4
+LSUB. . . . . . . . . . . SUBSCR(0)          INTEGER*4        56
+LWTEST. . . . . . . . . . SUBSCR(56)         INTEGER*4         4
+MODET . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+SDS . . . . . . . . . . . local              REAL*8            8
+SK. . . . . . . . . . . . param                                4
+SR. . . . . . . . . . . . param                                4
+SRDS. . . . . . . . . . . local              REAL*8            8
+TD. . . . . . . . . . . . local              REAL*8            8
+UPD1. . . . . . . . . . . param                                4
+
+                                                                        PAGE  39
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+INITP3@52  Local symbols
+Name                      Class              Type           Size
+
+
+YK. . . . . . . . . . . . param                                4
+YKSK. . . . . . . . . . . param                                4
+YR. . . . . . . . . . . . param                                4
+YRSK. . . . . . . . . . . local              REAL*8            8
+YRSR. . . . . . . . . . . param                                4
+
+
+  1450  C
+  1451  C
+  1452        SUBROUTINE SETPAR(N)
+  1453        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1454        INTEGER LSUB(14)
+  1455        COMMON/SUBSCR/ LSUB,LWTEST
+  1456  C
+  1457  C SET UP PARAMETERS FOR THE OPTIMIZATION ROUTINE
+  1458  C
+  1459        DO 10 I = 1,14
+  1460            LSUB(I) = (I-1)*N + 1
+  1461  10    CONTINUE
+  1462        LWTEST = LSUB(14) + N - 1
+  1463        RETURN
+  1464        END
+
+SETPAR@4  Local symbols
+Name                      Class              Type           Size
+
+
+/SUBSCR/. . . . . . . . . SUBSCR(0)          MULTI*60         60
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+LSUB. . . . . . . . . . . SUBSCR(0)          INTEGER*4        56
+LWTEST. . . . . . . . . . SUBSCR(56)         INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+
+
+  1465  C
+  1466  C      LINE SEARCH ALGORITHMS OF GILL AND MURRAY
+  1467  C
+  1468        SUBROUTINE LINDER(N,SFUN,SMALL,EPSMCH,RELTOL,ABSTOL,
+  1469       *     TNYTOL,ETA,SFTBND,XBND,P,GTP,X,F,ALPHA,G,NFTOTL,
+  1470       *     IFLAG,W,LW)
+  1471        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1472        INTEGER N,NFTOTL,IFLAG,LW
+  1473        DOUBLE PRECISION SMALL,EPSMCH,RELTOL,ABSTOL,TNYTOL,ETA,
+  1474       *     SFTBND,XBND,GTP,F,ALPHA
+  1475        DOUBLE PRECISION P(N),X(N),G(N),W(LW)
+  1476  C
+  1477  C
+  1478        INTEGER I,IENTRY,ITEST,L,LG,LX,NUMF,ITCNT
+  1479        DOUBLE PRECISION A,B,B1,BIG,E,FACTOR,FMIN,FPRESN,FU,
+  1480       *     FW,GMIN,GTEST1,GTEST2,GU,GW,OLDF,SCXBND,STEP,
+  1481       *     TOL,U,XMIN,XW,RMU,RTSMLL,UALPHA
+  1482        LOGICAL BRAKTD
+
+                                                                        PAGE  40
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1483  C
+  1484  C      THE FOLLOWING STANDARD FUNCTIONS AND SYSTEM FUNCTIONS ARE
+  1485  C      CALLED WITHIN LINDER
+  1486  C
+  1487        DOUBLE PRECISION DDOT,DSQRT
+  1488        EXTERNAL SFUN
+  1489  C
+  1490  C      ALLOCATE THE ADDRESSES FOR LOCAL WORKSPACE
+  1491  C
+  1492        LX = 1
+  1493        LG = LX + N
+  1494        LSPRNT = 0
+  1495        NPRNT  = 10000
+  1496        RTSMLL = DSQRT(SMALL)
+  1497        BIG = 1.D0/SMALL
+  1498        ITCNT = 0
+  1499  C
+  1500  C      SET THE ESTIMATED RELATIVE PRECISION IN F(X).
+  1501  C
+  1502        FPRESN = 10.D0*EPSMCH
+  1503        NUMF = 0
+  1504        U = ALPHA
+  1505        FU = F
+  1506        FMIN = F
+  1507        GU = GTP
+  1508        RMU = 1.0D-4
+  1509  C
+  1510  C      FIRST ENTRY SETS UP THE INITIAL INTERVAL OF UNCERTAINTY.
+  1511  C
+  1512        IENTRY = 1
+  1513  10    CONTINUE
+  1514  C
+  1515  C TEST FOR TOO MANY ITERATIONS
+  1516  C
+  1517        ITCNT = ITCNT + 1
+  1518        IFLAG = 1
+  1519        IF (ITCNT .GT. 20) GO TO 50
+  1520        IFLAG = 0
+  1521        CALL GETPTC(BIG,SMALL,RTSMLL,RELTOL,ABSTOL,TNYTOL,
+  1522       *     FPRESN,ETA,RMU,XBND,U,FU,GU,XMIN,FMIN,GMIN,
+  1523       *     XW,FW,GW,A,B,OLDF,B1,SCXBND,E,STEP,FACTOR,
+  1524       *     BRAKTD,GTEST1,GTEST2,TOL,IENTRY,ITEST)
+  1525  CLSOUT
+  1526        IF (LSPRNT .GE. NPRNT) CALL LSOUT(IENTRY,ITEST,XMIN,FMIN,GMIN,
+  1527       *     XW,FW,GW,U,A,B,TOL,RELTOL,SCXBND,XBND)
+  1528  C
+  1529  C      IF ITEST=1, THE ALGORITHM REQUIRES THE FUNCTION VALUE TO BE
+  1530  C      CALCULATED.
+  1531  C
+  1532        IF (ITEST .NE. 1) GO TO 30
+  1533        UALPHA = XMIN + U
+  1534        L = LX
+  1535        DO 20 I = 1,N
+  1536           W(L) = X(I) + UALPHA*P(I)
+  1537           L = L + 1
+  1538  20    CONTINUE
+  1539        CALL SFUN(N,W(LX),FU,W(LG))
+
+                                                                        PAGE  41
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1540        NUMF = NUMF + 1
+  1541        GU = DDOT(N,W(LG),1,P,1)
+  1542  C
+  1543  C      THE GRADIENT VECTOR CORRESPONDING TO THE BEST POINT IS
+  1544  C      OVERWRITTEN IF FU IS LESS THAN FMIN AND FU IS SUFFICIENTLY
+  1545  C      LOWER THAN F AT THE ORIGIN.
+  1546  C
+  1547        IF (FU .LE. FMIN .AND. FU .LE. OLDF-UALPHA*GTEST1)
+  1548       *     CALL DCOPY(N,W(LG),1,G,1)
+  1549        GOTO 10
+  1550  C
+  1551  C      IF ITEST=2 OR 3 A LOWER POINT COULD NOT BE FOUND
+  1552  C
+  1553  30    CONTINUE
+  1554        NFTOTL = NUMF
+  1555        IFLAG = 1
+  1556        IF (ITEST .NE. 0) GO TO 50
+  1557  C
+  1558  C      IF ITEST=0 A SUCCESSFUL SEARCH HAS BEEN MADE
+  1559  C
+  1560        IFLAG = 0
+  1561        F = FMIN
+  1562        ALPHA = XMIN
+  1563        DO 40 I = 1,N
+  1564           X(I) = X(I) + ALPHA*P(I)
+  1565  40    CONTINUE
+  1566  50    RETURN
+  1567        END
+
+LINDER@80  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . local              REAL*8            8
+ABSTOL. . . . . . . . . . param                                4
+ALPHA . . . . . . . . . . param                                4
+B . . . . . . . . . . . . local              REAL*8            8
+B1. . . . . . . . . . . . local              REAL*8            8
+BIG . . . . . . . . . . . local              REAL*8            8
+BRAKTD. . . . . . . . . . local              INTEGER*4         4
+E . . . . . . . . . . . . local              REAL*8            8
+EPSMCH. . . . . . . . . . param                                4
+ETA . . . . . . . . . . . param                                4
+F . . . . . . . . . . . . param                                4
+FACTOR. . . . . . . . . . local              REAL*8            8
+FMIN. . . . . . . . . . . local              REAL*8            8
+FPRESN. . . . . . . . . . local              REAL*8            8
+FU. . . . . . . . . . . . local              REAL*8            8
+FW. . . . . . . . . . . . local              REAL*8            8
+G . . . . . . . . . . . . param                                4
+GMIN. . . . . . . . . . . local              REAL*8            8
+GTEST1. . . . . . . . . . local              REAL*8            8
+GTEST2. . . . . . . . . . local              REAL*8            8
+GTP . . . . . . . . . . . param                                4
+GU. . . . . . . . . . . . local              REAL*8            8
+GW. . . . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+
+                                                                        PAGE  42
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+LINDER@80  Local symbols
+Name                      Class              Type           Size
+
+
+IENTRY. . . . . . . . . . local              INTEGER*4         4
+IFLAG . . . . . . . . . . param                                4
+ITCNT . . . . . . . . . . local              INTEGER*4         4
+ITEST . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . local              INTEGER*4         4
+LG. . . . . . . . . . . . local              INTEGER*4         4
+LSPRNT. . . . . . . . . . local              INTEGER*4         4
+LW. . . . . . . . . . . . param                                4
+LX. . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NFTOTL. . . . . . . . . . param                                4
+NPRNT . . . . . . . . . . local              INTEGER*4         4
+NUMF. . . . . . . . . . . local              INTEGER*4         4
+OLDF. . . . . . . . . . . local              REAL*8            8
+P . . . . . . . . . . . . param                                4
+RELTOL. . . . . . . . . . param                                4
+RMU . . . . . . . . . . . local              REAL*8            8
+RTSMLL. . . . . . . . . . local              REAL*8            8
+SCXBND. . . . . . . . . . local              REAL*8            8
+SFTBND. . . . . . . . . . param                                4
+SFUN. . . . . . . . . . . param                                4
+SMALL . . . . . . . . . . param                                4
+STEP. . . . . . . . . . . local              REAL*8            8
+TNYTOL. . . . . . . . . . param                                4
+TOL . . . . . . . . . . . local              REAL*8            8
+U . . . . . . . . . . . . local              REAL*8            8
+UALPHA. . . . . . . . . . local              REAL*8            8
+W . . . . . . . . . . . . param                                4
+X . . . . . . . . . . . . param                                4
+XBND. . . . . . . . . . . param                                4
+XMIN. . . . . . . . . . . local              REAL*8            8
+XW. . . . . . . . . . . . local              REAL*8            8
+
+
+  1568  C
+  1569  C
+  1570        SUBROUTINE GETPTC(BIG,SMALL,RTSMLL,RELTOL,ABSTOL,TNYTOL,
+  1571       *     FPRESN,ETA,RMU,XBND,U,FU,GU,XMIN,FMIN,GMIN,
+  1572       *     XW,FW,GW,A,B,OLDF,B1,SCXBND,E,STEP,FACTOR,
+  1573       *     BRAKTD,GTEST1,GTEST2,TOL,IENTRY,ITEST)
+  1574        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1575        LOGICAL BRAKTD
+  1576        INTEGER IENTRY,ITEST
+  1577        DOUBLE PRECISION BIG,SMALL,RTSMLL,RELTOL,ABSTOL,TNYTOL,
+  1578       *     FPRESN,ETA,RMU,XBND,U,FU,GU,XMIN,FMIN,GMIN,
+  1579       *     XW,FW,GW,A,B,OLDF,B1,SCXBND,E,STEP,FACTOR,
+  1580       *     GTEST1,GTEST2,TOL,DENOM
+  1581  C
+  1582  C ************************************************************
+  1583  C GETPTC, AN ALGORITHM FOR FINDING A STEPLENGTH, CALLED REPEATEDLY BY
+  1584  C ROUTINES WHICH REQUIRE A STEP LENGTH TO BE COMPUTED USING CUBIC
+  1585  C INTERPOLATION. THE PARAMETERS CONTAIN INFORMATION ABOUT THE INTERVAL
+
+                                                                        PAGE  43
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1586  C IN WHICH A LOWER POINT IS TO BE FOUND AND FROM THIS GETPTC COMPUTES A
+  1587  C POINT AT WHICH THE FUNCTION CAN BE EVALUATED BY THE CALLING PROGRAM.
+  1588  C THE VALUE OF THE INTEGER PARAMETERS IENTRY DETERMINES THE PATH TAKEN
+  1589  C THROUGH THE CODE.
+  1590  C ************************************************************
+  1591  C
+  1592        LOGICAL CONVRG
+  1593        DOUBLE PRECISION ABGMIN,ABGW,ABSR,A1,CHORDM,CHORDU,
+  1594       *     D1,D2,P,Q,R,S,SCALE,SUMSQ,TWOTOL,XMIDPT
+  1595        DOUBLE PRECISION ZERO, POINT1,HALF,ONE,THREE,FIVE,ELEVEN
+  1596  C
+  1597  C THE FOLLOWING STANDARD FUNCTIONS AND SYSTEM FUNCTIONS ARE CALLED
+  1598  C WITHIN GETPTC
+  1599  C
+  1600        DOUBLE PRECISION DABS, DSQRT
+  1601  C
+  1602        ZERO = 0.D0
+  1603        POINT1 = 1.D-1
+  1604        HALF = 5.D-1
+  1605        ONE = 1.D0
+  1606        THREE = 3.D0
+  1607        FIVE = 5.D0
+  1608        ELEVEN = 11.D0
+  1609  C
+  1610  C      BRANCH TO APPROPRIATE SECTION OF CODE DEPENDING ON THE
+  1611  C      VALUE OF IENTRY.
+  1612  C
+  1613        GOTO (10,20), IENTRY
+  1614  C
+  1615  C      IENTRY=1
+  1616  C      CHECK INPUT PARAMETERS
+  1617  C
+  1618  10      ITEST = 2
+  1619        IF (U .LE. ZERO .OR. XBND .LE. TNYTOL .OR. GU .GT. ZERO)
+  1620       *     RETURN
+  1621        ITEST = 1
+  1622        IF (XBND .LT. ABSTOL) ABSTOL = XBND
+  1623        TOL = ABSTOL
+  1624        TWOTOL = TOL + TOL
+  1625  C
+  1626  C A AND B DEFINE THE INTERVAL OF UNCERTAINTY, X AND XW ARE POINTS
+  1627  C WITH LOWEST AND SECOND LOWEST FUNCTION VALUES SO FAR OBTAINED.
+  1628  C INITIALIZE A,SMIN,XW AT ORIGIN AND CORRESPONDING VALUES OF
+  1629  C FUNCTION AND PROJECTION OF THE GRADIENT ALONG DIRECTION OF SEARCH
+  1630  C AT VALUES FOR LATEST ESTIMATE AT MINIMUM.
+  1631  C
+  1632        A = ZERO
+  1633        XW = ZERO
+  1634        XMIN = ZERO
+  1635        OLDF = FU
+  1636        FMIN = FU
+  1637        FW = FU
+  1638        GW = GU
+  1639        GMIN = GU
+  1640        STEP = U
+  1641        FACTOR = FIVE
+  1642  C
+
+                                                                        PAGE  44
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1643  C      THE MINIMUM HAS NOT YET BEEN BRACKETED.
+  1644  C
+  1645        BRAKTD = .FALSE.
+  1646  C
+  1647  C SET UP XBND AS A BOUND ON THE STEP TO BE TAKEN. (XBND IS NOT COMPUTED
+  1648  C EXPLICITLY BUT SCXBND IS ITS SCALED VALUE.)  SET THE UPPER BOUND
+  1649  C ON THE INTERVAL OF UNCERTAINTY INITIALLY TO XBND + TOL(XBND).
+  1650  C
+  1651        SCXBND = XBND
+  1652        B = SCXBND + RELTOL*DABS(SCXBND) + ABSTOL
+  1653        E = B + B
+  1654        B1 = B
+  1655  C
+  1656  C COMPUTE THE CONSTANTS REQUIRED FOR THE TWO CONVERGENCE CRITERIA.
+  1657  C
+  1658        GTEST1 = -RMU*GU
+  1659        GTEST2 = -ETA*GU
+  1660  C
+  1661  C SET IENTRY TO INDICATE THAT THIS IS THE FIRST ITERATION
+  1662  C
+  1663        IENTRY = 2
+  1664        GO TO 210
+  1665  C
+  1666  C IENTRY = 2
+  1667  C
+  1668  C UPDATE A,B,XW, AND XMIN
+  1669  C
+  1670  20      IF (FU .GT. FMIN) GO TO 60
+  1671  C
+  1672  C IF FUNCTION VALUE NOT INCREASED, NEW POINT BECOMES NEXT
+  1673  C ORIGIN AND OTHER POINTS ARE SCALED ACCORDINGLY.
+  1674  C
+  1675        CHORDU = OLDF - (XMIN + U)*GTEST1
+  1676        IF (FU .LE. CHORDU) GO TO 30
+  1677  C
+  1678  C THE NEW FUNCTION VALUE DOES NOT SATISFY THE SUFFICIENT DECREASE
+  1679  C CRITERION. PREPARE TO MOVE THE UPPER BOUND TO THIS POINT AND
+  1680  C FORCE THE INTERPOLATION SCHEME TO EITHER BISECT THE INTERVAL OF
+  1681  C UNCERTAINTY OR TAKE THE LINEAR INTERPOLATION STEP WHICH ESTIMATES
+  1682  C THE ROOT OF F(ALPHA)=CHORD(ALPHA).
+  1683  C
+  1684        CHORDM = OLDF - XMIN*GTEST1
+  1685        GU = -GMIN
+  1686        DENOM = CHORDM-FMIN
+  1687        IF (DABS(DENOM) .GE. 1.D-15) GO TO 25
+  1688            DENOM = 1.D-15
+  1689            IF (CHORDM-FMIN .LT. 0.D0)  DENOM = -DENOM
+  1690  25    CONTINUE
+  1691        IF (XMIN .NE. ZERO) GU = GMIN*(CHORDU-FU)/DENOM
+  1692        FU = HALF*U*(GMIN+GU) + FMIN
+  1693        IF (FU .LT. FMIN) FU = FMIN
+  1694        GO TO 60
+  1695  30      FW = FMIN
+  1696        FMIN = FU
+  1697        GW = GMIN
+  1698        GMIN = GU
+  1699        XMIN = XMIN + U
+
+                                                                        PAGE  45
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1700        A = A-U
+  1701        B = B-U
+  1702        XW = -U
+  1703        SCXBND = SCXBND - U
+  1704        IF (GU .LE. ZERO) GO TO 40
+  1705        B = ZERO
+  1706        BRAKTD = .TRUE.
+  1707        GO TO 50
+  1708  40    A = ZERO
+  1709  50    TOL = DABS(XMIN)*RELTOL + ABSTOL
+  1710        GO TO 90
+  1711  C
+  1712  C IF FUNCTION VALUE INCREASED, ORIGIN REMAINS UNCHANGED
+  1713  C BUT NEW POINT MAY NOW QUALIFY AS W.
+  1714  C
+  1715  60    IF (U .LT. ZERO) GO TO 70
+  1716        B = U
+  1717        BRAKTD = .TRUE.
+  1718        GO TO 80
+  1719  70    A = U
+  1720  80    XW = U
+  1721        FW = FU
+  1722        GW = GU
+  1723  90    TWOTOL = TOL + TOL
+  1724        XMIDPT = HALF*(A + B)
+  1725  C
+  1726  C CHECK TERMINATION CRITERIA
+  1727  C
+  1728        CONVRG = DABS(XMIDPT) .LE. TWOTOL - HALF*(B-A) .OR.
+  1729       *     DABS(GMIN) .LE. GTEST2 .AND. FMIN .LT. OLDF .AND.
+  1730       *     (DABS(XMIN - XBND) .GT. TOL .OR. .NOT. BRAKTD)
+  1731        IF (.NOT. CONVRG) GO TO 100
+  1732        ITEST = 0
+  1733        IF (XMIN .NE. ZERO) RETURN
+  1734  C
+  1735  C IF THE FUNCTION HAS NOT BEEN REDUCED, CHECK TO SEE THAT THE RELATIVE
+  1736  C CHANGE IN F(X) IS CONSISTENT WITH THE ESTIMATE OF THE DELTA-
+  1737  C UNIMODALITY CONSTANT, TOL.  IF THE CHANGE IN F(X) IS LARGER THAN
+  1738  C EXPECTED, REDUCE THE VALUE OF TOL.
+  1739  C
+  1740        ITEST = 3
+  1741        IF (DABS(OLDF-FW) .LE. FPRESN*(ONE + DABS(OLDF))) RETURN
+  1742        TOL = POINT1*TOL
+  1743        IF (TOL .LT. TNYTOL) RETURN
+  1744        RELTOL = POINT1*RELTOL
+  1745        ABSTOL = POINT1*ABSTOL
+  1746        TWOTOL = POINT1*TWOTOL
+  1747  C
+  1748  C CONTINUE WITH THE COMPUTATION OF A TRIAL STEP LENGTH
+  1749  C
+  1750  100   R = ZERO
+  1751        Q = ZERO
+  1752        S = ZERO
+  1753        IF (DABS(E) .LE. TOL) GO TO 150
+  1754  C
+  1755  C FIT CUBIC THROUGH XMIN AND XW
+  1756  C
+
+                                                                        PAGE  46
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1757        R = THREE*(FMIN-FW)/XW + GMIN + GW
+  1758        ABSR = DABS(R)
+  1759        Q = ABSR
+  1760        IF (GW .EQ. ZERO .OR. GMIN .EQ. ZERO) GO TO 140
+  1761  C
+  1762  C COMPUTE THE SQUARE ROOT OF (R*R - GMIN*GW) IN A WAY
+  1763  C WHICH AVOIDS UNDERFLOW AND OVERFLOW.
+  1764  C
+  1765        ABGW = DABS(GW)
+  1766        ABGMIN = DABS(GMIN)
+  1767        S = DSQRT(ABGMIN)*DSQRT(ABGW)
+  1768        IF ((GW/ABGW)*GMIN .GT. ZERO) GO TO 130
+  1769  C
+  1770  C COMPUTE THE SQUARE ROOT OF R*R + S*S.
+  1771  C
+  1772        SUMSQ = ONE
+  1773        P = ZERO
+  1774        IF (ABSR .GE. S) GO TO 110
+  1775  C
+  1776  C THERE IS A POSSIBILITY OF OVERFLOW.
+  1777  C
+  1778        IF (S .GT. RTSMLL) P = S*RTSMLL
+  1779        IF (ABSR .GE. P) SUMSQ = ONE +(ABSR/S)**2
+  1780        SCALE = S
+  1781        GO TO 120
+  1782  C
+  1783  C THERE IS A POSSIBILITY OF UNDERFLOW.
+  1784  C
+  1785  110   IF (ABSR .GT. RTSMLL) P = ABSR*RTSMLL
+  1786        IF (S .GE. P) SUMSQ = ONE + (S/ABSR)**2
+  1787        SCALE = ABSR
+  1788  120   SUMSQ = DSQRT(SUMSQ)
+  1789        Q = BIG
+  1790        IF (SCALE .LT. BIG/SUMSQ) Q = SCALE*SUMSQ
+  1791        GO TO 140
+  1792  C
+  1793  C COMPUTE THE SQUARE ROOT OF R*R - S*S
+  1794  C
+  1795  130   Q = DSQRT(DABS(R+S))*DSQRT(DABS(R-S))
+  1796        IF (R .GE. S .OR. R .LE. (-S)) GO TO 140
+  1797        R = ZERO
+  1798        Q = ZERO
+  1799        GO TO 150
+  1800  C
+  1801  C COMPUTE THE MINIMUM OF FITTED CUBIC
+  1802  C
+  1803  140   IF (XW .LT. ZERO) Q = -Q
+  1804        S = XW*(GMIN - R - Q)
+  1805        Q = GW - GMIN + Q + Q
+  1806        IF (Q .GT. ZERO) S = -S
+  1807        IF (Q .LE. ZERO) Q = -Q
+  1808        R = E
+  1809        IF (B1 .NE. STEP .OR. BRAKTD) E = STEP
+  1810  C
+  1811  C CONSTRUCT AN ARTIFICIAL BOUND ON THE ESTIMATED STEPLENGTH
+  1812  C
+  1813  150   A1 = A
+
+                                                                        PAGE  47
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1814        B1 = B
+  1815        STEP = XMIDPT
+  1816        IF (BRAKTD) GO TO 160
+  1817        STEP = -FACTOR*XW
+  1818        IF (STEP .GT. SCXBND) STEP = SCXBND
+  1819        IF (STEP .NE. SCXBND) FACTOR = FIVE*FACTOR
+  1820        GO TO 170
+  1821  C
+  1822  C IF THE MINIMUM IS BRACKETED BY 0 AND XW THE STEP MUST LIE
+  1823  C WITHIN (A,B).
+  1824  C
+  1825  160   IF ((A .NE. ZERO .OR. XW .GE. ZERO) .AND. (B .NE. ZERO .OR.
+  1826       *     XW .LE. ZERO)) GO TO 180
+  1827  C
+  1828  C IF THE MINIMUM IS NOT BRACKETED BY 0 AND XW THE STEP MUST LIE
+  1829  C WITHIN (A1,B1).
+  1830  C
+  1831        D1 = XW
+  1832        D2 = A
+  1833        IF (A .EQ. ZERO) D2 = B
+  1834  C THIS LINE MIGHT BE
+  1835  C     IF (A .EQ. ZERO) D2 = E
+  1836        U = - D1/D2
+  1837        STEP = FIVE*D2*(POINT1 + ONE/U)/ELEVEN
+  1838        IF (U .LT. ONE) STEP = HALF*D2*DSQRT(U)
+  1839  170   IF (STEP .LE. ZERO) A1 = STEP
+  1840        IF (STEP .GT. ZERO) B1 = STEP
+  1841  C
+  1842  C REJECT THE STEP OBTAINED BY INTERPOLATION IF IT LIES OUTSIDE THE
+  1843  C REQUIRED INTERVAL OR IT IS GREATER THAN HALF THE STEP OBTAINED
+  1844  C DURING THE LAST-BUT-ONE ITERATION.
+  1845  C
+  1846  180   IF (DABS(S) .LE. DABS(HALF*Q*R) .OR.
+  1847       *     S .LE. Q*A1 .OR. S .GE. Q*B1) GO TO 200
+  1848  C
+  1849  C A CUBIC INTERPOLATION STEP
+  1850  C
+  1851        STEP = S/Q
+  1852  C
+  1853  C THE FUNCTION MUST NOT BE EVALUTATED TOO CLOSE TO A OR B.
+  1854  C
+  1855        IF (STEP - A .GE. TWOTOL .AND. B - STEP .GE. TWOTOL) GO TO 210
+  1856        IF (XMIDPT .GT. ZERO) GO TO 190
+  1857        STEP = -TOL
+  1858        GO TO 210
+  1859  190   STEP = TOL
+  1860        GO TO 210
+  1861  200   E = B-A
+  1862  C
+  1863  C IF THE STEP IS TOO LARGE, REPLACE BY THE SCALED BOUND (SO AS TO
+  1864  C COMPUTE THE NEW POINT ON THE BOUNDARY).
+  1865  C
+  1866  210   IF (STEP .LT. SCXBND) GO TO 220
+  1867        STEP = SCXBND
+  1868  C
+  1869  C MOVE SXBD TO THE LEFT SO THAT SBND + TOL(XBND) = XBND.
+  1870  C
+
+                                                                        PAGE  48
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1871        SCXBND = SCXBND - (RELTOL*DABS(XBND)+ABSTOL)/(ONE + RELTOL)
+  1872  220   U = STEP
+  1873        IF (DABS(STEP) .LT. TOL .AND. STEP .LT. ZERO) U = -TOL
+  1874        IF (DABS(STEP) .LT. TOL .AND. STEP .GE. ZERO) U = TOL
+  1875        ITEST = 1
+  1876        RETURN
+  1877        END
+
+GETPTC@132  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+A1. . . . . . . . . . . . local              REAL*8            8
+ABGMIN. . . . . . . . . . local              REAL*8            8
+ABGW. . . . . . . . . . . local              REAL*8            8
+ABSR. . . . . . . . . . . local              REAL*8            8
+ABSTOL. . . . . . . . . . param                                4
+B . . . . . . . . . . . . param                                4
+B1. . . . . . . . . . . . param                                4
+BIG . . . . . . . . . . . param                                4
+BRAKTD. . . . . . . . . . param                                4
+CHORDM. . . . . . . . . . local              REAL*8            8
+CHORDU. . . . . . . . . . local              REAL*8            8
+CONVRG. . . . . . . . . . local              INTEGER*4         4
+D1. . . . . . . . . . . . local              REAL*8            8
+D2. . . . . . . . . . . . local              REAL*8            8
+DENOM . . . . . . . . . . local              REAL*8            8
+E . . . . . . . . . . . . param                                4
+ELEVEN. . . . . . . . . . local              REAL*8            8
+ETA . . . . . . . . . . . param                                4
+FACTOR. . . . . . . . . . param                                4
+FIVE. . . . . . . . . . . local              REAL*8            8
+FMIN. . . . . . . . . . . param                                4
+FPRESN. . . . . . . . . . param                                4
+FU. . . . . . . . . . . . param                                4
+FW. . . . . . . . . . . . param                                4
+GMIN. . . . . . . . . . . param                                4
+GTEST1. . . . . . . . . . param                                4
+GTEST2. . . . . . . . . . param                                4
+GU. . . . . . . . . . . . param                                4
+GW. . . . . . . . . . . . param                                4
+HALF. . . . . . . . . . . local              REAL*8            8
+IENTRY. . . . . . . . . . param                                4
+ITEST . . . . . . . . . . param                                4
+OLDF. . . . . . . . . . . param                                4
+ONE . . . . . . . . . . . local              REAL*8            8
+P . . . . . . . . . . . . local              REAL*8            8
+POINT1. . . . . . . . . . local              REAL*8            8
+Q . . . . . . . . . . . . local              REAL*8            8
+R . . . . . . . . . . . . local              REAL*8            8
+RELTOL. . . . . . . . . . param                                4
+RMU . . . . . . . . . . . param                                4
+RTSMLL. . . . . . . . . . param                                4
+S . . . . . . . . . . . . local              REAL*8            8
+SCALE . . . . . . . . . . local              REAL*8            8
+SCXBND. . . . . . . . . . param                                4
+
+                                                                        PAGE  49
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GETPTC@132  Local symbols
+Name                      Class              Type           Size
+
+
+SMALL . . . . . . . . . . param                                4
+STEP. . . . . . . . . . . param                                4
+SUMSQ . . . . . . . . . . local              REAL*8            8
+THREE . . . . . . . . . . local              REAL*8            8
+TNYTOL. . . . . . . . . . param                                4
+TOL . . . . . . . . . . . param                                4
+TWOTOL. . . . . . . . . . local              REAL*8            8
+U . . . . . . . . . . . . param                                4
+XBND. . . . . . . . . . . param                                4
+XMIDPT. . . . . . . . . . local              REAL*8            8
+XMIN. . . . . . . . . . . param                                4
+XW. . . . . . . . . . . . param                                4
+ZERO. . . . . . . . . . . local              REAL*8            8
+
+
+  1878        
+  1879  C******************************************************************
+  1880  C SPECIAL BLAS FOR Y = X+Y
+  1881  C******************************************************************
+  1882        SUBROUTINE DXPY(N,DX,INCX,DY,INCY)
+  1883        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+  1884  C
+  1885  C     VECTOR PLUS A VECTOR.
+  1886  C     USES UNROLLED LOOPS FOR INCREMENTS EQUAL TO ONE.
+  1887  C     STEPHEN G. NASH 5/30/89.
+  1888  C
+  1889        DOUBLE PRECISION DX(1),DY(1)
+  1890        INTEGER I,INCX,INCY,IX,IY,M,MP1,N
+  1891  C
+  1892        IF(N.LE.0)RETURN
+  1893        IF(INCX.EQ.1.AND.INCY.EQ.1)GO TO 20
+  1894  C
+  1895  C        CODE FOR UNEQUAL INCREMENTS OR EQUAL INCREMENTS
+  1896  C          NOT EQUAL TO 1
+  1897  C
+  1898        IX = 1
+  1899        IY = 1
+  1900        IF(INCX.LT.0)IX = (-N+1)*INCX + 1
+  1901        IF(INCY.LT.0)IY = (-N+1)*INCY + 1
+  1902        DO 10 I = 1,N
+  1903          DY(IY) = DY(IY) + DX(IX)
+  1904          IX = IX + INCX
+  1905          IY = IY + INCY
+  1906     10 CONTINUE
+  1907        RETURN
+  1908  C
+  1909  C        CODE FOR BOTH INCREMENTS EQUAL TO 1
+  1910  C
+  1911  C
+  1912  C        CLEAN-UP LOOP
+  1913  C
+  1914     20 M = MOD(N,4)
+
+                                                                        PAGE  50
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1915        IF( M .EQ. 0 ) GO TO 40
+  1916        DO 30 I = 1,M
+  1917          DY(I) = DY(I) + DX(I)
+  1918     30 CONTINUE
+  1919        IF( N .LT. 4 ) RETURN
+  1920     40 MP1 = M + 1
+  1921        DO 50 I = MP1,N,4
+  1922          DY(I) = DY(I) + DX(I)
+  1923          DY(I + 1) = DY(I + 1) + DX(I + 1)
+  1924          DY(I + 2) = DY(I + 2) + DX(I + 2)
+  1925          DY(I + 3) = DY(I + 3) + DX(I + 3)
+  1926     50 CONTINUE
+  1927        RETURN
+  1928        END
+
+DXPY@20  Local symbols
+Name                      Class              Type           Size
+
+
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+INCX. . . . . . . . . . . param                                4
+INCY. . . . . . . . . . . param                                4
+IX. . . . . . . . . . . . local              INTEGER*4         4
+IY. . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . local              INTEGER*4         4
+MP1 . . . . . . . . . . . local              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+CHKUCP@80 . . . . . . . . FUNCT              ***             ***
+CHKUCP@80 . . . . . . . . extern             ***             ***
+CHKUCP@80 . . . . . . . . extern             ***             ***
+CNVTST@72 . . . . . . . . FUNCT              ***             ***
+CNVTST@72 . . . . . . . . extern             ***             ***
+CRASH@24. . . . . . . . . FUNCT              ***             ***
+CRASH@24. . . . . . . . . extern             ***             ***
+DAXPY@24. . . . . . . . . extern             ***             ***
+DCOPY@20. . . . . . . . . extern             ***             ***
+DCOPY@20. . . . . . . . . extern             ***             ***
+DCOPY@20. . . . . . . . . extern             ***             ***
+DCOPY@20. . . . . . . . . extern             ***             ***
+DCOPY@20. . . . . . . . . extern             ***             ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+DDOT@20 . . . . . . . . . extern             REAL*8          ***
+
+                                                                        PAGE  51
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DNRM2@12. . . . . . . . . extern             REAL*8          ***
+DNRM2@12. . . . . . . . . extern             REAL*8          ***
+DNRM2@12. . . . . . . . . extern             REAL*8          ***
+DXPY@20 . . . . . . . . . FUNCT              ***             ***
+DXPY@20 . . . . . . . . . extern             ***             ***
+DXPY@20 . . . . . . . . . extern             ***             ***
+F90_CLOSE . . . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_OPEN. . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GETPTC@132. . . . . . . . extern             ***             ***
+GETPTC@132. . . . . . . . FUNCT              ***             ***
+GTIMS@48. . . . . . . . . FUNCT              ***             ***
+GTIMS@48. . . . . . . . . extern             ***             ***
+INITP3@52 . . . . . . . . FUNCT              ***             ***
+INITP3@52 . . . . . . . . extern             ***             ***
+INITPC@44 . . . . . . . . extern             ***             ***
+INITPC@44 . . . . . . . . FUNCT              ***             ***
+LINDER@80 . . . . . . . . extern             ***             ***
+LINDER@80 . . . . . . . . FUNCT              ***             ***
+LINDER@80 . . . . . . . . extern             ***             ***
+LMQN@60 . . . . . . . . . FUNCT              ***             ***
+LMQN@60 . . . . . . . . . extern             ***             ***
+LMQNBC@72 . . . . . . . . FUNCT              ***             ***
+LMQNBC@72 . . . . . . . . extern             ***             ***
+LSOUT@60. . . . . . . . . FUNCT              ***             ***
+LSOUT@60. . . . . . . . . extern             ***             ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+
+                                                                        PAGE  52
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MCHPR1@0. . . . . . . . . extern             REAL*8          ***
+MCHPR1@0. . . . . . . . . extern             REAL*8          ***
+MCHPR1@0. . . . . . . . . extern             REAL*8          ***
+MCHPR1@0. . . . . . . . . extern             REAL*8          ***
+MCHPR1@0. . . . . . . . . FUNCT              REAL*8          ***
+MODLNP@120. . . . . . . . FUNCT              ***             ***
+MODLNP@120. . . . . . . . extern             ***             ***
+MODLNP@120. . . . . . . . extern             ***             ***
+MODZ@36 . . . . . . . . . extern             ***             ***
+MODZ@36 . . . . . . . . . FUNCT              ***             ***
+MONIT@36. . . . . . . . . extern             ***             ***
+MONIT@36. . . . . . . . . FUNCT              ***             ***
+MSLV@68 . . . . . . . . . extern             ***             ***
+MSLV@68 . . . . . . . . . FUNCT              ***             ***
+MSOLVE@44 . . . . . . . . extern             ***             ***
+MSOLVE@44 . . . . . . . . FUNCT              ***             ***
+NDIA3@28. . . . . . . . . FUNCT              ***             ***
+NDIA3@28. . . . . . . . . extern             ***             ***
+NEGVEC@8. . . . . . . . . FUNCT              ***             ***
+NEGVEC@8. . . . . . . . . extern             ***             ***
+SETPAR@4. . . . . . . . . FUNCT              ***             ***
+SETPAR@4. . . . . . . . . extern             ***             ***
+SETPAR@4. . . . . . . . . extern             ***             ***
+SETUCR@48 . . . . . . . . extern             ***             ***
+SETUCR@48 . . . . . . . . extern             ***             ***
+SETUCR@48 . . . . . . . . FUNCT              ***             ***
+SSBFGS@44 . . . . . . . . FUNCT              ***             ***
+SSBFGS@44 . . . . . . . . extern             ***             ***
+STEP1@16. . . . . . . . . extern             REAL*8          ***
+STEP1@16. . . . . . . . . FUNCT              REAL*8          ***
+STEP1@16. . . . . . . . . extern             REAL*8          ***
+STPMAX@36 . . . . . . . . extern             ***             ***
+STPMAX@36 . . . . . . . . FUNCT              ***             ***
+SUBSCR. . . . . . . . . . common             ***              60
+TN@32 . . . . . . . . . . FUNCT              ***             ***
+TNBC@44 . . . . . . . . . FUNCT              ***             ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+
+                                                                        PAGE  53
+                                                                        03-13-96
+                                                                        11:42:38
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+ZTIME@12. . . . . . . . . extern             ***             ***
+ZTIME@12. . . . . . . . . extern             ***             ***
+ZTIME@12. . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

@@ -1,0 +1,159 @@
+
+                                                                        PAGE   1
+                                                                        01-13-96
+                                                                        10:15:50
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  	SUBROUTINE TESTDOVER(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,
+     2       1                    S,H,CO)
+     3  C     -----------------------------------------------------
+     4        IMPLICIT REAL*8 (A-H,O-Z)
+     5        COMMON /VALUE/ EMIN
+     6  	COMMON /OVER/ DETS(50),L,K,CC(50)
+     7  	COMMON /LC/RC(50)
+     8        PARAMETER(MMAX=50)
+     9        DIMENSION 
+    10       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+    11       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+    12       3         B12(MMAX)
+    13        DIMENSION S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX) 
+    14        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/
+    15  C     -----------------------------------------------------	  
+    16        CALL GEOM(EX1,EY1,EZ1,EX2,EY2,EZ2)
+    17  C     -----------------------------------------------------	  
+    18  C	DO L=1,M
+    19  C		ALK1=AA1(L)+AA1(L)
+    20  C		ALK2=AA2(L)+AA2(L)                                                   
+    21  C		BLK12=B12(L)+B12(L)  
+    22  C		DETS(L)=ALK1*ALK2+((ALK1+ALK2)*BLK12)
+    23  C	    CC(L)=8*AA1(L)*AA2(L)*B12(L)*((RZ1(L)-RZ2(L))**2)/DETS(L)
+    24  C	END DO
+    25  C
+    26  C      DO L=1,M
+    27  C          DO K=1,M
+    28  C     -----------------------------------------------------
+    29  C     --- Calculate OVERLAP INTEGRAL ---
+    30  C     -----------------------------------------------------
+    31  
+    32  	AA1=.160235037618D+00
+    33  	RAx=0.0D+00
+    34  	RAy=0.0D+00
+    35  	RAz=1.011036314027D+00
+    36  	AA2=.350880170955D+00
+    37  	RBx=0.0D+00
+    38  	RBy=0.0D+00
+    39  	RBz=-.063892060873D+00
+    40  	AA3=-.018048129548D+00
+    41  	AA4=.296378877724D+00
+    42  	RCx=0.0D+00
+    43  	RCy=0.0D+00
+    44  	RCz=.051541492960D+00
+    45  	AA5=1.151304709732D+00
+    46  	RDx=0.0D+00
+    47  	RDy=0.0D+00
+    48  	RDz=-.598756422434D+00
+    49  	AA6= -.056849064138D+00
+    50  	
+    51                CALL OVERLP(RAx,RAy,RAz,AA1,
+    52       1            RCx,RCy,RCz,AA2,                      
+    53       2            RBx,RBy,RBz,AA3,
+    54       3            RDx,RDy,RDz,AA4,
+    55       4            AA5,AA6,OV1,KLM)
+    56  
+    57  	AA1=AA1+1.0D-09
+
+                                                                        PAGE   2
+                                                                        01-13-96
+                                                                        10:15:50
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  
+    59                CALL OVERLP(RAx,RAy,RAz,AA1,
+    60       1            RCx,RCy,RCz,AA2,                      
+    61       2            RBx,RBy,RBz,AA3,
+    62       3            RDx,RDy,RDz,AA4,
+    63       4            AA5,AA6,OV2,KLM)
+    64  
+    65  	OV3=(OV2-OV1)/1.0D-09
+    66  	WRITE(6,*)OV3
+    67  	STOP
+    68  	RETURN
+    69  	END
+
+TESTDOVER@52  Local symbols
+Name                      Class              Type           Size
+
+
+AA1 . . . . . . . . . . . param                                4
+AA2 . . . . . . . . . . . param                                4
+AA3 . . . . . . . . . . . local              REAL*8            8
+AA4 . . . . . . . . . . . local              REAL*8            8
+AA5 . . . . . . . . . . . local              REAL*8            8
+AA6 . . . . . . . . . . . local              REAL*8            8
+B12 . . . . . . . . . . . param                                4
+CO. . . . . . . . . . . . param                                4
+EX1 . . . . . . . . . . . local              REAL*8            8
+EX2 . . . . . . . . . . . local              REAL*8            8
+EY1 . . . . . . . . . . . local              REAL*8            8
+EY2 . . . . . . . . . . . local              REAL*8            8
+EZ1 . . . . . . . . . . . local              REAL*8            8
+EZ2 . . . . . . . . . . . local              REAL*8            8
+H . . . . . . . . . . . . param                                4
+KLM . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+OV1 . . . . . . . . . . . local              REAL*8            8
+OV2 . . . . . . . . . . . local              REAL*8            8
+OV3 . . . . . . . . . . . local              REAL*8            8
+RAX . . . . . . . . . . . local              REAL*8            8
+RAY . . . . . . . . . . . local              REAL*8            8
+RAZ . . . . . . . . . . . local              REAL*8            8
+RBX . . . . . . . . . . . local              REAL*8            8
+RBY . . . . . . . . . . . local              REAL*8            8
+RBZ . . . . . . . . . . . local              REAL*8            8
+RCX . . . . . . . . . . . local              REAL*8            8
+RCY . . . . . . . . . . . local              REAL*8            8
+RCZ . . . . . . . . . . . local              REAL*8            8
+RDX . . . . . . . . . . . local              REAL*8            8
+RDY . . . . . . . . . . . local              REAL*8            8
+RDZ . . . . . . . . . . . local              REAL*8            8
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+S . . . . . . . . . . . . param                                4
+
+                                                                        PAGE   3
+                                                                        01-13-96
+                                                                        10:15:50
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+TESTDOVER@52  Local symbols
+Name                      Class              Type           Size
+
+
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GEOM@24 . . . . . . . . . extern             ***             ***
+LC. . . . . . . . . . . . common             ***             400
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+OVER. . . . . . . . . . . common             ***             808
+OVERLP@80 . . . . . . . . extern             ***             ***
+TESTDOVER@52. . . . . . . FUNCT              ***             ***
+VALUE . . . . . . . . . . common             ***               8
+
+
+No errors detected

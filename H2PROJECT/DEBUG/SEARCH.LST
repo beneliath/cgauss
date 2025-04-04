@@ -1,0 +1,200 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+#    1  C***********************************************************************
+     2        SUBROUTINE SEARCH(LEAVE,GAUSS)                                    
+     3        IMPLICIT REAL*8 (A-H,O-Z)
+     4  C                                                                       
+     5  C                                                                       
+     6  C     SUBROUTINE LOCATES A LOCAL MINIMUM ALONG A GIVEN ONE-DIMENSIONAL  
+     7  C     SEARCH DIRECTION.                                                 
+     8  C     F(ALF) = FUNC(X+ALF*DX) FIND OPTIMUM ALF VALUE.                   
+     9  C     LOOKMAX = MAXIMUM NUMBER OF FUNCTION EVALUATIONS BEFORE SEARCH IS 
+    10  C               TERMINATED                                              
+    11  C     ENTER SUBROUTINE WITH FOLLOWING                                   
+    12  C     N     = DIMENSIONALITY OF X SPACE                                 
+    13  C     X     = INITIAL POSITION (IN N DIMENSIONAL PARAMETER SPACE)       
+    14  C     FUNC  = F(0) , I.E. FUNCTION VALUE AT INITIAL X.                  
+    15  C     DX    = SEARCH DIRECTIONS(IN N-DIMENSIONAL SPACE)                 
+    16  C     AMIN  = ESTIMATED INITIAL STEP SIZE                               
+    17  C     NOISE = ACCURACY OF FUNC VALUES. VARIATIONS SMALLER THAN NOISE    
+    18  C             ARE NOT CONSIDERED TO BE SIGNIFICANT.                     
+    19  C     EXACT = .FALSE.  SUPPRESSES FINAL CHECK OF QUADRATIC FIT.         
+    20  C                                                                       
+    21  C     EXIT FROM SUBROUTINE WITH FOLLOWING                               
+    22  C     X     = CALCULATED MINIMUM                                        
+    23  C     FUNC  = F(AMIN) ,I.E. FUNCTION VALUE AT FINAL X.                  
+    24  C     CURVE = CALCULATED CURVATURE ALON SEARCH DIRECTIONS               
+    25  C     LEAVE = 0 IF NORMAL EXIT                                          
+    26  C           = 2 IF EXCESSIV NUMBER OF FUNCTIONS EVALUATIONS             
+    27  C                                                                       
+    28  C     N,NMAX,FUNC,AND X ARE SHARED WITH SUBROUTINE GAUSS.               
+    29  C     ALL VARIABLES IN COMMON T1 ARE SHARED WITH PROGRAM CALLING SEARCH 
+    30  C                                                                       
+    31        COMMON/T1/ N,NMAX, FFF,X(500), DX(500), CURVE,AMIN ,NOISE,EXACT   
+    32        COMMON/MIN/ FMIN, LOOKS
+    33        DIMENSION XNOT(500), F(9), SET(9)                                 
+    34        EQUIVALENCE (F(1),F1),(F(3),F3),(F(4),F4),(F(5),F5),(F(6),F6),    
+    35       1  (F(7),F7),(F(9),F9),(SET(1),SET1),                              
+    36       2  (SET(2),SET2),(SET(3),SET3),(SET(4),SET4),(SET(5),SET5),        
+    37       3  (SET(6),SET6),(SET(7),SET7),(SET(8),SET8),(SET(9),SET9)         
+    38        LOGICAL BACK, SET, SET1,SET2,SET3,SET4,SET5,SET6,SET7,SET8,SET9   
+    39       1,EXACT,HOLD                                                       
+    40        LOGICAL AIF
+    41        REAL*8 NOISE                                                      
+    42        LOOKS=0                                                           
+    43        LEAVE=0                                                           
+    44        LOOKMAX=100                                                       
+    45        DO 5 I=1,N                                                        
+    46      5 XNOT(I)=X(I)                                                      
+    47        ALF=AMIN                                                          
+    48        AMIN=0.D+00                                                       
+    49        FNOT = Fff                                                       
+    50        FMIN=Fff                                                       
+    51        FNEXT=1.0D+30                                                     
+    52        IR=4                                                              
+    53     10 LOOKS=LOOKS+1                                                     
+    54        IF(LOOKS.LE.LOOKMAX) GO TO 20                                     
+    55        LEAVE=2                                                           
+    56        open (unit=6,access='append',form='formatted')
+    57        WRITE(6,13) LOOKS                                                 
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        close(6)
+    59     13 FORMAT(/' EXCESSIVE NUMBER OF FUNCTION EVALUATIONS =',I3/)        
+    60  C                                                                       
+    61  C     RETURN FROM SUBROUTINE                                            
+    62  C                                                                       
+    63     15 DO 16 I=1,N                                                       
+    64     16 X(I)=XNOT(I)+AMIN*DX(I)                                           
+    65        Fff=FMIN                                                         
+    66        RETURN                                                            
+    67  C                                                                       
+    68  C     EVALUATE F(ALF)=FUNC(XNOT+ALF*DX)                                 
+    69  C                                                                       
+    70     20 DO 25 I=1,N                                                       
+    71     25 X(I)=XNOT(I)+ALF*DX(I)                                            
+    72        INOUT=0                                                           
+    73        CALL GAUSS(INOUT)                                                 
+    74  C                                                                       
+    75  C     INOUT = 7 INDICATES PATHOLOGICAL X VALUE FOR GAUSS CALCULATION.   
+    76  C                                                                       
+    77        IF(INOUT.EQ.7) GO TO 305                                          
+    78        HOLD=.FALSE.                                                      
+    79        IF(Fff.GE.FMIN) GO TO 28                                         
+    80        FNEXT=FMIN                                                        
+    81        FMIN=Fff                                                         
+    82        ANEXT=AMIN                                                        
+    83        AMIN=ALF                                                          
+    84        GO TO 29                                                          
+    85     28 IF(Fff.GE.FNEXT) GO TO 29                                        
+    86        FNEXT=Fff                                                        
+    87        ANEXT=ALF                                                         
+    88     27 FORMAT(' LOOKS =',I3,' ALF =',F10.5, ' FFF =',F15.9, ' AMIN =',  
+    89       1 F10.5,' FMIN =',F12.6,' ANEXT =',F10.5,' FNEXT =',F12.6)         
+    90     29 CONTINUE
+    91  C      open (unit=6,access='append',form='formatted')
+    92  C      WRITE(6,27) LOOKS, ALF, FFF, AMIN, FMIN, ANEXT, FNEXT            
+    93  C      close (6)
+    94        GO TO (29,29,29,150,180,260,320) IR                               
+
+SEARCH@8  Local symbols
+Name                      Class              Type           Size
+
+
+/MIN/ . . . . . . . . . . MIN(0)             MULTI*12         12
+/T1/. . . . . . . . . . . T1(0)              MULTI*8044     8044
+AIF . . . . . . . . . . . local              INTEGER*4         4
+ALF . . . . . . . . . . . local              REAL*8            8
+AMIN. . . . . . . . . . . T1(8024)           REAL*8            8
+ANEXT . . . . . . . . . . local              REAL*8            8
+BACK. . . . . . . . . . . local              INTEGER*4         4
+CURVE . . . . . . . . . . T1(8016)           REAL*8            8
+DELTA . . . . . . . . . . local              REAL*8            8
+DUM . . . . . . . . . . . local              REAL*8            8
+DX. . . . . . . . . . . . T1(4016)           REAL*8         4000
+EXACT . . . . . . . . . . T1(8040)           INTEGER*4         4
+F . . . . . . . . . . . . ***(0)             REAL*8           72
+F1. . . . . . . . . . . . ***(0)             REAL*8            8
+F3. . . . . . . . . . . . ***(16)            REAL*8            8
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+SEARCH@8  Local symbols
+Name                      Class              Type           Size
+
+
+F4. . . . . . . . . . . . ***(24)            REAL*8            8
+F5. . . . . . . . . . . . ***(32)            REAL*8            8
+F6. . . . . . . . . . . . ***(40)            REAL*8            8
+F7. . . . . . . . . . . . ***(48)            REAL*8            8
+F9. . . . . . . . . . . . ***(64)            REAL*8            8
+FFF . . . . . . . . . . . T1(8)              REAL*8            8
+FMIN. . . . . . . . . . . MIN(0)             REAL*8            8
+FNEXT . . . . . . . . . . local              REAL*8            8
+FNOT. . . . . . . . . . . local              REAL*8            8
+FQUAD . . . . . . . . . . local              REAL*8            8
+GAUSS . . . . . . . . . . param                                4
+HOLD. . . . . . . . . . . local              INTEGER*4         4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+INOUT . . . . . . . . . . local              INTEGER*4         4
+IR. . . . . . . . . . . . local              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+LEAVE . . . . . . . . . . param                                4
+LOOKMAX . . . . . . . . . local              INTEGER*4         4
+LOOKS . . . . . . . . . . MIN(8)             INTEGER*4         4
+N . . . . . . . . . . . . T1(0)              INTEGER*4         4
+NOISE . . . . . . . . . . T1(8032)           REAL*8            8
+SET . . . . . . . . . . . ***(0)             INTEGER*4        36
+SET1. . . . . . . . . . . ***(0)             INTEGER*4         4
+SET2. . . . . . . . . . . ***(4)             INTEGER*4         4
+SET3. . . . . . . . . . . ***(8)             INTEGER*4         4
+SET4. . . . . . . . . . . ***(12)            INTEGER*4         4
+SET5. . . . . . . . . . . ***(16)            INTEGER*4         4
+SET6. . . . . . . . . . . ***(20)            INTEGER*4         4
+SET7. . . . . . . . . . . ***(24)            INTEGER*4         4
+SET8. . . . . . . . . . . ***(28)            INTEGER*4         4
+SET9. . . . . . . . . . . ***(32)            INTEGER*4         4
+SPREAD. . . . . . . . . . local              REAL*8            8
+TOL . . . . . . . . . . . local              REAL*8            8
+X . . . . . . . . . . . . T1(16)             REAL*8         4000
+XNOT. . . . . . . . . . . local              REAL*8         4000
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_CLOSE . . . . . . . . extern             INTEGER*0       ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_OPEN. . . . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+MIN . . . . . . . . . . . common             ***              12
+SEARCH@8. . . . . . . . . FUNCT              ***             ***
+T1. . . . . . . . . . . . common             ***            8044
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:41
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+No errors detected

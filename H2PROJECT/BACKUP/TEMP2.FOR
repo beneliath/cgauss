@@ -1,0 +1,5 @@
+IMPLICIT INTEGER (a - b)
+IMPLICIT CHARACTER*10 (n)
+CHARACTER*20 anyname
+age = 10
+name = 'PAUL'

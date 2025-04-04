@@ -1,0 +1,156 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:33:15
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        FUNCTION brent(ax,bx,cx,f,tol,xmin)
+     2        INTEGER ITMAX
+     3        DOUBLE PRECISION brent,ax,bx,cx,tol,xmin,f,CGOLD,ZEPS
+     4        EXTERNAL f
+     5        PARAMETER (ITMAX=100,CGOLD=.3819660d0,ZEPS=1.d-18)
+     6        INTEGER iter
+     7        DOUBLE PRECISION a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x
+     8       *,xm
+     9        a=min(ax,cx)
+    10        b=max(ax,cx)
+    11        v=bx
+    12        w=v
+    13        x=v
+    14        e=0.d0
+    15        fx=f(x)
+    16        fv=fx
+    17        fw=fx
+    18        do 11 iter=1,ITMAX
+    19          xm=0.5d0*(a+b)
+    20          tol1=tol*abs(x)+ZEPS
+    21          tol2=2.d0*tol1
+    22          if(abs(x-xm).le.(tol2-.5d0*(b-a))) goto 3
+    23          if(abs(e).gt.tol1) then
+    24            r=(x-w)*(fx-fv)
+    25            q=(x-v)*(fx-fw)
+    26            p=(x-v)*q-(x-w)*r
+    27            q=2.d0*(q-r)
+    28            if(q.gt.0.d0) p=-p
+    29            q=abs(q)
+    30            etemp=e
+    31            e=d
+    32            if(abs(p).ge.abs(.5d0*q*etemp).or.p.le.q*(a-x).or.p.ge.q*(b-x)
+    33       *) 
+    34       *goto 1
+    35            d=p/q
+    36            u=x+d
+    37            if(u-a.lt.tol2 .or. b-u.lt.tol2) d=sign(tol1,xm-x)
+    38            goto 2
+    39          endif
+    40  1       if(x.ge.xm) then
+    41            e=a-x
+    42          else
+    43            e=b-x
+    44          endif
+    45          d=CGOLD*e
+    46  2       if(abs(d).ge.tol1) then
+    47            u=x+d
+    48          else
+    49            u=x+sign(tol1,d)
+    50          endif
+    51          fu=f(u)
+    52          if(fu.le.fx) then
+    53            if(u.ge.x) then
+    54              a=x
+    55            else
+    56              b=x
+    57            endif
+
+                                                                        PAGE   2
+                                                                        02-23-96
+                                                                        13:33:15
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58            v=w
+    59            fv=fw
+    60            w=x
+    61            fw=fx
+    62            x=u
+    63            fx=fu
+    64          else
+    65            if(u.lt.x) then
+    66              a=u
+    67            else
+    68              b=u
+    69            endif
+    70            if(fu.le.fw .or. w.eq.x) then
+    71              v=w
+    72              fv=fw
+    73              w=u
+    74              fw=fu
+    75            else if(fu.le.fv .or. v.eq.x .or. v.eq.w) then
+    76              v=u
+    77              fv=fu
+    78            endif
+    79          endif
+    80  11    continue
+    81        pause 'brent exceed maximum iterations'
+    82  3     xmin=x
+    83        brent=fx
+    84        return
+    85        END
+
+BRENT@24  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . local              REAL*8            8
+AX. . . . . . . . . . . . param                                4
+B . . . . . . . . . . . . local              REAL*8            8
+BX. . . . . . . . . . . . param                                4
+CGOLD . . . . . . . . . . const              REAL*8            8
+CX. . . . . . . . . . . . param                                4
+D . . . . . . . . . . . . local              REAL*8            8
+E . . . . . . . . . . . . local              REAL*8            8
+ETEMP . . . . . . . . . . local              REAL*8            8
+F . . . . . . . . . . . . param                                4
+FU. . . . . . . . . . . . local              REAL*8            8
+FV. . . . . . . . . . . . local              REAL*8            8
+FW. . . . . . . . . . . . local              REAL*8            8
+FX. . . . . . . . . . . . local              REAL*8            8
+ITER. . . . . . . . . . . dynam              INTEGER*4         4
+ITMAX . . . . . . . . . . const              INTEGER*4         4
+P . . . . . . . . . . . . local              REAL*8            8
+Q . . . . . . . . . . . . local              REAL*8            8
+R . . . . . . . . . . . . local              REAL*8            8
+TOL . . . . . . . . . . . param                                4
+TOL1. . . . . . . . . . . local              REAL*8            8
+TOL2. . . . . . . . . . . local              REAL*8            8
+U . . . . . . . . . . . . local              REAL*8            8
+V . . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   3
+                                                                        02-23-96
+                                                                        13:33:15
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+BRENT@24  Local symbols
+Name                      Class              Type           Size
+
+
+W . . . . . . . . . . . . local              REAL*8            8
+X . . . . . . . . . . . . local              REAL*8            8
+XM. . . . . . . . . . . . local              REAL*8            8
+XMIN. . . . . . . . . . . param                                4
+ZEPS. . . . . . . . . . . const              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BRENT@24. . . . . . . . . FUNCT              REAL*8          ***
+
+
+No errors detected

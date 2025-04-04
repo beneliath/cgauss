@@ -1,0 +1,25 @@
+ Correlated Gaussian Geminal Output:  H_2
+ ===================================================
+ Adamowicz Research /            [Univ. of AZ, CHEM]
+ Programming:[D. Gilmore, L. Adamowicz, D. Kinghorn]
+  PROGRAM BEGINS:  TIME STAMP...
+      4/03/2025
+     16:09:24:87 
+ OUTPUT STREAM BEGINS...
+  
+ NUMBER OF FUNCTIONS=          0
+ FUNCTION GENERATION=RESTART                                                    
+        
+ OPTIMIZATION METHOD=IMSL:DUMING                                                
+        
+     OUTPUT FILENAME=H2_PROJECT.OUT                                             
+        
+  NEW RESTART OUTPUT=RESTART_H2_PROJECT.DAT                                     
+        
+        RESTART FROM=206.DAT                                                    
+        
+  
+ STARTING FROM DESIGNATED RESTART POINT!
+  Point taken from File = 206.DAT                                               
+             
+  

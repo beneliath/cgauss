@@ -1,0 +1,144 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:36
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang
+     2  C           Modified By:  D. Gilmore ---> (24 May 95)
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE KFACT(AX,AY,AZ,A1,BX,BY,BZ,A2,                      
+     7       1                 CX,CY,CZ,A3,DX,DY,DZ,A4,
+     8       2                 A5,A6,XK) 
+     9  C     -----------------------------------------------------
+    10        IMPLICIT REAL*8 (A-H,O-Z)
+    11  	COMMON /OVER/ DETS(50),L,K,CC(50)
+    12  
+    13  C     -----------------------------------------------------
+    14  C     A1 = Exponent Alpha _sub1(L)
+    15  C     AX = x-Component of Position for Gaussian of A1
+    16  C     AY = y-Component of Position for Gaussian of A1  
+    17  C     AZ = z-Component of Position for Gaussian of A1
+    18  C     A2 = Exponent Alpha _sub1(K)
+    19  C     BX = x-Component of Position for Gaussian of A2
+    20  C     BY = y-Component of Position for Gaussian of A2  
+    21  C     BZ = z-Component of Position for Gaussian of A2
+    22  C     A3 = Exponent Alpha _sub2(L)
+    23  C     CX = x-Component of Position for Gaussian of A3
+    24  C     CY = y-Component of Position for Gaussian of A3  
+    25  C     CZ = z-Component of Position for Gaussian of A3
+    26  C     A4 = Exponent Alpha _sub2(K)
+    27  C     DX = x-Component of Position for Gaussian of A4
+    28  C     DY = y-Component of Position for Gaussian of A4  
+    29  C     DZ = z-Component of Position for Gaussian of A4
+    30  C     A5 = Correlation Exponent Beta _sub1,2(L)
+    31  C     A6 = Correlation Exponent Beta _sub1,2(K)
+    32  C     XK = ?
+    33  C     -----------------------------------------------------
+    34  C     --- SUBROUTINE KFACT CALCULATES K-FACTOR ---
+    35  C     -----------------------------------------------------
+    36        ALK1=A1+A2                                                       
+    37        ALK2=A3+A4                                                       
+    38        BLK12=A5+A6  
+    39        DETAB=ALK1*ALK2+((ALK1+ALK2)*BLK12)
+    40  C      DETAB=(ALK1*ALK2)+((ALK1+ALK2)*(2.0D0*BLK12))
+    41  C
+    42  C     -----------------------------------------------------
+    43  C     --- CENTERS ---
+    44  C      -----------------------------------------------------
+    45  C
+    46  c      XK1=EXP(-((A1*A2)/ALK1)*((AX-BX)**2+(AY-BY)**2+(AZ-BZ)**2))
+    47  c      XK2=EXP(-((A3*A4)/ALK2)*((CX-DX)**2+(CY-DY)**2+(CZ-DZ)**2))
+    48  C
+    49        RX1=(A1*AX+A2*BX)/ALK1
+    50        RX2=(A3*CX+A4*DX)/ALK2
+    51        RY1=(A1*AY+A2*BY)/ALK1
+    52        RY2=(A3*CY+A4*DY)/ALK2
+    53        RZ1=(A1*AZ+A2*BZ)/ALK1
+    54        RZ2=(A3*CZ+A4*DZ)/ALK2
+    55        DD=((RX1-RX2)**2)+((RY1-RY2)**2)+((RZ1-RZ2)**2)
+    56  C      XK=XK1*XK2*EXP(-((ALK1*ALK2*BLK12)/DETAB)*DD)
+    57  C	WRITE(6,*)DETAB,DD,ALK1,ALK2,BLK12,XK1,XK2
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:36
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  c       XK=XK1*XK2*EXP(-((ALK1*ALK2*BLK12)*DD/DETAB)+((CC(K)+CC
+    59  c	1(L))/2.0D+00))
+    60  	CKL=(((A1*A2)/ALK1)*((AX-BX)**2+(AY-BY)**2+(AZ-BZ)**2)+((A3*A4
+    61  	1)/ALK2)*((CX-DX)**2+(CY-DY)**2+(CZ-DZ)**2)+((ALK1*ALK2*BLK12)*DD/D
+    62       2ETAB))
+    63  
+    64  	XK=EXP(-CKL+((CC(K)+CC(L))/2.0D+00))
+    65  
+    66  C         ...Need to Verify the EXP (...) Part Here.
+    67  C
+    68  C     -----------------------------------------------------
+    69  C
+    70        RETURN                                                            
+    71        END       
+
+KFACT@76  Local symbols
+Name                      Class              Type           Size
+
+
+/OVER/. . . . . . . . . . OVER(0)            MULTI*808       808
+A1. . . . . . . . . . . . param                                4
+A2. . . . . . . . . . . . param                                4
+A3. . . . . . . . . . . . param                                4
+A4. . . . . . . . . . . . param                                4
+A5. . . . . . . . . . . . param                                4
+A6. . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+AX. . . . . . . . . . . . param                                4
+AY. . . . . . . . . . . . param                                4
+AZ. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+BX. . . . . . . . . . . . param                                4
+BY. . . . . . . . . . . . param                                4
+BZ. . . . . . . . . . . . param                                4
+CC. . . . . . . . . . . . OVER(408)          REAL*8          400
+CKL . . . . . . . . . . . local              REAL*8            8
+CX. . . . . . . . . . . . param                                4
+CY. . . . . . . . . . . . param                                4
+CZ. . . . . . . . . . . . param                                4
+DD. . . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+DZ. . . . . . . . . . . . param                                4
+K . . . . . . . . . . . . OVER(404)          INTEGER*4         4
+L . . . . . . . . . . . . OVER(400)          INTEGER*4         4
+RX1 . . . . . . . . . . . local              REAL*8            8
+RX2 . . . . . . . . . . . local              REAL*8            8
+RY1 . . . . . . . . . . . local              REAL*8            8
+RY2 . . . . . . . . . . . local              REAL*8            8
+RZ1 . . . . . . . . . . . local              REAL*8            8
+RZ2 . . . . . . . . . . . local              REAL*8            8
+XK. . . . . . . . . . . . param                                4
+
+
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:36
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+KFACT@76. . . . . . . . . FUNCT              ***             ***
+OVER. . . . . . . . . . . common             ***             808
+
+
+No errors detected

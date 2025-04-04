@@ -1,0 +1,79 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:31:55
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE linmin(p,xi,n,fret)
+     2        INTEGER n,NMAX
+     3        DOUBLE PRECISION fret,p(n),xi(n),TOL
+     4        PARAMETER (NMAX=50,TOL=1.d-4)
+     5  CU    USES brent,f1dim,mnbrak
+     6        INTEGER j,ncom
+     7        DOUBLE PRECISION ax,bx,fa,fb,fx,xmin,xx,pcom(NMAX),xicom(NMAX)
+     8       *,brent
+     9        COMMON /f1com/ pcom,xicom,ncom
+    10        EXTERNAL f1dim
+    11        ncom=n
+    12        do 11 j=1,n
+    13          pcom(j)=p(j)
+    14          xicom(j)=xi(j)
+    15  11    continue
+    16        ax=0.d0
+    17        xx=1.d0
+    18  C      WRITE(6,*) FRET
+    19        call mnbrak(ax,xx,bx,fa,fx,fb,f1dim)
+    20  C      WRITE(6,*) FRET
+    21        fret=brent(ax,xx,bx,f1dim,TOL,xmin)
+    22        do 12 j=1,n
+    23          xi(j)=xmin*xi(j)
+    24          p(j)=p(j)+xi(j)
+    25  12    continue
+    26        return
+    27        END
+
+LINMIN@16  Local symbols
+Name                      Class              Type           Size
+
+
+/F1COM/ . . . . . . . . . F1COM(0)           MULTI*804       804
+AX. . . . . . . . . . . . local              REAL*8            8
+BX. . . . . . . . . . . . local              REAL*8            8
+FA. . . . . . . . . . . . local              REAL*8            8
+FB. . . . . . . . . . . . local              REAL*8            8
+FRET. . . . . . . . . . . param                                4
+FX. . . . . . . . . . . . local              REAL*8            8
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NCOM. . . . . . . . . . . F1COM(800)         INTEGER*4         4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+P . . . . . . . . . . . . param                                4
+PCOM. . . . . . . . . . . F1COM(0)           REAL*8          400
+TOL . . . . . . . . . . . const              REAL*8            8
+XI. . . . . . . . . . . . param                                4
+XICOM . . . . . . . . . . F1COM(400)         REAL*8          400
+XMIN. . . . . . . . . . . local              REAL*8            8
+XX. . . . . . . . . . . . local              REAL*8            8
+
+
+
+                                                                        PAGE   2
+                                                                        02-23-96
+                                                                        13:31:55
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BRENT@24. . . . . . . . . extern             REAL*8          ***
+F1COM . . . . . . . . . . common             ***             804
+LINMIN@16 . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+MNBRAK@28 . . . . . . . . extern             ***             ***
+
+
+No errors detected

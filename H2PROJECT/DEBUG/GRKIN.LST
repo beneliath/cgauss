@@ -1,0 +1,507 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C**************************************************
+     2        SUBROUTINE grkin(OVLAP,L,K,R1LZ,AL1,R1KZ,Ak1,                     
+     3       1              R2LZ,AL2,R2KZ,AK2,BL,BK,
+     4       2              DTA1,DTA2,DTB,DTR1,DTR2) 
+     5  C**************************************************
+     6        IMPLICIT REAL*8 (A-H,O-Z)
+     7        DIMENSION DELTA(100,100)
+     8        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/               
+     9        PI=3.1415926535898D+00
+    10  
+    11  C ***                                                               ***
+    12  C ***    SUBROUTINE  CALCULATES FIRST DERIVATIVES OF KINETIC ENERGY ***
+    13  C ***                   
+    14       
+    15        DO 20 IL=1,100
+    16        DO 20 IK=1,100
+    17        DELTA(IL,IK)=0.0
+    18  20    CONTINUE
+    19        DO 11 II=1,100
+    20        DELTA(II,II)=1.0 
+    21  11    CONTINUE
+    22        ALK1=AL1+Ak1                                                      
+    23        ALK2=AL2+Ak2                                                      
+    24        BLK12=BL+BK  
+    25        DETAB=ALK1*ALK2+(ALK1+ALK2)*BLK12
+    26  	DETA1=(1.0+DELTA(L,K))*(ALK2 +BLK12)
+    27  	DETA2=(1.0+DELTA(L,K))*(ALK1 +BLK12)
+    28  	DETB=(1.0+DELTA(L,K))*(ALK1 +ALK2)
+    29        RZ1=(AL1*R1LZ+Ak1*R1KZ)/ALK1
+    30        RZ1A1= ( DELTA(L,K)*R1LZ+R1KZ )/ALK1
+    31       1     -( AL1*R1LZ+Ak1*R1KZ )*(1.0+DELTA(L,K))/ALK1**2.0
+    32        RZ1R1=(AL1*DELTA(L,K) + AK1 )/ALK1	
+    33  C
+    34        RZ2=(AL2*R2LZ+Ak2*R2KZ)/ALK2
+    35        RZ2A2=( DELTA(L,K)*R2LZ+R2KZ )/ALK2
+    36       1     -( AL2*R2LZ+Ak2*R2KZ )*(1.0+DELTA(L,K))/ALK2**2.0
+    37        RZ2R2=(AL2*DELTA(L,K) + AK2 )/ALK2	
+    38        CALL grover(L,K,R1LZ,AL1,R1KZ,Ak1,                      
+    39       1              R2LZ,AL2,R2KZ,AK2,BL,BK,
+    40       2              DSA1,DSA2,DSB,DSR1,DSR2) 
+    41  C
+    42        OVZA11=(RZ1-R1LZ)-(RZ1-RZ2)*ALK2*BLK12/DETAB                
+    43        ZA11A1=RZ1A1 -( RZ1A1*ALK2*BLK12/DETAB 
+    44       1  -(RZ1-RZ2)*ALK2*BLK12*DETA1/DETAB**2.0 )
+    45        ZA11A2=- ( -RZ2A2*ALK2*BLK12/DETAB 
+    46       1           +(RZ1-RZ2)*(1.0+DELTA(L,K))*BLK12/DETAB
+    47       2           -(RZ1-RZ2)*ALK2*BLK12*DETA2/DETAB**2.0 )
+    48        ZA11B =- ( (RZ1-RZ2)*ALK2*(1.0+DELTA(L,K))/DETAB
+    49       1           -(RZ1-RZ2)*ALK2*BLK12*DETB /DETAB**2.0 )
+    50        ZA11R1=(RZ1R1-DELTA(L,K) ) -RZ1R1*ALK2*BLK12/DETAB
+    51        ZA11R2= RZ2R2*ALK2*BLK12/DETAB 
+    52  c
+    53        OVZB11=(RZ1-R1KZ)-(RZ1-RZ2)*ALK2*BLK12/DETAB   
+    54        ZB11A1=ZA11A1
+    55        ZB11A2=ZA11A2
+    56        ZB11B =ZA11B
+    57        ZB11R1=(RZ1R1-1.0 ) -RZ1R1*ALK2*BLK12/DETAB
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        ZB11R2=ZA11R2
+    59  C
+    60        POM=0.5*(1.0/Alk1-ALK2*BLK12/(DETAB*ALK1) )                       
+    61        POMA1=0.5* (
+    62       1            -(1.0+DELTA(L,K))/ALK1**2
+    63       2            +ALK2*BLK12/(DETAB*ALK1)**2.0 
+    64       3            *(DETA1*ALK1+(1.0+DELTA(L,K))*DETAB )  )
+    65        POMA2=0.5* ( -BLK12/ALK1
+    66       1           *( (1.0+DELTA(L,K))*DETAB -ALK2*DETA2 )/DETAB**2.0  )
+    67        POMB =0.5* ( -ALK2/ALK1
+    68       1           *( (1.0+DELTA(L,K))*DETAB -BLK12*DETB )/DETAB**2.0  )
+    69  C
+    70        OVZA12=(OVZA11*OVZA11+POM)*OVLAP                                  
+    71        OVA12= (OVZA11**2.0+3.0*POM)*OVLAP
+    72        DA12A1= (2.0*OVZA11*ZA11A1+3.0*POMA1)*OVLAP
+    73       1      +(OVZA11**2.0+3.0*POM)*DSA1
+    74        DA12A2= (2.0*OVZA11*ZA11A2+3.0*POMA2)*OVLAP
+    75       1      +(OVZA11**2.0+3.0*POM)*DSA2
+    76        DA12B = (2.0*OVZA11*ZA11B+3.0*POMB)*OVLAP
+    77       1      +(OVZA11**2.0+3.0*POM)*DSB
+    78        DA12R1= (2.0*OVZA11*ZA11R1)*OVLAP
+    79       1      +(OVZA11**2.0+3.0*POM)*DSR1
+    80        DA12R2= (2.0*OVZA11*ZA11R2)*OVLAP
+    81       1      +(OVZA11**2.0+3.0*POM)*DSR2
+    82  
+    83  C
+    84        OVA11=2*(OVZA11*(R1LZ-R2LZ))*OVLAP                
+    85        DA11A1=2*(ZA11A1*(R1LZ-R2LZ))*OVLAP 
+    86       1      +2*(OVZA11*(R1LZ-R2LZ))*DSA1
+    87        DA11A2=2*(ZA11A2*(R1LZ-R2LZ))*OVLAP 
+    88       1      +2*(OVZA11*(R1LZ-R2LZ))*DSA2
+    89        DA11B =2*(ZA11B *(R1LZ-R2LZ))*OVLAP 
+    90       1      +2*(OVZA11*(R1LZ-R2LZ))*DSB
+    91        DA11R1=2*(ZA11R1*(R1LZ-R2LZ)+ OVZA11*DELTA(L,K))*OVLAP 
+    92       1      +2*(OVZA11*(R1LZ-R2LZ))*DSR1
+    93        DA11R2=2*(ZA11R2*(R1LZ-R2LZ)- OVZA11*DELTA(L,K))*OVLAP 
+    94       1      +2*(OVZA11*(R1LZ-R2LZ))*DSR2
+    95  C
+    96        OVZB12=(OVZB11*OVZB11+POM)*OVLAP                                  
+    97        OVB12= (OVZB11**2.0+3.0*POM)*OVLAP 
+    98        DB12A1= (2.0*OVZB11*ZB11A1+3.0*POMA1)*OVLAP
+    99       1      +(OVZB11**2.0+3.0*POM)*DSA1
+   100        DB12A2= (2.0*OVZB11*ZB11A2+3.0*POMA2)*OVLAP
+   101       1      +(OVZB11**2.0+3.0*POM)*DSA2
+   102        DB12B = (2.0*OVZB11*ZB11B+3.0*POMB)*OVLAP
+   103       1      +(OVZB11**2.0+3.0*POM)*DSB
+   104        DB12R1= (2.0*OVZB11*ZB11R1)*OVLAP
+   105       1      +(OVZB11**2.0+3.0*POM)*DSR1
+   106        DB12R2= (2.0*OVZB11*ZB11R2)*OVLAP
+   107       1      +(OVZB11**2.0+3.0*POM)*DSR2
+   108  C
+   109        OVZC21=(RZ2-R2LZ)+(RZ1-RZ2)*ALK1*BLK12/DETAB
+   110        ZC21A2=RZ2A2 +( -RZ2A2*ALK1*BLK12/DETAB 
+   111       1  -(RZ1-RZ2)*ALK1*BLK12*DETA2/DETAB**2.0 )
+   112        ZC21A1=+ ( RZ1A1*ALK1*BLK12/DETAB 
+   113       1           +(RZ1-RZ2)*(1.0+DELTA(L,K))*BLK12/DETAB
+   114       2           -(RZ1-RZ2)*ALK1*BLK12*DETA1/DETAB**2.0 )
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115        ZC21B =+ ( (RZ1-RZ2)*ALK1*(1.0+DELTA(L,K))/DETAB
+   116       1           -(RZ1-RZ2)*ALK1*BLK12*DETB /DETAB**2.0 )
+   117        ZC21R2=(RZ2R2-DELTA(L,K) ) -RZ2R2*ALK1*BLK12/DETAB
+   118        ZC21R1= RZ1R1*ALK1*BLK12/DETAB 
+   119  C              
+   120        OVC21=-2*(OVZC21*(R1LZ-R2LZ))*OVLAP              
+   121        DC21A1=-2*(ZC21A1*(R1LZ-R2LZ))*OVLAP 
+   122       1       -2*(OVZC21*(R1LZ-R2LZ))*DSA1
+   123        DC21A2=-2*(ZC21A2*(R1LZ-R2LZ))*OVLAP 
+   124       1       -2*(OVZC21*(R1LZ-R2LZ))*DSA2
+   125        DC21B =-2*(ZC21B *(R1LZ-R2LZ))*OVLAP 
+   126       1       -2*(OVZC21*(R1LZ-R2LZ))*DSB
+   127        DC21R1=-2*(ZC21R1*(R1LZ-R2LZ)+ OVZC21*DELTA(L,K))*OVLAP 
+   128       1       -2*(OVZC21*(R1LZ-R2LZ))*DSR1
+   129        DC21R2=-2*(ZC21R2*(R1LZ-R2LZ)- OVZC21*DELTA(L,K))*OVLAP 
+   130       1       -2*(OVZC21*(R1LZ-R2LZ))*DSR2
+   131  C
+   132        POM=0.5*(1.0/ALK2-ALK1*BLK12/(DETAB*ALK2) )                       
+   133        POMA2=0.5* (
+   134       1            -(1.0+DELTA(L,K))/ALK2**2
+   135       2            +ALK1*BLK12/(DETAB*ALK2)**2.0 
+   136       3            *(DETA2*ALK2+(1.0+DELTA(L,K))*DETAB )  )
+   137        POMA1=0.5* ( -BLK12/ALK2
+   138       1           *( (1.0+DELTA(L,K))*DETAB -ALK1*DETA1 )/DETAB**2.0  )
+   139        POMB =0.5* ( -ALK1/ALK2
+   140       1           *( (1.0+DELTA(L,K))*DETAB -BLK12*DETB )/DETAB**2.0  )
+   141  C
+   142        OVZC22=(OVZC21*OVZC21+POM)*OVLAP                       
+   143        OVC22=(OVZC21**2.0+3.0*POM)*OVLAP
+   144        DC22A1= (2.0*OVZC21*ZC21A1+3.0*POMA1)*OVLAP
+   145       1      +(OVZC21**2.0+3.0*POM)*DSA1
+   146        DC22A2= (2.0*OVZC21*ZC21A2+3.0*POMA2)*OVLAP
+   147       1      +(OVZC21**2.0+3.0*POM)*DSA2
+   148        DC22B = (2.0*OVZC21*ZC21B+3.0*POMB)*OVLAP
+   149       1      +(OVZC21**2.0+3.0*POM)*DSB
+   150        DC22R1= (2.0*OVZC21*ZC21R1)*OVLAP
+   151       1      +(OVZC21**2.0+3.0*POM)*DSR1
+   152        DC22R2= (2.0*OVZC21*ZC21R2)*OVLAP
+   153       1      +(OVZC21**2.0+3.0*POM)*DSR2
+   154  C
+   155        XX1=(0.5*BLK12/DETAB)
+   156       1  *(1.0-2.0*(RZ1-RZ2)**2.0*ALK1*ALK2*BLK12/DETAB)
+   157  C
+   158        YY1=0.5*BLK12/DETAB
+   159        YY1A1=-0.5*BLK12*DETA1/DETAB**2
+   160        YY1A2=-0.5*BLK12*DETA2/DETAB**2
+   161        YY1B =0.5*( (1+DELTA(L,K))*DETAB -BLK12*DETB )/DETAB**2
+   162  C
+   163        YY2=1.0-2.0*(RZ1-RZ2)**2.0*ALK1*ALK2*BLK12/DETAB
+   164        YY2A1= -4.0*(RZ1-RZ2)*RZ1A1*ALK1*ALK2*BLK12/DETAB
+   165       1       -2.0*(RZ1-RZ2)**2.0*(1.0+DELTA(L,K))*ALK2*BLK12/DETAB
+   166       2       +2.0*(RZ1-RZ2)**2.0*ALK1*ALK2*BLK12*DETA1/DETAB**2.0
+   167        YY2A2=  4.0*(RZ1-RZ2)*RZ2A2*ALK1*ALK2*BLK12/DETAB
+   168       1       -2.0*(RZ1-RZ2)**2.0*(1.0+DELTA(L,K))*ALK1*BLK12/DETAB
+   169       2       +2.0*(RZ1-RZ2)**2.0*ALK1*ALK2*BLK12*DETA2/DETAB**2.0
+   170        YY2B = -2.0*(RZ1-RZ2)**2.0*(1.0+DELTA(L,K))*ALK1*ALK2/DETAB
+   171       1       +2.0*(RZ1-RZ2)**2.0*ALK1*ALK2*BLK12*DETB/DETAB**2.0
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172        YY2R1= -4.0*(RZ1-RZ2)*RZ1R1*ALK1*ALK2*BLK12/DETAB
+   173        YY2R2=  4.0*(RZ1-RZ2)*RZ2R2*ALK1*ALK2*BLK12/DETAB
+   174  C
+   175        XX1A1=YY1A1*YY2+YY1*YY2A1
+   176        XX1A2=YY1A2*YY2+YY1*YY2A2
+   177        XX1B=YY1B*YY2+YY1*YY2B
+   178        XX1R1=YY2R1*YY1
+   179        XX1R2=YY2R2*YY1
+   180  C 
+   181        XTEM=(RZ1-R1LZ)*ALK1*BLK12-(RZ2-R2LZ)*ALK2*BLK12
+   182        XTEMA1=RZ1A1*ALK1*BLK12 +(RZ1-R1LZ)*(1.0+DELTA(L,K))*BLK12
+   183        XTEMA2=-RZ2A2*ALK2*BLK12-(RZ2-R2LZ)*(1.0+DELTA(L,K))*BLK12
+   184        XTEMB=(RZ1-R1LZ)*ALK1*(1.0+DELTA(L,K))
+   185       1     -(RZ2-R2LZ)*ALK2*(1.0+DELTA(L,K))
+   186        XTEMR1= (RZ1R1-DELTA(L,K))*ALK1*BLK12
+   187        XTEMR2=-(RZ2R2-DELTA(L,K))*ALK2*BLK12
+   188        XX2=(RZ1-R1LZ)*(RZ2-R2LZ)+(RZ1-RZ2)*XTEM/DETAB           
+   189        XX2A1=RZ1A1*(RZ2-R2LZ)
+   190       1     +RZ1A1*XTEM/DETAB+(RZ1-RZ2)*XTEMA1/DETAB
+   191       2     -(RZ1-RZ2)*XTEM*DETA1/DETAB**2
+   192        XX2A2=RZ2A2*(RZ1-R1LZ)
+   193       1     -RZ2A2*XTEM/DETAB+(RZ1-RZ2)*XTEMA2/DETAB
+   194       2     -(RZ1-RZ2)*XTEM*DETA2/DETAB**2
+   195        XX2B=(RZ1-RZ2)*XTEMB/DETAB
+   196       1     -(RZ1-RZ2)*XTEM*DETB/DETAB**2
+   197        XX2R1=(RZ1R1-DELTA(L,K))*(RZ2-R2LZ) 
+   198       1     +(RZ1R1*XTEM+(RZ1-RZ2)*XTEMR1)/DETAB
+   199        XX2R2=(RZ2R2-DELTA(L,K))*(RZ1-R1LZ)
+   200       1     +(-RZ2R2*XTEM+(RZ1-RZ2)*XTEMR2)/DETAB
+   201  
+   202        za1zc2=(XX1+XX2)*OVLAP
+   203  c     WRITE(6,*) 'JOHN,ZA1ZC2'
+   204  c     WRITE(6,*)  ZA1ZC2
+   205  	A1C2=-2*(XX1+XX2+BLK12/DETAB)*OVLAP                                 
+   206        A1C2A1=-2*(
+   207       1           (XX1A1+XX2A1-BLK12*DETA1/DETAB**2.0)*OVLAP
+   208       2          +(XX1+XX2+BLK12/DETAB)*DSA1   )
+   209        A1C2A2=-2*(
+   210       1           (XX1A2+XX2A2-BLK12*DETA2/DETAB**2.0)*OVLAP
+   211       2          +(XX1+XX2+BLK12/DETAB)*DSA2   )
+   212        A1C2B =-2*(
+#  213       1     (XX1B+XX2B+(1.0+DELTA(L,K))/DETAB-BLK12*DETB/DETAB**2.0)*OVLA
+   214       2          +(XX1+XX2+BLK12/DETAB)*DSB   )
+   215        A1C2R1=-2*(
+   216       1           (XX1R1+XX2R1)*OVLAP
+   217       2          +(XX1+XX2+BLK12/DETAB)*DSR1   )
+   218        A1C2R2=-2*(
+   219       1           (XX1R2+XX2R2)*OVLAP
+   220       2          +(XX1+XX2+BLK12/DETAB)*DSR2   )
+   221  C
+   222        TKIN=4*BL*BK*(OVA11 +OVA12+OVC22+OVC21+A1C2)                   
+   223        DTA1=4*BL*BK*(DA11A1 +DA12A1+A1C2A1+DC22A1+DC21A1)                
+   224        DTA2=4*BL*BK*(DA11A2 +DA12A2+A1C2A2+DC22A2+DC21A2)                
+   225        DTR1=4*BL*BK*(DA11R1 +DA12R1+DC22R1+DC21R1+A1C2R1)                
+   226        DTR2=4*BL*BK*(DA11R2 +DA12R2+DC22R2+DC21R2+A1C2R2)                
+   227        DTB =4*(BL+DELTA(L,K)*BK)*(OVA11 +OVA12+OVC22+OVC21+A1C2)
+   228       1    +4*BL*BK*(DA11B +DA12B+DC22B+DC21B+A1C2B)
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229        IF(BLK12) 10,12,10                                               
+   230    12  A6DG3=0.5                                                     
+   231        A5DG3=0.5                                                       
+   232        GO TO 14                                                         
+   233    10  A6DG3=BK/BLK12                                                   
+   234        A5DG3=BL/BLK12                                                   
+   235        A6DG3B=1/BLK12-BK*(1.0+DELTA(L,K))/BLK12**2.0
+   236        A5DG3B=DELTA(L,K)/BLK12-BL*(1.0+DELTA(L,K))/BLK12**2.0
+   237    14  CONTINUE                                                         
+   238        TKIN=TKIN-4*AL1*AL1*A6DG3*OVA12                                 
+   239        TKIN=TKIN-4*Ak1*Ak1*A5DG3*OVB12                                 
+   240        DTA1=DTA1
+   241       1     - ( 8*AL1*DELTA(L,K)*A6DG3*OVA12 +4*AL1*AL1*A6DG3*DA12A1 )
+   242       2     - ( 8*AK1*A5DG3*OVB12 +4*AK1*AK1*A5DG3*DB12A1 )
+   243        DTA2=DTA2
+   244       1     - ( 4*AL1*AL1*A6DG3*DA12A2 )
+   245       2     - ( 4*AK1*AK1*A5DG3*DB12A2 )
+   246        DTR1=DTR1
+   247       1     - ( 4*AL1*AL1*A6DG3*DA12R1 )
+   248       2     - ( 4*AK1*AK1*A5DG3*DB12R1 )
+   249        DTR2=DTR2
+   250       1     - ( 4*AL1*AL1*A6DG3*DA12R2 )
+   251       2     - ( 4*AK1*AK1*A5DG3*DB12R2 )
+   252        DTB =DTB
+   253       1     - ( 4*AL1*AL1*A6DG3B*OVA12 +4*AL1*AL1*A6DG3*DA12B )
+   254       2     - ( 4*AK1*AK1*A5DG3B*OVB12 +4*AK1*AK1*A5DG3*DB12B )
+   255  
+   256        TKIN=TKIN+(6*(AL1*A6DG3+AK1*A5DG3)+                              
+   257       *     4*BL*BK*(R1LZ-R2LZ)**2.0)*OVLAP                 
+   258        DTA1=DTA1
+   259       1   + (6*(AL1*A6DG3+AK1*A5DG3)+ 4*BL*BK*(R1LZ-R2LZ)**2.0)*DSA1
+   260       2   +  6*(DELTA(L,K)*A6DG3+A5DG3) *OVLAP
+   261        DTA2=DTA2
+   262       1   + (6*(AL1*A6DG3+AK1*A5DG3)+ 4*BL*BK*(R1LZ-R2LZ)**2.0)*DSA2
+   263        DTR1=DTR1
+   264       1   + (6*(AL1*A6DG3+AK1*A5DG3)+ 4*BL*BK*(R1LZ-R2LZ)**2.0)*DSR1
+   265       2   + (4*BL*BK*2*(R1LZ-R2LZ)*DELTA(L,K))*OVLAP
+   266        DTR2=DTR2
+   267       1   + (6*(AL1*A6DG3+AK1*A5DG3)+ 4*BL*BK*(R1LZ-R2LZ)**2.0)*DSR2
+   268       2   + ( -4*BL*BK*2*(R1LZ-R2LZ)*DELTA(L,K))*OVLAP
+   269        DTB =DTB
+   270       1   + (6*(AL1*A6DG3+AK1*A5DG3)+ 4*BL*BK*(R1LZ-R2LZ)**2.0)*DSB
+   271       2   + ( 6*(AL1*A6DG3B+AK1*A5DG3B) 
+   272       3      +4*(BL+DELTA(L,K)*BK)*(R1LZ-R2LZ)**2.0)*OVLAP
+   273  	WRITE(7,*) 'GRKIN.F DTA1,DTA2,DTB,DTR1,DTR2'  
+   274  	WRITE(6,*) 'GRKIN.F DTA1,DTA2,DTB,DTR1,DTR2'
+   275        WRITE(7,*)  DTA1,DTA2,DTB,DTR1,DTR2
+   276        WRITE(6,*)  DTA1,DTA2,DTB,DTR1,DTR2
+   277  	RETURN
+   278  	END
+
+GRKIN@72  Local symbols
+Name                      Class              Type           Size
+
+
+A1C2. . . . . . . . . . . local              REAL*8            8
+A1C2A1. . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRKIN@72  Local symbols
+Name                      Class              Type           Size
+
+
+A1C2A2. . . . . . . . . . local              REAL*8            8
+A1C2B . . . . . . . . . . local              REAL*8            8
+A1C2R1. . . . . . . . . . local              REAL*8            8
+A1C2R2. . . . . . . . . . local              REAL*8            8
+A5DG3 . . . . . . . . . . local              REAL*8            8
+A5DG3B. . . . . . . . . . local              REAL*8            8
+A6DG3 . . . . . . . . . . local              REAL*8            8
+A6DG3B. . . . . . . . . . local              REAL*8            8
+AK1 . . . . . . . . . . . param                                4
+AK2 . . . . . . . . . . . param                                4
+AL1 . . . . . . . . . . . param                                4
+AL2 . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+BK. . . . . . . . . . . . param                                4
+BL. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+DA11A1. . . . . . . . . . local              REAL*8            8
+DA11A2. . . . . . . . . . local              REAL*8            8
+DA11B . . . . . . . . . . local              REAL*8            8
+DA11R1. . . . . . . . . . local              REAL*8            8
+DA11R2. . . . . . . . . . local              REAL*8            8
+DA12A1. . . . . . . . . . local              REAL*8            8
+DA12A2. . . . . . . . . . local              REAL*8            8
+DA12B . . . . . . . . . . local              REAL*8            8
+DA12R1. . . . . . . . . . local              REAL*8            8
+DA12R2. . . . . . . . . . local              REAL*8            8
+DB12A1. . . . . . . . . . local              REAL*8            8
+DB12A2. . . . . . . . . . local              REAL*8            8
+DB12B . . . . . . . . . . local              REAL*8            8
+DB12R1. . . . . . . . . . local              REAL*8            8
+DB12R2. . . . . . . . . . local              REAL*8            8
+DC21A1. . . . . . . . . . local              REAL*8            8
+DC21A2. . . . . . . . . . local              REAL*8            8
+DC21B . . . . . . . . . . local              REAL*8            8
+DC21R1. . . . . . . . . . local              REAL*8            8
+DC21R2. . . . . . . . . . local              REAL*8            8
+DC22A1. . . . . . . . . . local              REAL*8            8
+DC22A2. . . . . . . . . . local              REAL*8            8
+DC22B . . . . . . . . . . local              REAL*8            8
+DC22R1. . . . . . . . . . local              REAL*8            8
+DC22R2. . . . . . . . . . local              REAL*8            8
+DELTA . . . . . . . . . . local              REAL*8        80000
+DETA1 . . . . . . . . . . local              REAL*8            8
+DETA2 . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+DETB. . . . . . . . . . . local              REAL*8            8
+DSA1. . . . . . . . . . . local              REAL*8            8
+DSA2. . . . . . . . . . . local              REAL*8            8
+DSB . . . . . . . . . . . local              REAL*8            8
+DSR1. . . . . . . . . . . local              REAL*8            8
+DSR2. . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   7
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRKIN@72  Local symbols
+Name                      Class              Type           Size
+
+
+DTA1. . . . . . . . . . . param                                4
+DTA2. . . . . . . . . . . param                                4
+DTB . . . . . . . . . . . param                                4
+DTR1. . . . . . . . . . . param                                4
+DTR2. . . . . . . . . . . param                                4
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+IK. . . . . . . . . . . . dynam              INTEGER*4         4
+IL. . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . param                                4
+L . . . . . . . . . . . . param                                4
+OVA11 . . . . . . . . . . local              REAL*8            8
+OVA12 . . . . . . . . . . local              REAL*8            8
+OVB12 . . . . . . . . . . local              REAL*8            8
+OVC21 . . . . . . . . . . local              REAL*8            8
+OVC22 . . . . . . . . . . local              REAL*8            8
+OVLA. . . . . . . . . . . local              REAL*8            8
+OVLAP . . . . . . . . . . param                                4
+OVZA11. . . . . . . . . . local              REAL*8            8
+OVZA12. . . . . . . . . . local              REAL*8            8
+OVZB11. . . . . . . . . . local              REAL*8            8
+OVZB12. . . . . . . . . . local              REAL*8            8
+OVZC21. . . . . . . . . . local              REAL*8            8
+OVZC22. . . . . . . . . . local              REAL*8            8
+PI. . . . . . . . . . . . local              REAL*8            8
+POM . . . . . . . . . . . local              REAL*8            8
+POMA1 . . . . . . . . . . local              REAL*8            8
+POMA2 . . . . . . . . . . local              REAL*8            8
+POMB. . . . . . . . . . . local              REAL*8            8
+R1KZ. . . . . . . . . . . param                                4
+R1LZ. . . . . . . . . . . param                                4
+R2KZ. . . . . . . . . . . param                                4
+R2LZ. . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . local              REAL*8            8
+RZ1A1 . . . . . . . . . . local              REAL*8            8
+RZ1R1 . . . . . . . . . . local              REAL*8            8
+RZ2 . . . . . . . . . . . local              REAL*8            8
+RZ2A2 . . . . . . . . . . local              REAL*8            8
+RZ2R2 . . . . . . . . . . local              REAL*8            8
+TKIN. . . . . . . . . . . local              REAL*8            8
+XTEM. . . . . . . . . . . local              REAL*8            8
+XTEMA1. . . . . . . . . . local              REAL*8            8
+XTEMA2. . . . . . . . . . local              REAL*8            8
+XTEMB . . . . . . . . . . local              REAL*8            8
+XTEMR1. . . . . . . . . . local              REAL*8            8
+XTEMR2. . . . . . . . . . local              REAL*8            8
+XX1 . . . . . . . . . . . local              REAL*8            8
+XX1A1 . . . . . . . . . . local              REAL*8            8
+XX1A2 . . . . . . . . . . local              REAL*8            8
+XX1B. . . . . . . . . . . local              REAL*8            8
+XX1R1 . . . . . . . . . . local              REAL*8            8
+XX1R2 . . . . . . . . . . local              REAL*8            8
+XX2 . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   8
+                                                                        04-26-96
+                                                                        21:54:47
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRKIN@72  Local symbols
+Name                      Class              Type           Size
+
+
+XX2A1 . . . . . . . . . . local              REAL*8            8
+XX2A2 . . . . . . . . . . local              REAL*8            8
+XX2B. . . . . . . . . . . local              REAL*8            8
+XX2R1 . . . . . . . . . . local              REAL*8            8
+XX2R2 . . . . . . . . . . local              REAL*8            8
+YY1 . . . . . . . . . . . local              REAL*8            8
+YY1A1 . . . . . . . . . . local              REAL*8            8
+YY1A2 . . . . . . . . . . local              REAL*8            8
+YY1B. . . . . . . . . . . local              REAL*8            8
+YY2 . . . . . . . . . . . local              REAL*8            8
+YY2A1 . . . . . . . . . . local              REAL*8            8
+YY2A2 . . . . . . . . . . local              REAL*8            8
+YY2B. . . . . . . . . . . local              REAL*8            8
+YY2R1 . . . . . . . . . . local              REAL*8            8
+YY2R2 . . . . . . . . . . local              REAL*8            8
+ZA11A1. . . . . . . . . . local              REAL*8            8
+ZA11A2. . . . . . . . . . local              REAL*8            8
+ZA11B . . . . . . . . . . local              REAL*8            8
+ZA11R1. . . . . . . . . . local              REAL*8            8
+ZA11R2. . . . . . . . . . local              REAL*8            8
+ZA1ZC2. . . . . . . . . . local              REAL*8            8
+ZB11A1. . . . . . . . . . local              REAL*8            8
+ZB11A2. . . . . . . . . . local              REAL*8            8
+ZB11B . . . . . . . . . . local              REAL*8            8
+ZB11R1. . . . . . . . . . local              REAL*8            8
+ZB11R2. . . . . . . . . . local              REAL*8            8
+ZC21A1. . . . . . . . . . local              REAL*8            8
+ZC21A2. . . . . . . . . . local              REAL*8            8
+ZC21B . . . . . . . . . . local              REAL*8            8
+ZC21R1. . . . . . . . . . local              REAL*8            8
+ZC21R2. . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GRKIN@72. . . . . . . . . FUNCT              ***             ***
+GROVER@68 . . . . . . . . extern             ***             ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

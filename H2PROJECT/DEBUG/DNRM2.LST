@@ -1,0 +1,100 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:58
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        DOUBLE PRECISION FUNCTION DNRM2 ( N, X, INCX )
+     2  *     .. Scalar Arguments ..
+     3        INTEGER                           INCX, N
+     4  *     .. Array Arguments ..
+     5        DOUBLE PRECISION                  X( * )
+     6  *     ..
+     7  *
+     8  *  DNRM2 returns the euclidean norm of a vector via the function
+     9  *  name, so that
+    10  *
+    11  *     DNRM2 := sqrt( x'*x )
+    12  *
+    13  *
+    14  *
+    15  *  -- This version written on 25-October-1982.
+    16  *     Modified on 14-October-1993 to inline the call to DLASSQ.
+    17  *     Sven Hammarling, Nag Ltd.
+    18  *
+    19  *
+    20  *     .. Parameters ..
+    21        DOUBLE PRECISION      ONE         , ZERO
+    22        PARAMETER           ( ONE = 1.0D+0, ZERO = 0.0D+0 )
+    23  *     .. Local Scalars ..
+    24        INTEGER               IX
+    25        DOUBLE PRECISION      ABSXI, NORM, SCALE, SSQ
+    26  *     .. Intrinsic Functions ..
+    27        INTRINSIC             ABS, SQRT
+    28  *     ..
+    29  *     .. Executable Statements ..
+    30        IF( N.LT.1 .OR. INCX.LT.1 )THEN
+    31           NORM  = ZERO
+    32        ELSE IF( N.EQ.1 )THEN
+    33           NORM  = ABS( X( 1 ) )
+    34        ELSE
+    35           SCALE = ZERO
+    36           SSQ   = ONE
+    37  *        The following loop is equivalent to this call to the LAPACK
+    38  *        auxiliary routine:
+    39  *        CALL DLASSQ( N, X, INCX, SCALE, SSQ )
+    40  *
+    41           DO 10, IX = 1, 1 + ( N - 1 )*INCX, INCX
+    42              IF( X( IX ).NE.ZERO )THEN
+    43                 ABSXI = ABS( X( IX ) )
+    44                 IF( SCALE.LT.ABSXI )THEN
+    45                    SSQ   = ONE   + SSQ*( SCALE/ABSXI )**2
+    46                    SCALE = ABSXI
+    47                 ELSE
+    48                    SSQ   = SSQ   +     ( ABSXI/SCALE )**2
+    49                 END IF
+    50              END IF
+    51     10    CONTINUE
+    52           NORM  = SCALE * SQRT( SSQ )
+    53        END IF
+    54  *
+    55        DNRM2 = NORM
+    56        RETURN
+    57  *
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:58
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  *     End of DNRM2.
+    59  *
+    60        END
+
+DNRM2@12  Local symbols
+Name                      Class              Type           Size
+
+
+ABSXI . . . . . . . . . . local              REAL*8            8
+INCX. . . . . . . . . . . param                                4
+IX. . . . . . . . . . . . dynam              INTEGER*4         4
+N . . . . . . . . . . . . param                                4
+NORM. . . . . . . . . . . local              REAL*8            8
+ONE . . . . . . . . . . . const              REAL*8            8
+SCALE . . . . . . . . . . local              REAL*8            8
+SSQ . . . . . . . . . . . local              REAL*8            8
+X . . . . . . . . . . . . param                                4
+ZERO. . . . . . . . . . . const              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DNRM2@12. . . . . . . . . FUNCT              REAL*8          ***
+
+
+No errors detected

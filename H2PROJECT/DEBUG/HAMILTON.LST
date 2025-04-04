@@ -1,0 +1,2096 @@
+
+                                                                        PAGE   1
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     2  C     -----------------------------------------------------
+     3        SUBROUTINE HAMILTON(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,
+     4       -                    EVEC,S,H,CO,EMIN,GRAD,TTT1,TTT2,TTT3,DFLAG)
+     5  C     -----------------------------------------------------
+     6        IMPLICIT REAL*8 (A-H,O-Z)
+     7        INTEGER M,ERROR,DFLAG
+     8        REAL*8, DIMENSION(M) ::	AA1,RX1,RY1,RZ1,
+     9  	-						AA2,RX2,RY2,RZ2,
+    10       -						B12,EVEC,CO,TTT1,TTT2,TTT3
+    11  	REAL*8, DIMENSION(M*6) :: GRAD
+    12  	REAL*8, DIMENSION(M,M) :: S,H
+    13  C
+    14  	REAL*8  TEMP[ALLOCATABLE](:)
+    15  
+    16  	REAL*8	DHDA1[ALLOCATABLE](:,:),DHDA2[ALLOCATABLE](:,:),
+    17  	-		DHDA5[ALLOCATABLE](:,:),DHDAZ[ALLOCATABLE](:,:),
+    18       -		DHDBZ[ALLOCATABLE](:,:)
+    19  	REAL*8	DSDA1[ALLOCATABLE](:,:),DSDA2[ALLOCATABLE](:,:),
+    20  	-		DSDA5[ALLOCATABLE](:,:),DSDAZ[ALLOCATABLE](:,:),
+    21       -		DSDBZ[ALLOCATABLE](:,:)
+    22  	REAL*8	GRADM[ALLOCATABLE](:,:),DS[ALLOCATABLE](:,:),
+    23  	-		DH[ALLOCATABLE](:,:),GRADA[ALLOCATABLE](:),
+    24       -		GRADC[ALLOCATABLE](:)
+    25  C     -----------------------------------------------------
+    26  	COMMON /OVER/ L,K
+    27  	COMMON /TNOVER/ NXAC,XAC
+    28  	COMMON /DOV/ DOVDA1,DOVDA2,DOVDA5,DOVDAZ,DOVDBZ
+    29  	COMMON /DOVn/ DOVnDA1,DOVnDA2,DOVnDA5,DOVnDAZ,DOVnDBZ
+    30  	COMMON /DTK/ DTKDA1,DTKDA2,DTKDA5,DTKDAZ,DTKDBZ
+    31  	COMMON /DEN/ DENDA1,DENDA2,DENDA5,DENDAZ,DENDBZ,
+    32  	1			 DENDA1P,DENDA2P,DENDA5P,DENDAZP,DENDBZP
+    33  	COMMON /DER/ DERDA1,DERDA2,DERDA5,DERDAZ,DERDBZ
+    34  C     -----------------------------------------------------
+    35  	PARAMETER(ISYMM=1)
+    36  	PARAMETER(IPERM=0)
+    37  C     -----------------------------------------------------
+    38        MMAX=M
+    39        ALLOCATE(	TEMP(MMAX),DHDA1(MMAX,MMAX),DHDA2(MMAX,MMAX),
+    40  	-			DHDA5(MMAX,MMAX),DHDAZ(MMAX,MMAX),DHDBZ(MMAX,MMAX),
+    41       -			DSDA1(MMAX,MMAX),DSDA2(MMAX,MMAX),DSDA5(MMAX,MMAX),
+    42       -			DSDAZ(MMAX,MMAX),DSDBZ(MMAX,MMAX),GRADM(MMAX,MMAX*5),
+    43       -			DS(MMAX*5,MMAX),DH(MMAX*5,MMAX),GRADA(MMAX*5),
+    44       -			GRADC(MMAX),STAT=ERROR)
+    45  C
+    46  	IF (ERROR .NE. 0) STOP '!NOT ENOUGH MEMORY SPACE AVAILABLE ON THIS
+    47  	- BOX! ...ABORTING!'
+    48  C     -----------------------------------------------------
+    49        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/
+    50  C     -----------------------------------------------------
+    51        CALL GEOM(EX1,EY1,EZ1,EX2,EY2,EZ2)
+    52  C     -----------------------------------------------------	  
+    53  	IF (DFLAG .EQ. 1) THEN
+    54        DO L=1,M
+    55            DO K=1,M
+    56  C     -----------------------------------------------------
+    57  C     --- Calculate OVERLAP INTEGRAL ---
+
+                                                                        PAGE   2
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C     -----------------------------------------------------
+    59               CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+    60       1            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+    61       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+    62       3            RX2(K),RY2(K),RZ2(K),AA2(K),
+    63       4            B12(L),B12(K),OV1,KLM)
+    64  C
+    65  	DOV1DA1=DOVDA1
+    66  	DOV1DA2=DOVDA2
+    67  	DOV1DA5=DOVDA5
+    68  	DOV1DAZ=DOVDAZ
+    69  	DOV1DBZ=DOVDBZ
+    70  C
+    71  	IF(ISYMM) THEN
+    72  		CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+    73       1            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+    74       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+    75       3            RX1(K),RY1(K),RZ1(K),AA1(K),
+    76       4            B12(L),B12(K),OV2,KLM)
+    77  C
+    78  	DOV2DA1=DOVDA1
+    79  	DOV2DA2=DOVDA2
+    80  	DOV2DA5=DOVDA5
+    81  	DOV2DAZ=DOVDAZ
+    82  	DOV2DBZ=DOVDBZ
+    83  C
+    84  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+    85  C
+    86                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+    87       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+    88       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+    89       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+    90       4            B12(L),B12(K),OV3,KLM)
+    91  C
+    92  	DOV3DA1=DOVDA1
+    93  	DOV3DA2=DOVDA2
+    94  	DOV3DA5=DOVDA5
+    95  	DOV3DAZ=DOVDAZ
+    96  	DOV3DBZ=DOVDBZ
+    97  C
+    98  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+    99  C         P_[elec.1,elec.2]*P_[H1,H2]
+   100  C
+   101                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+   102       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   103       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   104       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   105       4            B12(L),B12(K),OV4,KLM)
+   106  C              
+   107  	DOV4DA1=DOVDA1
+   108  	DOV4DA2=DOVDA2
+   109  	DOV4DA5=DOVDA5
+   110  	DOV4DAZ=DOVDAZ
+   111  	DOV4DBZ=DOVDBZ
+   112  	END IF
+   113  C     -----------------------------------------------------
+   114  	IF(ISYMM) THEN
+
+                                                                        PAGE   3
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115                S(L,K)=OV1+OV2+OV3+OV4
+   116  		ELSE
+   117                S(L,K)=OV1
+   118  	END IF
+   119  	IF(IPERM.EQ.1) THEN
+   120  		S(L,K)=OV1
+   121  	END IF
+   122  	IF(IPERM.EQ.2) THEN
+   123  		S(L,K)=OV2
+   124  	END IF
+   125  	IF(IPERM.EQ.3) THEN
+   126  		S(L,K)=OV3
+   127  	END IF
+   128  	IF(IPERM.EQ.4) THEN
+   129  		S(L,K)=OV4
+   130  	END IF
+   131  C
+   132  	IF(ISYMM) THEN
+   133  	DSDA1(L,K)=DOV1DA1+DOV2DA1+DOV3DA1+DOV4DA1
+   134  	DSDA2(L,K)=DOV1DA2+DOV2DA2+DOV3DA2+DOV4DA2
+   135  	DSDA5(L,K)=DOV1DA5+DOV2DA5+DOV3DA5+DOV4DA5
+   136  	DSDAZ(L,K)=DOV1DAZ+DOV2DAZ+DOV3DAZ+DOV4DAZ
+   137  	DSDBZ(L,K)=DOV1DBZ+DOV2DBZ+DOV3DBZ+DOV4DBZ
+   138  	ELSE
+   139  	DSDA1(L,K)=DOV1DA1
+   140  	DSDA2(L,K)=DOV1DA2
+   141  	DSDA5(L,K)=DOV1DA5
+   142  	DSDAZ(L,K)=DOV1DAZ
+   143  	DSDBZ(L,K)=DOV1DBZ
+   144  	END IF		
+   145  	IF(IPERM.EQ.1) THEN
+   146  	DSDA1(L,K)=DOV1DA1
+   147  	DSDA2(L,K)=DOV1DA2
+   148  	DSDA5(L,K)=DOV1DA5
+   149  	DSDAZ(L,K)=DOV1DAZ
+   150  	DSDBZ(L,K)=DOV1DBZ
+   151  	END IF
+   152  	IF(IPERM.EQ.2) THEN
+   153  	DSDA1(L,K)=DOV2DA1
+   154  	DSDA2(L,K)=DOV2DA2
+   155  	DSDA5(L,K)=DOV2DA5
+   156  	DSDAZ(L,K)=DOV2DAZ
+   157  	DSDBZ(L,K)=DOV2DBZ
+   158  	END IF
+   159  	IF(IPERM.EQ.3) THEN
+   160  	DSDA1(L,K)=DOV3DA1
+   161  	DSDA2(L,K)=DOV3DA2
+   162  	DSDA5(L,K)=DOV3DA5
+   163  	DSDAZ(L,K)=DOV3DAZ
+   164  	DSDBZ(L,K)=DOV3DBZ
+   165  	END IF
+   166  	IF(IPERM.EQ.4) THEN
+   167  	DSDA1(L,K)=DOV4DA1
+   168  	DSDA2(L,K)=DOV4DA2
+   169  	DSDA5(L,K)=DOV4DA5
+   170  	DSDAZ(L,K)=DOV4DAZ
+   171  	DSDBZ(L,K)=DOV4DBZ
+
+                                                                        PAGE   4
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  	END IF
+   173  C     -----------------------------------------------------
+   174  C     --- Calculate KINETIC ENERGY OF ELECTRON 1 ---
+   175  C     -----------------------------------------------------
+   176  	DOVnDA1=DOV1DA1
+   177  	DOVnDA2=DOV1DA2
+   178  	DOVnDA5=DOV1DA5
+   179  	DOVnDAZ=DOV1DAZ
+   180  	DOVnDBZ=DOV1DBZ
+   181                CALL TK(DFLAG,OV1,
+   182       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   183       2            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   184       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   185       4            RX2(K),RY2(K),RZ2(K),AA2(K),
+   186       5            B12(L),B12(K),T1)  
+   187  	D1T1DA1=DTKDA1
+   188  	D1T1DA2=DTKDA2
+   189  	D1T1DA5=DTKDA5
+   190  	D1T1DAZ=DTKDAZ
+   191  	D1T1DBZ=DTKDBZ
+   192  C
+   193  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   194  	IF (ISYMM) THEN
+   195  	DOVnDA1=DOV2DA1
+   196  	DOVnDA2=DOV2DA2
+   197  	DOVnDA5=DOV2DA5
+   198  	DOVnDAZ=DOV2DAZ
+   199  	DOVnDBZ=DOV2DBZ
+   200                CALL TK(DFLAG,OV2,
+   201       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   202       2            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   203       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   204       4            RX1(K),RY1(K),RZ1(K),AA1(K),
+   205       5            B12(L),B12(K),T2)  
+   206  	D2T1DA1=DTKDA1
+   207  	D2T1DA2=DTKDA2
+   208  	D2T1DA5=DTKDA5
+   209  	D2T1DAZ=DTKDAZ
+   210  	D2T1DBZ=DTKDBZ
+   211  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   212  	DOVnDA1=DOV3DA1
+   213  	DOVnDA2=DOV3DA2
+   214  	DOVnDA5=DOV3DA5
+   215  	DOVnDAZ=DOV3DAZ
+   216  	DOVnDBZ=DOV3DBZ
+   217                CALL TK(DFLAG,OV3,
+   218       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   219       2            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   220       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   221       4            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   222       5            B12(L),B12(K),T3)
+   223  	D3T1DA1=DTKDA1
+   224  	D3T1DA2=DTKDA2
+   225  	D3T1DA5=DTKDA5
+   226  	D3T1DAZ=DTKDAZ
+   227  	D3T1DBZ=DTKDBZ
+   228  C     ...Electro/Nuclear Symmetrization Integral:
+
+                                                                        PAGE   5
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   229  C         P_[elec.1,elec.2]*P_[H1,H2]
+   230  	DOVnDA1=DOV4DA1
+   231  	DOVnDA2=DOV4DA2
+   232  	DOVnDA5=DOV4DA5
+   233  	DOVnDAZ=DOV4DAZ
+   234  	DOVnDBZ=DOV4DBZ
+   235                CALL TK(DFLAG,OV4,
+   236       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+   237       2            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   238       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+   239       4            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   240       5            B12(L),B12(K),T4)
+   241  	D4T1DA1=DTKDA1
+   242  	D4T1DA2=DTKDA2
+   243  	D4T1DA5=DTKDA5
+   244  	D4T1DAZ=DTKDAZ
+   245  	D4T1DBZ=DTKDBZ
+   246  	END IF
+   247  C     -----------------------------------------------------
+   248  C     --- Calculate KINETIC ENERGY OF ELECTRON 2 ---
+   249  C     -----------------------------------------------------
+   250  	DOVnDA1=DOV1DA2
+   251  	DOVnDA2=DOV1DA1
+   252  	DOVnDA5=DOV1DA5
+   253  	DOVnDAZ=DOV1DBZ
+   254  	DOVnDBZ=DOV1DAZ
+   255               CALL TK(DFLAG,OV1,
+   256       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   257       2            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   258       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   259       4            RX1(K),RY1(K),RZ1(K),AA1(K),
+   260       5            B12(L),B12(K),T5)  
+   261  	D1T2DA1=DTKDA2
+   262  	D1T2DA2=DTKDA1
+   263  	D1T2DA5=DTKDA5
+   264  	D1T2DAZ=DTKDBZ
+   265  	D1T2DBZ=DTKDAZ
+   266  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   267  	IF (ISYMM) THEN
+   268  	DOVnDA1=DOV2DA2
+   269  	DOVnDA2=DOV2DA1
+   270  	DOVnDA5=DOV2DA5
+   271  	DOVnDAZ=DOV2DBZ
+   272  	DOVnDBZ=DOV2DAZ
+   273                CALL TK(DFLAG,OV2,
+   274       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   275       2            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   276       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   277       4            RX2(K),RY2(K),RZ2(K),AA2(K),
+   278       5            B12(L),B12(K),T6) 
+   279  	D2T2DA1=DTKDA2
+   280  	D2T2DA2=DTKDA1
+   281  	D2T2DA5=DTKDA5
+   282  	D2T2DAZ=DTKDBZ
+   283  	D2T2DBZ=DTKDAZ
+   284  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   285  	DOVnDA1=DOV3DA2
+
+                                                                        PAGE   6
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   286  	DOVnDA2=DOV3DA1
+   287  	DOVnDA5=DOV3DA5
+   288  	DOVnDAZ=DOV3DBZ
+   289  	DOVnDBZ=DOV3DAZ
+   290                CALL TK(DFLAG,OV3,
+   291       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   292       2            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   293       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   294       4            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   295       5            B12(L),B12(K),T7)
+   296  	D3T2DA1=DTKDA2
+   297  	D3T2DA2=DTKDA1
+   298  	D3T2DA5=DTKDA5
+   299  	D3T2DAZ=DTKDBZ
+   300  	D3T2DBZ=DTKDAZ
+   301  C     ...Electro/Nuclear Symmetrization Integral:
+   302  C         P_[elec.1,elec.2]*P_[H1,H2]
+   303  	DOVnDA1=DOV4DA2
+   304  	DOVnDA2=DOV4DA1
+   305  	DOVnDA5=DOV4DA5
+   306  	DOVnDAZ=DOV4DBZ
+   307  	DOVnDBZ=DOV4DAZ
+   308                CALL TK(DFLAG,OV4,
+   309       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+   310       2            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   311       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+   312       4            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   313       5            B12(L),B12(K),T8)
+   314  	D4T2DA1=DTKDA2
+   315  	D4T2DA2=DTKDA1
+   316  	D4T2DA5=DTKDA5
+   317  	D4T2DAZ=DTKDBZ
+   318  	D4T2DBZ=DTKDAZ
+   319  	END IF
+   320  C
+   321  	IF (ISYMM) THEN
+   322              T=(T1+T2+T3+T4+T5+T6+T7+T8)/2.0D+00
+   323  	ELSE
+   324  		  T=(T1+T5)/2.0D+00
+   325  	END IF
+   326  	IF(IPERM.EQ.1) THEN
+   327  		T=(T1+T5)/2.0D+00
+   328  	END IF
+   329  	IF(IPERM.EQ.2) THEN
+   330  		T=(T2+T6)/2.0D+00
+   331  	END IF
+   332  	IF(IPERM.EQ.3) THEN
+   333  		T=(T3+T7)/2.0D+00
+   334  	END IF
+   335  	IF(IPERM.EQ.4) THEN
+   336  		T=(T4+T8)/2.0D+00
+   337  	END IF
+   338  C
+   339  	IF (ISYMM) THEN
+   340  	DTDA1=(D1T1DA1+D2T1DA1+D3T1DA1+D4T1DA1+D1T2DA1+D2T2DA1+D3T2DA1+D4T
+   341  	-2DA1)/2.00D+00
+   342  	DTDA2=(D1T1DA2+D2T1DA2+D3T1DA2+D4T1DA2+D1T2DA2+D2T2DA2+D3T2DA2+D4T
+
+                                                                        PAGE   7
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   343  	-2DA2)/2.00D+00
+   344  	DTDA5=(D1T1DA5+D2T1DA5+D3T1DA5+D4T1DA5+D1T2DA5+D2T2DA5+D3T2DA5+D4T
+   345  	-2DA5)/2.00D+00
+   346  	DTDAZ=(D1T1DAZ+D2T1DAZ+D3T1DAZ+D4T1DAZ+D1T2DAZ+D2T2DAZ+D3T2DAZ+D4T
+   347  	-2DAZ)/2.00D+00
+   348  	DTDBZ=(D1T1DBZ+D2T1DBZ+D3T1DBZ+D4T1DBZ+D1T2DBZ+D2T2DBZ+D3T2DBZ+D4T
+   349  	-2DBZ)/2.00D+00
+   350  	ELSE
+   351  	DTDA1=(D1T1DA1+D1T2DA1)/2.00D+00
+   352  	DTDA2=(D1T1DA2+D1T2DA2)/2.00D+00
+   353  	DTDA5=(D1T1DA5+D1T2DA5)/2.00D+00
+   354  	DTDAZ=(D1T1DAZ+D1T2DAZ)/2.00D+00
+   355  	DTDBZ=(D1T1DBZ+D1T2DBZ)/2.00D+00
+   356  	END IF
+   357  	IF(IPERM.EQ.1) THEN
+   358  	DTDA1=(D1T1DA1+D1T2DA1)/2.00D+00
+   359  	DTDA2=(D1T1DA2+D1T2DA2)/2.00D+00
+   360  	DTDA5=(D1T1DA5+D1T2DA5)/2.00D+00
+   361  	DTDAZ=(D1T1DAZ+D1T2DAZ)/2.00D+00
+   362  	DTDBZ=(D1T1DBZ+D1T2DBZ)/2.00D+00
+   363  	END IF
+   364  	IF(IPERM.EQ.2) THEN
+   365  	DTDA1=(D2T1DA1+D2T2DA1)/2.00D+00
+   366  	DTDA2=(D2T1DA2+D2T2DA2)/2.00D+00
+   367  	DTDA5=(D2T1DA5+D2T2DA5)/2.00D+00
+   368  	DTDAZ=(D2T1DAZ+D2T2DAZ)/2.00D+00
+   369  	DTDBZ=(D2T1DBZ+D2T2DBZ)/2.00D+00
+   370  	END IF
+   371  	IF(IPERM.EQ.3) THEN
+   372  	DTDA1=(D3T1DA1+D3T2DA1)/2.00D+00
+   373  	DTDA2=(D3T1DA2+D3T2DA2)/2.00D+00
+   374  	DTDA5=(D1T1DA5+D3T2DA5)/2.00D+00
+   375  	DTDAZ=(D3T1DAZ+D3T2DAZ)/2.00D+00
+   376  	DTDBZ=(D3T1DBZ+D3T2DBZ)/2.00D+00
+   377  	END IF
+   378  	IF(IPERM.EQ.4) THEN
+   379  	DTDA1=(D4T1DA1+D4T2DA1)/2.00D+00
+   380  	DTDA2=(D4T1DA2+D4T2DA2)/2.00D+00
+   381  	DTDA5=(D4T1DA5+D4T2DA5)/2.00D+00
+   382  	DTDAZ=(D4T1DAZ+D4T2DAZ)/2.00D+00
+   383  	DTDBZ=(D4T1DBZ+D4T2DBZ)/2.00D+00
+   384  	END IF
+   385  C     -----------------------------------------------------
+   386  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 1 ---
+   387  C     -----------------------------------------------------
+   388  	DOVnDA1=DOV1DA1
+   389  	DOVnDA2=DOV1DA2
+   390  	DOVnDA5=DOV1DA5
+   391  	DOVnDAZ=DOV1DAZ
+   392  	DOVnDBZ=DOV1DBZ
+   393                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   394       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   395       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   396       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+   397       4           B12(L),B12(K),
+   398       5           EX1,EY1,EZ1,EN1,KLM)
+   399  	D1EN1DA1=DENDA1
+
+                                                                        PAGE   8
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   400  	D1EN1DA2=DENDA2
+   401  	D1EN1DA5=DENDA5
+   402  	D1EN1DAZ=DENDAZ
+   403  	D1EN1DBZ=DENDBZ
+   404  C
+   405  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   406  C
+   407  	IF (ISYMM) THEN
+   408  	DOVnDA1=DOV2DA1
+   409  	DOVnDA2=DOV2DA2
+   410  	DOVnDA5=DOV2DA5
+   411  	DOVnDAZ=DOV2DAZ
+   412  	DOVnDBZ=DOV2DBZ
+   413                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   414       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   415       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   416       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+   417       4           B12(L),B12(K),
+   418       5           EX1,EY1,EZ1,EN2,KLM)                       
+   419  	D1EN2DA1=DENDA1
+   420  	D1EN2DA2=DENDA2
+   421  	D1EN2DA5=DENDA5
+   422  	D1EN2DAZ=DENDAZ
+   423  	D1EN2DBZ=DENDBZ
+   424  C
+   425  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   426  C
+   427  	DOVnDA1=DOV3DA1
+   428  	DOVnDA2=DOV3DA2
+   429  	DOVnDA5=DOV3DA5
+   430  	DOVnDAZ=DOV3DAZ
+   431  	DOVnDBZ=DOV3DBZ
+   432                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   433       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   434       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   435       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   436       4            B12(L),B12(K),
+   437       5            EX1,EY1,EZ1,EN3,KLM)
+   438  	D1EN3DA1=DENDA1
+   439  	D1EN3DA2=DENDA2
+   440  	D1EN3DA5=DENDA5
+   441  	D1EN3DAZ=DENDAZ
+   442  	D1EN3DBZ=DENDBZ
+   443  C
+   444  C     ...Electro/Nuclear Symmetrization Integral:
+   445  C         P_[elec.1,elec.2]*P_[H1,H2]
+   446  C
+   447  	DOVnDA1=DOV4DA1
+   448  	DOVnDA2=DOV4DA2
+   449  	DOVnDA5=DOV4DA5
+   450  	DOVnDAZ=DOV4DAZ
+   451  	DOVnDBZ=DOV4DBZ
+   452                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   453       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   454       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   455       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   456       4            B12(L),B12(K),
+
+                                                                        PAGE   9
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   457       5            EX1,EY1,EZ1,EN4,KLM)
+   458  	D1EN4DA1=DENDA1
+   459  	D1EN4DA2=DENDA2
+   460  	D1EN4DA5=DENDA5
+   461  	D1EN4DAZ=DENDAZ
+   462  	D1EN4DBZ=DENDBZ
+   463  	END IF
+   464  C  
+   465  
+   466  	DOVnDA1=DOV1DA1
+   467  	DOVnDA2=DOV1DA2
+   468  	DOVnDA5=DOV1DA5
+   469  	DOVnDAZ=DOV1DAZ
+   470  	DOVnDBZ=DOV1DBZ
+   471                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   472       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   473       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   474       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+   475       4           B12(L),B12(K),
+   476       5           EX2,EY2,EZ2,EN5,KLM)
+   477  	D1EN5DA1=DENDA1P
+   478  	D1EN5DA2=DENDA2P
+   479  	D1EN5DA5=DENDA5P
+   480  	D1EN5DAZ=DENDAZP
+   481  	D1EN5DBZ=DENDBZP
+   482  C
+   483  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   484  C
+   485  	IF (ISYMM) THEN
+   486  	DOVnDA1=DOV2DA1
+   487  	DOVnDA2=DOV2DA2
+   488  	DOVnDA5=DOV2DA5
+   489  	DOVnDAZ=DOV2DAZ
+   490  	DOVnDBZ=DOV2DBZ
+   491                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   492       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   493       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   494       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+   495       4           B12(L),B12(K),
+   496       5           EX2,EY2,EZ2,EN6,KLM)                       
+   497  	D1EN6DA1=DENDA1P
+   498  	D1EN6DA2=DENDA2P
+   499  	D1EN6DA5=DENDA5P
+   500  	D1EN6DAZ=DENDAZP
+   501  	D1EN6DBZ=DENDBZP
+   502  C
+   503  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   504  C
+   505  	DOVnDA1=DOV3DA1
+   506  	DOVnDA2=DOV3DA2
+   507  	DOVnDA5=DOV3DA5
+   508  	DOVnDAZ=DOV3DAZ
+   509  	DOVnDBZ=DOV3DBZ
+   510                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   511       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   512       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   513       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+
+                                                                        PAGE  10
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   514       4            B12(L),B12(K),
+   515       5            EX2,EY2,EZ2,EN7,KLM)
+   516  	D1EN7DA1=DENDA1P
+   517  	D1EN7DA2=DENDA2P
+   518  	D1EN7DA5=DENDA5P
+   519  	D1EN7DAZ=DENDAZP
+   520  	D1EN7DBZ=DENDBZP
+   521  C
+   522  C     ...Electro/Nuclear Symmetrization Integral:
+   523  C         P_[elec.1,elec.2]*P_[H1,H2]
+   524  C
+   525  	DOVnDA1=DOV4DA1
+   526  	DOVnDA2=DOV4DA2
+   527  	DOVnDA5=DOV4DA5
+   528  	DOVnDAZ=DOV4DAZ
+   529  	DOVnDBZ=DOV4DBZ
+   530                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   531       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   532       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   533       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   534       4            B12(L),B12(K),
+   535       5            EX2,EY2,EZ2,EN8,KLM)
+   536  	D1EN8DA1=DENDA1P
+   537  	D1EN8DA2=DENDA2P
+   538  	D1EN8DA5=DENDA5P
+   539  	D1EN8DAZ=DENDAZP
+   540  	D1EN8DBZ=DENDBZP
+   541  	END IF
+   542  C 
+   543  C     -----------------------------------------------------
+   544  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 2 ---
+   545  C     -----------------------------------------------------
+   546  	DOVnDA1=DOV1DA2
+   547  	DOVnDA2=DOV1DA1
+   548  	DOVnDA5=DOV1DA5
+   549  	DOVnDAZ=DOV1DBZ
+   550  	DOVnDBZ=DOV1DAZ
+   551                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+   552       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   553       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   554       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+   555       4           B12(L),B12(K),
+   556       5           EX1,EY1,EZ1,EN9,KLM)                       
+   557  	D2EN1DA1=DENDA2
+   558  	D2EN1DA2=DENDA1
+   559  	D2EN1DA5=DENDA5
+   560  	D2EN1DAZ=DENDBZ
+   561  	D2EN1DBZ=DENDAZ
+   562  C
+   563  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   564  C
+   565  	IF (ISYMM) THEN
+   566  	DOVnDA1=DOV2DA2
+   567  	DOVnDA2=DOV2DA1
+   568  	DOVnDA5=DOV2DA5
+   569  	DOVnDAZ=DOV2DBZ
+   570  	DOVnDBZ=DOV2DAZ
+
+                                                                        PAGE  11
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   571                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+   572       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   573       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   574       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+   575       4           B12(L),B12(K),
+   576       5           EX1,EY1,EZ1,EN10,KLM)                       
+   577  	D2EN2DA1=DENDA2
+   578  	D2EN2DA2=DENDA1
+   579  	D2EN2DA5=DENDA5
+   580  	D2EN2DAZ=DENDBZ
+   581  	D2EN2DBZ=DENDAZ
+   582  C
+   583  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   584  C
+   585  	DOVnDA1=DOV3DA2
+   586  	DOVnDA2=DOV3DA1
+   587  	DOVnDA5=DOV3DA5
+   588  	DOVnDAZ=DOV3DBZ
+   589  	DOVnDBZ=DOV3DAZ
+   590                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+   591       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   592       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   593       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   594       4            B12(L),B12(K),
+   595       5            EX1,EY1,EZ1,EN11,KLM)
+   596  	D2EN3DA1=DENDA2
+   597  	D2EN3DA2=DENDA1
+   598  	D2EN3DA5=DENDA5
+   599  	D2EN3DAZ=DENDBZ
+   600  	D2EN3DBZ=DENDAZ
+   601  C
+   602  C     ...Electro/Nuclear Symmetrization Integral:
+   603  C         P_[elec.1,elec.2]*P_[H1,H2]
+   604  C
+   605  	DOVnDA1=DOV4DA2
+   606  	DOVnDA2=DOV4DA1
+   607  	DOVnDA5=DOV4DA5
+   608  	DOVnDAZ=DOV4DBZ
+   609  	DOVnDBZ=DOV4DAZ
+   610                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+   611       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   612       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   613       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   614       4            B12(L),B12(K),
+   615       5            EX1,EY1,EZ1,EN12,KLM)
+   616  	D2EN4DA1=DENDA2
+   617  	D2EN4DA2=DENDA1
+   618  	D2EN4DA5=DENDA5
+   619  	D2EN4DAZ=DENDBZ
+   620  	D2EN4DBZ=DENDAZ
+   621  	END IF
+   622  C 
+   623  
+   624   
+   625  	DOVnDA1=DOV1DA2
+   626  	DOVnDA2=DOV1DA1
+   627  	DOVnDA5=DOV1DA5
+
+                                                                        PAGE  12
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   628  	DOVnDAZ=DOV1DBZ
+   629  	DOVnDBZ=DOV1DAZ
+   630                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+   631       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   632       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   633       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+   634       4           B12(L),B12(K),
+   635       5           EX2,EY2,EZ2,EN13,KLM)                       
+   636  	D2EN5DA1=DENDA2P
+   637  	D2EN5DA2=DENDA1P
+   638  	D2EN5DA5=DENDA5P
+   639  	D2EN5DAZ=DENDBZP
+   640  	D2EN5DBZ=DENDAZP
+   641  C
+   642  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   643  C
+   644  	IF (ISYMM) THEN
+   645  	DOVnDA1=DOV2DA2
+   646  	DOVnDA2=DOV2DA1
+   647  	DOVnDA5=DOV2DA5
+   648  	DOVnDAZ=DOV2DBZ
+   649  	DOVnDBZ=DOV2DAZ
+   650                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+   651       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   652       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+   653       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+   654       4           B12(L),B12(K),
+   655       5           EX2,EY2,EZ2,EN14,KLM)  
+   656  	D2EN6DA1=DENDA2P
+   657  	D2EN6DA2=DENDA1P
+   658  	D2EN6DA5=DENDA5P
+   659  	D2EN6DAZ=DENDBZP
+   660  	D2EN6DBZ=DENDAZP
+   661  C
+   662  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+   663  C
+   664  	DOVnDA1=DOV3DA2
+   665  	DOVnDA2=DOV3DA1
+   666  	DOVnDA5=DOV3DA5
+   667  	DOVnDAZ=DOV3DBZ
+   668  	DOVnDBZ=DOV3DAZ
+   669                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+   670       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   671       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   672       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   673       4            B12(L),B12(K),
+   674       5            EX2,EY2,EZ2,EN15,KLM)
+   675  	D2EN7DA1=DENDA2P
+   676  	D2EN7DA2=DENDA1P
+   677  	D2EN7DA5=DENDA5P
+   678  	D2EN7DAZ=DENDBZP
+   679  	D2EN7DBZ=DENDAZP
+   680  C
+   681  C     ...Electro/Nuclear Symmetrization Integral:
+   682  C         P_[elec.1,elec.2]*P_[H1,H2]
+   683  C
+   684  	DOVnDA1=DOV4DA2
+
+                                                                        PAGE  13
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   685  	DOVnDA2=DOV4DA1
+   686  	DOVnDA5=DOV4DA5
+   687  	DOVnDAZ=DOV4DBZ
+   688  	DOVnDBZ=DOV4DAZ
+   689                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+   690       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   691       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+   692       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   693       4            B12(L),B12(K),
+   694       5            EX2,EY2,EZ2,EN16,KLM)
+   695  	D2EN8DA1=DENDA2P
+   696  	D2EN8DA2=DENDA1P
+   697  	D2EN8DA5=DENDA5P
+   698  	D2EN8DAZ=DENDBZP
+   699  	D2EN8DBZ=DENDAZP
+   700  	END IF
+   701  C 
+   702  C
+   703  	IF (ISYMM) THEN
+   704                ENN1=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   705       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   706  	ELSE
+   707                ENN1=EN1+EN5+EN9+EN13
+   708  	END IF
+   709  C
+   710  	IF (ISYMM) THEN
+   711  	DENADA1=D1EN1DA1+D1EN2DA1+D1EN3DA1+D1EN4DA1+D1EN5DA1+D1EN6DA1+D1EN
+   712  	-7DA1+D1EN8DA1+D2EN1DA1+D2EN2DA1+D2EN3DA1+D2EN4DA1+D2EN5DA1+D2EN6DA
+   713       -1+D2EN7DA1+D2EN8DA1
+   714  	DENADA2=D1EN1DA2+D1EN2DA2+D1EN3DA2+D1EN4DA2+D1EN5DA2+D1EN6DA2+D1EN
+   715  	-7DA2+D1EN8DA2+D2EN1DA2+D2EN2DA2+D2EN3DA2+D2EN4DA2+D2EN5DA2+D2EN6DA
+   716       -2+D2EN7DA2+D2EN8DA2
+   717  	DENADA5=D1EN1DA5+D1EN2DA5+D1EN3DA5+D1EN4DA5+D1EN5DA5+D1EN6DA5+D1EN
+   718  	-7DA5+D1EN8DA5+D2EN1DA5+D2EN2DA5+D2EN3DA5+D2EN4DA5+D2EN5DA5+D2EN6DA
+   719       -5+D2EN7DA5+D2EN8DA5
+   720  	DENADAZ=D1EN1DAZ+D1EN2DAZ+D1EN3DAZ+D1EN4DAZ+D1EN5DAZ+D1EN6DAZ+D1EN
+   721  	-7DAZ+D1EN8DAZ+D2EN1DAZ+D2EN2DAZ+D2EN3DAZ+D2EN4DAZ+D2EN5DAZ+D2EN6DA
+   722       -Z+D2EN7DAZ+D2EN8DAZ
+   723  	DENADBZ=D1EN1DBZ+D1EN2DBZ+D1EN3DBZ+D1EN4DBZ+D1EN5DBZ+D1EN6DBZ+D1EN
+   724  	-7DBZ+D1EN8DBZ+D2EN1DBZ+D2EN2DBZ+D2EN3DBZ+D2EN4DBZ+D2EN5DBZ+D2EN6DB
+   725       -Z+D2EN7DBZ+D2EN8DBZ
+   726  	ELSE
+   727  	DENADA1=D1EN1DA1+D1EN5DA1+D2EN1DA1+D2EN5DA1
+   728  	DENADA2=D1EN1DA2+D1EN5DA2+D2EN1DA2+D2EN5DA2
+   729  	DENADA5=D1EN1DA5+D1EN5DA5+D2EN1DA5+D2EN5DA5
+   730  	DENADAZ=D1EN1DAZ+D1EN5DAZ+D2EN1DAZ+D2EN5DAZ
+   731  	DENADBZ=D1EN1DBZ+D1EN5DBZ+D2EN1DBZ+D2EN5DBZ
+   732  	END IF
+   733  	IF(IPERM.EQ.1) THEN
+   734  	DENADA1=D1EN1DA1+D1EN5DA1+D2EN1DA1+D2EN5DA1
+   735  	DENADA2=D1EN1DA2+D1EN5DA2+D2EN1DA2+D2EN5DA2
+   736  	DENADA5=D1EN1DA5+D1EN5DA5+D2EN1DA5+D2EN5DA5
+   737  	DENADAZ=D1EN1DAZ+D1EN5DAZ+D2EN1DAZ+D2EN5DAZ
+   738  	DENADBZ=D1EN1DBZ+D1EN5DBZ+D2EN1DBZ+D2EN5DBZ
+   739  	END IF
+   740  	IF(IPERM.EQ.2) THEN
+   741  	DENADA1=D1EN2DA1+D1EN6DA1+D2EN2DA1+D2EN6DA1
+
+                                                                        PAGE  14
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   742  	DENADA2=D1EN2DA2+D1EN6DA2+D2EN2DA2+D2EN6DA2
+   743  	DENADA5=D1EN2DA5+D1EN6DA5+D2EN2DA5+D2EN6DA5
+   744  	DENADAZ=D1EN2DAZ+D1EN6DAZ+D2EN2DAZ+D2EN6DAZ
+   745  	DENADBZ=D1EN2DBZ+D1EN6DBZ+D2EN2DBZ+D2EN6DBZ
+   746  	END IF
+   747  	IF(IPERM.EQ.3) THEN
+   748  	DENADA1=D1EN3DA1+D1EN7DA1+D2EN3DA1+D2EN7DA1
+   749  	DENADA2=D1EN3DA2+D1EN7DA2+D2EN3DA2+D2EN7DA2
+   750  	DENADA5=D1EN3DA5+D1EN7DA5+D2EN3DA5+D2EN7DA5
+   751  	DENADAZ=D1EN3DAZ+D1EN7DAZ+D2EN3DAZ+D2EN7DAZ
+   752  	DENADBZ=D1EN3DBZ+D1EN7DBZ+D2EN3DBZ+D2EN7DBZ
+   753  	END IF
+   754  	IF(IPERM.EQ.4) THEN
+   755  	DENADA1=D1EN4DA1+D1EN8DA1+D2EN4DA1+D2EN8DA1
+   756  	DENADA2=D1EN4DA2+D1EN8DA2+D2EN4DA2+D2EN8DA2
+   757  	DENADA5=D1EN4DA5+D1EN8DA5+D2EN4DA5+D2EN8DA5
+   758  	DENADAZ=D1EN4DAZ+D1EN8DAZ+D2EN4DAZ+D2EN8DAZ
+   759  	DENADBZ=D1EN4DBZ+D1EN8DBZ+D2EN4DBZ+D2EN8DBZ
+   760  	END IF
+   761  C     -----------------------------------------------------
+   762  C     --- Calculate the Elec./Elec. Repulsion ---
+   763  C     -----------------------------------------------------
+   764  	DOVnDA1=DOV1DA1
+   765  	DOVnDA2=DOV1DA2
+   766  	DOVnDA5=DOV1DA5
+   767  	DOVnDAZ=DOV1DAZ
+   768  	DOVnDBZ=DOV1DBZ
+   769                CALL ELREP(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+   770       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+   771       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   772       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+   773       4           B12(L),B12(K),ER1,KLM)  
+   774  	DER1DA1=DERDA1
+   775  	DER1DA2=DERDA2
+   776  	DER1DA5=DERDA5
+   777  	DER1DAZ=DERDAZ
+   778  	DER1DBZ=DERDBZ
+   779  C
+   780  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+   781  C
+   782  	IF (ISYMM) THEN
+   783  	DOVnDA1=DOV2DA1
+   784  	DOVnDA2=DOV2DA2
+   785  	DOVnDA5=DOV2DA5
+   786  	DOVnDAZ=DOV2DAZ
+   787  	DOVnDBZ=DOV2DBZ
+   788                CALL ELREP(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+   789       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+   790       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+   791       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+   792       4           B12(L),B12(K),ER2,KLM)  
+   793  	DER2DA1=DERDA1
+   794  	DER2DA2=DERDA2
+   795  	DER2DA5=DERDA5
+   796  	DER2DAZ=DERDAZ
+   797  	DER2DBZ=DERDBZ
+   798  C
+
+                                                                        PAGE  15
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   799  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+   800  C
+   801  	DOVnDA1=DOV3DA1
+   802  	DOVnDA2=DOV3DA2
+   803  	DOVnDA5=DOV3DA5
+   804  	DOVnDAZ=DOV3DAZ
+   805  	DOVnDBZ=DOV3DBZ
+   806                CALL ELREP(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+   807       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+   808       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   809       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+   810       4            B12(L),B12(K),ER3,KLM)
+   811  	DER3DA1=DERDA1
+   812  	DER3DA2=DERDA2
+   813  	DER3DA5=DERDA5
+   814  	DER3DAZ=DERDAZ
+   815  	DER3DBZ=DERDBZ
+   816  C
+   817  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+   818  C         P_[elec.1,elec.2]*P_[H1,H2]
+   819  C
+   820  	DOVnDA1=DOV4DA1
+   821  	DOVnDA2=DOV4DA2
+   822  	DOVnDA5=DOV4DA5
+   823  	DOVnDAZ=DOV4DAZ
+   824  	DOVnDBZ=DOV4DBZ
+   825                CALL ELREP(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+   826       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+   827       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+   828       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+   829       4            B12(L),B12(K),ER4,KLM)
+   830  	DER4DA1=DERDA1
+   831  	DER4DA2=DERDA2
+   832  	DER4DA5=DERDA5
+   833  	DER4DAZ=DERDAZ
+   834  	DER4DBZ=DERDBZ
+   835  	END IF
+   836  
+   837  C              
+   838  	IF (ISYMM) THEN
+   839  		EER1=ER1+ER2+ER3+ER4
+   840  	ELSE
+   841  		EER1=ER1
+   842  	END IF
+   843  C
+   844  	IF (ISYMM) THEN
+   845  	DEERDA1=DER1DA1+DER2DA1+DER3DA1+DER4DA1
+   846  	DEERDA2=DER1DA2+DER2DA2+DER3DA2+DER4DA2
+   847  	DEERDA5=DER1DA5+DER2DA5+DER3DA5+DER4DA5
+   848  	DEERDAZ=DER1DAZ+DER2DAZ+DER3DAZ+DER4DAZ
+   849  	DEERDBZ=DER1DBZ+DER2DBZ+DER3DBZ+DER4DBZ
+   850  	ELSE
+   851  	DEERDA1=DER1DA1
+   852  	DEERDA2=DER1DA2
+   853  	DEERDA5=DER1DA5
+   854  	DEERDAZ=DER1DAZ
+   855  	DEERDBZ=DER1DBZ
+
+                                                                        PAGE  16
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   856  	END IF
+   857  	IF(IPERM.EQ.1) THEN
+   858  	DEERDA1=DER1DA1
+   859  	DEERDA2=DER1DA2
+   860  	DEERDA5=DER1DA5
+   861  	DEERDAZ=DER1DAZ
+   862  	DEERDBZ=DER1DBZ
+   863  	END IF
+   864  	IF(IPERM.EQ.2) THEN
+   865  	DEERDA1=DER2DA1
+   866  	DEERDA2=DER2DA2
+   867  	DEERDA5=DER2DA5
+   868  	DEERDAZ=DER2DAZ
+   869  	DEERDBZ=DER2DBZ
+   870  	END IF
+   871  	IF(IPERM.EQ.3) THEN
+   872  	DEERDA1=DER3DA1
+   873  	DEERDA2=DER3DA2
+   874  	DEERDA5=DER3DA5
+   875  	DEERDAZ=DER3DAZ
+   876  	DEERDBZ=DER3DBZ
+   877  	END IF
+   878  	IF(IPERM.EQ.4) THEN
+   879  	DEERDA1=DER4DA1
+   880  	DEERDA2=DER4DA2
+   881  	DEERDA5=DER4DA5
+   882  	DEERDAZ=DER4DAZ
+   883  	DEERDBZ=DER4DBZ
+   884  	END IF
+   885  C
+   886  	IF (ISYMM) THEN
+   887                EN=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+   888       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+   889  	ELSE
+   890                EN=EN1+EN5+EN9+EN13
+   891  	END IF
+   892  C
+   893  	IF(IPERM.EQ.1) THEN
+   894                EN=EN1+EN5+EN9+EN13
+   895  	END IF
+   896  	IF(IPERM.EQ.2) THEN
+   897                EN=EN2+EN6+EN10+EN14
+   898  	END IF
+   899  	IF(IPERM.EQ.3) THEN
+   900                EN=EN3+EN7+EN11+EN15
+   901  	END IF
+   902  	IF(IPERM.EQ.4) THEN
+   903                EN=EN4+EN8+EN12+EN16
+   904  	END IF
+   905  C
+   906  	IF (ISYMM) THEN
+   907                ER=ER1+ER2+ER3+ER4
+   908  	ELSE
+   909  			ER=ER1
+   910  	END IF
+   911  C
+   912  	IF(IPERM.EQ.1) THEN
+
+                                                                        PAGE  17
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   913  			ER=ER1
+   914  	END IF
+   915  	IF(IPERM.EQ.2) THEN
+   916  			ER=ER2
+   917  	END IF
+   918  	IF(IPERM.EQ.3) THEN
+   919  			ER=ER3
+   920  	END IF
+   921  	IF(IPERM.EQ.4) THEN
+   922  			ER=ER4
+   923  	END IF
+   924  C
+   925                H(L,K)=ER+T-EN+(1.0D+00/1.4011D+00)*S(L,K)
+   926  C
+   927  	DHDA1(L,K)=DEERDA1+DTDA1-DENADA1+(1.0D+00/1.4011D+00)*DSDA1(L,K)
+   928  	DHDA2(L,K)=DEERDA2+DTDA2-DENADA2+(1.0D+00/1.4011D+00)*DSDA2(L,K)
+   929  	DHDA5(L,K)=DEERDA5+DTDA5-DENADA5+(1.0D+00/1.4011D+00)*DSDA5(L,K)
+   930  	DHDAZ(L,K)=DEERDAZ+DTDAZ-DENADAZ+(1.0D+00/1.4011D+00)*DSDAZ(L,K)
+   931  	DHDBZ(L,K)=DEERDBZ+DTDBZ-DENADBZ+(1.0D+00/1.4011D+00)*DSDBZ(L,K)
+   932  C
+   933  	IF (L.EQ.K) THEN
+   934  		DHDA1(L,K)=2.00D+00*DHDA1(L,K)
+   935  		DHDA2(L,K)=2.00D+00*DHDA2(L,K)
+   936  		DHDA5(L,K)=2.00D+00*DHDA5(L,K)
+   937  		DHDAZ(L,K)=2.00D+00*DHDAZ(L,K)
+   938  		DHDBZ(L,K)=2.00D+00*DHDBZ(L,K)
+   939  C
+   940  		DSDA1(L,K)=2.00D+00*DSDA1(L,K)
+   941  		DSDA2(L,K)=2.00D+00*DSDA2(L,K)
+   942  		DSDA5(L,K)=2.00D+00*DSDA5(L,K)
+   943  		DSDAZ(L,K)=2.00D+00*DSDAZ(L,K)
+   944  		DSDBZ(L,K)=2.00D+00*DSDBZ(L,K)
+   945  	END IF
+   946  C     ----------------------------------------------------- 
+   947            END DO 
+   948        END DO
+   949  C     ----------------------------------------------------- 
+   950  C      CALL TAB(S,M,M,MMAX,MMAX)                  
+   951  C      CALL TAB(H,M,M,MMAX,MMAX)
+   952  C      CALL ENERGY(M,H,S,EMIN,CO,KIM)
+   953  C		STOP
+   954  C     -----------------------------------------------------      
+   955        SUMH=0.00D+00
+   956  	SUMS=0.00D+00
+   957  	DO J=1,M
+   958  		DO I=1,M
+   959  			SUMH=SUMH+EVEC(I)*H(I,J)*EVEC(J)
+   960  			SUMS=SUMS+EVEC(I)*S(I,J)*EVEC(J)
+   961  		END DO
+   962  	END DO
+   963  C
+   964  	ENG=SUMH/SUMS
+   965  	EMIN=ENG
+   966  C
+   967  	DO I=1,M
+   968  		K=1
+   969  		DO J=1,M
+
+                                                                        PAGE  18
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   970  			DH(K,I)=DHDA1(J,I)
+   971  			DH(K+1,I)=DHDA2(J,I)
+   972  			DH(K+2,I)=DHDA5(J,I)
+   973  			DH(K+3,I)=DHDAZ(J,I)
+   974  			DH(K+4,I)=DHDBZ(J,I)
+   975  C
+   976  			DS(K,I)=DSDA1(J,I)
+   977  			DS(K+1,I)=DSDA2(J,I)
+   978  			DS(K+2,I)=DSDA5(J,I)
+   979  			DS(K+3,I)=DSDAZ(J,I)
+   980  			DS(K+4,I)=DSDBZ(J,I)
+   981  C
+   982  			K=K+5
+   983  		END DO
+   984  	END DO
+   985  C
+   986  	SCALE=1.00D+00/SUMS
+   987  C
+   988  	DO I=1,M
+   989  		DO J=1,M*5
+   990  			GRADM(I,J)=DH(J,I)-ENG*DS(J,I)
+   991  			GRADM(I,J)=SCALE*GRADM(I,J)
+   992  		END DO
+   993  	END DO
+   994  C
+   995  	NN=5
+   996  	NB=M
+   997  	DO J=1,NB
+   998  		DO K=1,NN
+   999  			IC=(J-1)*NN+K
+  1000  			GRADA(IC)=0.00D+00
+  1001  			DO I=1,NB
+  1002  				IF(I.NE.J) THEN
+  1003  					GRADA(IC)=GRADA(IC)+2.00D+00*EVEC(I)*EVEC(J)*
+  1004  	-						GRADM(I,IC)
+  1005  				ELSE
+  1006  					GRADA(IC)=GRADA(IC)+EVEC(I)*EVEC(J)*GRADM(I,IC)
+  1007  				END IF
+  1008  			END DO
+  1009  		END DO
+  1010  	END DO
+  1011  C
+  1012        DO I=1,NB
+  1013  		GRADC(I) = 0.00D+00
+  1014  	END DO
+  1015  	
+  1016        DO J=1,NB
+  1017  		DO I=1,NB
+  1018  		  GRADC(I)=GRADC(I)+2.00D+00*SCALE*( H(I,J)-ENG*S(I,J) )*
+  1019  	-				EVEC(J)
+  1020  		END DO
+  1021  	END DO
+  1022  
+  1023  	K=1
+  1024  	DO I=1,NB*5,5
+  1025  		DA1=GRADA(I)
+  1026  		DA2=GRADA(I+1)
+
+                                                                        PAGE  19
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1027  		DB=GRADA(I+2)
+  1028  	GRADA(I)=DA1*(2.00D+00*TTT1(K)+TTT3(K))+DA2*TTT3(K)-DB*TTT3(K)
+  1029  	GRADA(I+1)=2.00D+00*TTT2(K)*DA2
+  1030  	GRADA(I+2)=DA1*TTT1(K)+(2.00D+00*TTT3(K)+TTT1(K))*DA2-DB*TTT1(K)
+  1031  	K=K+1
+  1032        END DO
+  1033  C
+  1034        NX=M*5
+  1035  	DO I=1,NX
+  1036  		GRAD(I) = GRADA(I)
+  1037  	END DO
+  1038  	
+  1039        DO I=1,NB
+  1040  		GRAD(I+NX) = GRADC(I)
+  1041  	END DO
+  1042  C     -----------------------------------------------------      
+  1043        DEALLOCATE(	TEMP,DHDA1,DHDA2,DHDA5,DHDAZ,DHDBZ,DSDA1,DSDA2,
+  1044  	-			DSDA5,DSDAZ,DSDBZ,GRADM,DS,DH,GRADA,GRADC)
+  1045  C
+  1046  C
+  1047  C
+  1048  	ELSE
+  1049  C
+  1050  C
+  1051  C
+  1052        DO L=1,M
+  1053            DO K=1,L
+  1054  C     -----------------------------------------------------
+  1055  C     --- Calculate OVERLAP INTEGRAL ---
+  1056  C     -----------------------------------------------------
+  1057               CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1058       1            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1059       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1060       3            RX2(K),RY2(K),RZ2(K),AA2(K),
+  1061       4            B12(L),B12(K),OV1,KLM)
+  1062  C
+  1063  C
+  1064  	IF(ISYMM) THEN
+  1065  		CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1066       1            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1067       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1068       3            RX1(K),RY1(K),RZ1(K),AA1(K),
+  1069       4            B12(L),B12(K),OV2,KLM)
+  1070  C
+  1071  C
+  1072  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+  1073  C
+  1074                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1075       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1076       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1077       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1078       4            B12(L),B12(K),OV3,KLM)
+  1079  C
+  1080  C
+  1081  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+  1082  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1083  C
+
+                                                                        PAGE  20
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1084                CALL OVERLP(M,DFLAG,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1085       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1086       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1087       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1088       4            B12(L),B12(K),OV4,KLM)
+  1089  C              
+  1090  	END IF
+  1091  C     -----------------------------------------------------
+  1092  	IF(ISYMM) THEN
+  1093                S(L,K)=OV1+OV2+OV3+OV4
+  1094  		ELSE
+  1095                S(L,K)=OV1
+  1096  	END IF
+  1097  	IF(IPERM.EQ.1) THEN
+  1098  		S(L,K)=OV1
+  1099  	END IF
+  1100  	IF(IPERM.EQ.2) THEN
+  1101  		S(L,K)=OV2
+  1102  	END IF
+  1103  	IF(IPERM.EQ.3) THEN
+  1104  		S(L,K)=OV3
+  1105  	END IF
+  1106  	IF(IPERM.EQ.4) THEN
+  1107  		S(L,K)=OV4
+  1108  	END IF
+  1109  C
+  1110  C	IF (K.EQ.1) THEN
+  1111  C		WRITE(6,*)'S(',L,',1)=',S(L,K)
+  1112  C	END IF
+  1113  C     -----------------------------------------------------
+  1114  C     --- Calculate KINETIC ENERGY OF ELECTRON 1 ---
+  1115  C     -----------------------------------------------------
+  1116                CALL TK(DFLAG,OV1,
+  1117       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1118       2            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1119       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1120       4            RX2(K),RY2(K),RZ2(K),AA2(K),
+  1121       5            B12(L),B12(K),T1)  
+  1122  C
+  1123  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1124  	IF (ISYMM) THEN
+  1125                CALL TK(DFLAG,OV2,
+  1126       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1127       2            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1128       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1129       4            RX1(K),RY1(K),RZ1(K),AA1(K),
+  1130       5            B12(L),B12(K),T2)  
+  1131  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1132                CALL TK(DFLAG,OV3,
+  1133       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1134       2            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1135       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1136       4            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1137       5            B12(L),B12(K),T3)
+  1138  C     ...Electro/Nuclear Symmetrization Integral:
+  1139  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1140                CALL TK(DFLAG,OV4,
+
+                                                                        PAGE  21
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1141       1            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1142       2            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1143       3            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1144       4            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1145       5            B12(L),B12(K),T4)
+  1146  	END IF
+  1147  C     -----------------------------------------------------
+  1148  C     --- Calculate KINETIC ENERGY OF ELECTRON 2 ---
+  1149  C     -----------------------------------------------------
+  1150               CALL TK(DFLAG,OV1,
+  1151       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1152       2            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1153       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1154       4            RX1(K),RY1(K),RZ1(K),AA1(K),
+  1155       5            B12(L),B12(K),T5)  
+  1156  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1157  	IF (ISYMM) THEN
+  1158                CALL TK(DFLAG,OV2,
+  1159       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1160       2            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1161       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1162       4            RX2(K),RY2(K),RZ2(K),AA2(K),
+  1163       5            B12(L),B12(K),T6) 
+  1164  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1165                CALL TK(DFLAG,OV3,
+  1166       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1167       2            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1168       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1169       4            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1170       5            B12(L),B12(K),T7)
+  1171  C     ...Electro/Nuclear Symmetrization Integral:
+  1172  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1173                CALL TK(DFLAG,OV4,
+  1174       1            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1175       2            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1176       3            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1177       4            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1178       5            B12(L),B12(K),T8)
+  1179  	END IF
+  1180  C
+  1181  	IF (ISYMM) THEN
+  1182              T=(T1+T2+T3+T4+T5+T6+T7+T8)/2.0D+00
+  1183  	ELSE
+  1184  		  T=(T1+T5)/2.0D+00
+  1185  	END IF
+  1186  	IF(IPERM.EQ.1) THEN
+  1187  		T=(T1+T5)/2.0D+00
+  1188  	END IF
+  1189  	IF(IPERM.EQ.2) THEN
+  1190  		T=(T2+T6)/2.0D+00
+  1191  	END IF
+  1192  	IF(IPERM.EQ.3) THEN
+  1193  		T=(T3+T7)/2.0D+00
+  1194  	END IF
+  1195  	IF(IPERM.EQ.4) THEN
+  1196  		T=(T4+T8)/2.0D+00
+  1197  	END IF
+
+                                                                        PAGE  22
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1198  
+  1199  C	write(6,*)L,K,T
+  1200  C     -----------------------------------------------------
+  1201  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 1 ---
+  1202  C     -----------------------------------------------------
+  1203                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1204       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1205       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1206       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+  1207       4           B12(L),B12(K),
+  1208       5           EX1,EY1,EZ1,EN1,KLM)
+  1209  C
+  1210  
+  1211  	WRITE(6,*)'EN1=',EN1
+  1212  
+  1213  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1214  C
+  1215  	IF (ISYMM) THEN
+  1216                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1217       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1218       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1219       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+  1220       4           B12(L),B12(K),
+  1221       5           EX1,EY1,EZ1,EN2,KLM)                       
+  1222  C
+  1223  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1224  C
+  1225                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1226       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1227       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1228       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1229       4            B12(L),B12(K),
+  1230       5            EX1,EY1,EZ1,EN3,KLM)
+  1231  C
+  1232  C     ...Electro/Nuclear Symmetrization Integral:
+  1233  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1234  C
+  1235                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1236       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1237       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1238       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1239       4            B12(L),B12(K),
+  1240       5            EX1,EY1,EZ1,EN4,KLM)
+  1241  	END IF
+  1242  C  
+  1243                CALL ENUCL(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1244       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1245       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1246       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+  1247       4           B12(L),B12(K),
+  1248       5           EX2,EY2,EZ2,EN5,KLM)
+  1249  C
+  1250  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1251  C
+  1252  	IF (ISYMM) THEN
+  1253                CALL ENUCL(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1254       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+
+                                                                        PAGE  23
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1255       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1256       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+  1257       4           B12(L),B12(K),
+  1258       5           EX2,EY2,EZ2,EN6,KLM)                       
+  1259  C
+  1260  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1261  C
+  1262                CALL ENUCL(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1263       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1264       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1265       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1266       4            B12(L),B12(K),
+  1267       5            EX2,EY2,EZ2,EN7,KLM)
+  1268  C
+  1269  C     ...Electro/Nuclear Symmetrization Integral:
+  1270  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1271  C
+  1272                CALL ENUCL(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1273       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1274       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1275       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1276       4            B12(L),B12(K),
+  1277       5            EX2,EY2,EZ2,EN8,KLM)
+  1278  	END IF
+  1279  C 
+  1280  C     -----------------------------------------------------
+  1281  C     --- Calculate Nuc./Elec. Attractn. FOR ELECTRON 2 ---
+  1282  C     -----------------------------------------------------
+  1283                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1284       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1285       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+  1286       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+  1287       4           B12(L),B12(K),
+  1288       5           EX1,EY1,EZ1,EN9,KLM)                       
+  1289  C
+  1290  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1291  C
+  1292  	IF (ISYMM) THEN
+  1293                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1294       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1295       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+  1296       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+  1297       4           B12(L),B12(K),
+  1298       5           EX1,EY1,EZ1,EN10,KLM)                       
+  1299  C
+  1300  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1301  C
+  1302                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1303       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1304       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1305       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1306       4            B12(L),B12(K),
+  1307       5            EX1,EY1,EZ1,EN11,KLM)
+  1308  C
+  1309  C     ...Electro/Nuclear Symmetrization Integral:
+  1310  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1311  C
+
+                                                                        PAGE  24
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1312                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1313       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1314       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1315       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1316       4            B12(L),B12(K),
+  1317       5            EX1,EY1,EZ1,EN12,KLM)
+  1318  	END IF
+  1319  C 
+  1320                CALL ENUCL(DFLAG,OV1,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1321       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1322       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+  1323       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+  1324       4           B12(L),B12(K),
+  1325       5           EX2,EY2,EZ2,EN13,KLM)                       
+  1326  C
+  1327  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1328  C
+  1329  	IF (ISYMM) THEN
+  1330                CALL ENUCL(DFLAG,OV2,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1331       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+  1332       2           RX1(L),RY1(L),RZ1(L),AA1(L),
+  1333       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+  1334       4           B12(L),B12(K),
+  1335       5           EX2,EY2,EZ2,EN14,KLM)  
+  1336  C
+  1337  C     ...Nuclear Symmetrization Integral: P_[H1,H2]
+  1338  C
+  1339                CALL ENUCL(DFLAG,OV3,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1340       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1341       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1342       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1343       4            B12(L),B12(K),
+  1344       5            EX2,EY2,EZ2,EN15,KLM)
+  1345  C
+  1346  C     ...Electro/Nuclear Symmetrization Integral:
+  1347  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1348  C
+  1349                CALL ENUCL(DFLAG,OV4,RX2(L),RY2(L),RZ2(L),AA2(L),
+  1350       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1351       2            RX1(L),RY1(L),RZ1(L),AA1(L),
+  1352       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1353       4            B12(L),B12(K),
+  1354       5            EX2,EY2,EZ2,EN16,KLM)
+  1355  	END IF
+  1356  C 
+  1357  C
+  1358  	IF (ISYMM) THEN
+  1359                ENN1=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+  1360       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+  1361  	ELSE
+  1362                ENN1=EN1+EN5+EN9+EN13
+  1363  	END IF
+  1364  C     -----------------------------------------------------
+  1365  C     --- Calculate the Elec./Elec. Repulsion ---
+  1366  C     -----------------------------------------------------
+  1367                CALL ELREP(DFLAG,OV1,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1368       1           RX1(K),RY1(K),RZ1(K),AA1(K),                      
+
+                                                                        PAGE  25
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1369       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1370       3           RX2(K),RY2(K),RZ2(K),AA2(K),
+  1371       4           B12(L),B12(K),ER1,KLM)  
+  1372  C
+  1373  C     ...Electron Symmetrization Integral: P_[elec.1,elec.2]
+  1374  C
+  1375  	IF (ISYMM) THEN
+  1376                CALL ELREP(DFLAG,OV2,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1377       1           RX2(K),RY2(K),RZ2(K),AA2(K),                      
+  1378       2           RX2(L),RY2(L),RZ2(L),AA2(L),
+  1379       3           RX1(K),RY1(K),RZ1(K),AA1(K),
+  1380       4           B12(L),B12(K),ER2,KLM)  
+  1381  C
+  1382  C     ...Nuclear Symmetrization Overlap Integral: P_[H1,H2]
+  1383  C
+  1384                CALL ELREP(DFLAG,OV3,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1385       1            -RX1(K),-RY1(K),-RZ1(K),AA1(K),                      
+  1386       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1387       3            -RX2(K),-RY2(K),-RZ2(K),AA2(K),
+  1388       4            B12(L),B12(K),ER3,KLM)
+  1389  C
+  1390  C     ...Electro/Nuclear Symmetrization Overlap Integral:
+  1391  C         P_[elec.1,elec.2]*P_[H1,H2]
+  1392  C
+  1393                CALL ELREP(DFLAG,OV4,RX1(L),RY1(L),RZ1(L),AA1(L),
+  1394       1            -RX2(K),-RY2(K),-RZ2(K),AA2(K),                      
+  1395       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+  1396       3            -RX1(K),-RY1(K),-RZ1(K),AA1(K),
+  1397       4            B12(L),B12(K),ER4,KLM)
+  1398  	END IF
+  1399  
+  1400  C              
+  1401  	IF (ISYMM) THEN
+  1402  		EER1=ER1+ER2+ER3+ER4
+  1403  	ELSE
+  1404  		EER1=ER1
+  1405  	END IF
+  1406  C
+  1407  C
+  1408  	IF (ISYMM) THEN
+  1409                EN=EN1+EN2+EN3+EN4+EN5+EN6+EN7+EN8
+  1410       1            +EN9+EN10+EN11+EN12+EN13+EN14+EN15+EN16
+  1411  	ELSE
+  1412                EN=EN1+EN5+EN9+EN13
+  1413  	END IF
+  1414  C
+  1415  	IF(IPERM.EQ.1) THEN
+  1416                EN=EN1+EN5+EN9+EN13
+  1417  	END IF
+  1418  	IF(IPERM.EQ.2) THEN
+  1419                EN=EN2+EN6+EN10+EN14
+  1420  	END IF
+  1421  	IF(IPERM.EQ.3) THEN
+  1422                EN=EN3+EN7+EN11+EN15
+  1423  	END IF
+  1424  	IF(IPERM.EQ.4) THEN
+  1425                EN=EN4+EN8+EN12+EN16
+
+                                                                        PAGE  26
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1426  	END IF
+  1427  C
+  1428  	IF (ISYMM) THEN
+  1429                ER=ER1+ER2+ER3+ER4
+  1430  	ELSE
+  1431  			ER=ER1
+  1432  	END IF
+  1433  C
+  1434  	IF(IPERM.EQ.1) THEN
+  1435  			ER=ER1
+  1436  	END IF
+  1437  	IF(IPERM.EQ.2) THEN
+  1438  			ER=ER2
+  1439  	END IF
+  1440  	IF(IPERM.EQ.3) THEN
+  1441  			ER=ER3
+  1442  	END IF
+  1443  	IF(IPERM.EQ.4) THEN
+  1444  			ER=ER4
+  1445  	END IF
+  1446  C
+  1447                H(L,K)=ER+T-EN+(1.0D+00/1.4011D+00)*S(L,K)
+  1448  C
+  1449  	WRITE(6,*)'ER=',ER,L,K
+  1450  	WRITE(6,*)'EN=',EN,L,K
+  1451  C     ----------------------------------------------------- 
+  1452            END DO 
+  1453        END DO
+  1454  	DO L=1,M
+  1455  		DO K=1,L
+  1456  			IF (K .NE. L) THEN
+  1457  				S(K,L)=S(L,K)
+  1458  				H(K,L)=H(L,K)
+  1459  			END IF
+  1460  		END DO
+  1461  	END DO
+  1462  C     ----------------------------------------------------- 
+  1463  C      CALL TAB(S,M,M,MMAX,MMAX)                  
+  1464  C      CALL TAB(H,M,M,MMAX,MMAX)
+  1465  	IF (DFLAG .NE. 3) CALL ENERGY(M,H,S,EMIN,CO,KIM)
+  1466  C		STOP
+  1467  C     -----------------------------------------------------      
+  1468  	IF (DFLAG .EQ. 3) THEN
+  1469        SUMH=0.00D+00
+  1470  	SUMS=0.00D+00
+  1471  	DO J=1,M
+  1472  		DO I=1,M
+  1473  			SUMH=SUMH+EVEC(I)*H(I,J)*EVEC(J)
+  1474  			SUMS=SUMS+EVEC(I)*S(I,J)*EVEC(J)
+  1475  		END DO
+  1476  	END DO
+  1477  C
+  1478  	ENG=SUMH/SUMS
+  1479  	EMIN=ENG
+  1480  	END IF
+  1481  C
+  1482  C     -----------------------------------------------------      
+
+                                                                        PAGE  27
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1483        DEALLOCATE(	TEMP,DHDA1,DHDA2,DHDA5,DHDAZ,DHDBZ,DSDA1,DSDA2,
+  1484  	-			DSDA5,DSDAZ,DSDBZ,GRADM,DS,DH,GRADA,GRADC)
+  1485  	END IF
+  1486  
+  1487        RETURN
+  1488        END
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+/DEN/ . . . . . . . . . . DEN(0)             MULTI*80         80
+/DER/ . . . . . . . . . . DER(0)             MULTI*40         40
+/DOV/ . . . . . . . . . . DOV(0)             MULTI*40         40
+/DOVN/. . . . . . . . . . DOVN(0)            MULTI*40         40
+/DTK/ . . . . . . . . . . DTK(0)             MULTI*40         40
+/OVER/. . . . . . . . . . OVER(0)            MULTI*8           8
+AA1 . . . . . . . . . . . param                                4
+AA2 . . . . . . . . . . . param                                4
+B12 . . . . . . . . . . . param                                4
+CO. . . . . . . . . . . . param                                4
+D1EN1DA1. . . . . . . . . local              REAL*8            8
+D1EN1DA2. . . . . . . . . local              REAL*8            8
+D1EN1DA5. . . . . . . . . local              REAL*8            8
+D1EN1DAZ. . . . . . . . . local              REAL*8            8
+D1EN1DBZ. . . . . . . . . local              REAL*8            8
+D1EN2DA1. . . . . . . . . local              REAL*8            8
+D1EN2DA2. . . . . . . . . local              REAL*8            8
+D1EN2DA5. . . . . . . . . local              REAL*8            8
+D1EN2DAZ. . . . . . . . . local              REAL*8            8
+D1EN2DBZ. . . . . . . . . local              REAL*8            8
+D1EN3DA1. . . . . . . . . local              REAL*8            8
+D1EN3DA2. . . . . . . . . local              REAL*8            8
+D1EN3DA5. . . . . . . . . local              REAL*8            8
+D1EN3DAZ. . . . . . . . . local              REAL*8            8
+D1EN3DBZ. . . . . . . . . local              REAL*8            8
+D1EN4DA1. . . . . . . . . local              REAL*8            8
+D1EN4DA2. . . . . . . . . local              REAL*8            8
+D1EN4DA5. . . . . . . . . local              REAL*8            8
+D1EN4DAZ. . . . . . . . . local              REAL*8            8
+D1EN4DBZ. . . . . . . . . local              REAL*8            8
+D1EN5DA1. . . . . . . . . local              REAL*8            8
+D1EN5DA2. . . . . . . . . local              REAL*8            8
+D1EN5DA5. . . . . . . . . local              REAL*8            8
+D1EN5DAZ. . . . . . . . . local              REAL*8            8
+D1EN5DBZ. . . . . . . . . local              REAL*8            8
+D1EN6DA1. . . . . . . . . local              REAL*8            8
+D1EN6DA2. . . . . . . . . local              REAL*8            8
+D1EN6DA5. . . . . . . . . local              REAL*8            8
+D1EN6DAZ. . . . . . . . . local              REAL*8            8
+D1EN6DBZ. . . . . . . . . local              REAL*8            8
+D1EN7DA1. . . . . . . . . local              REAL*8            8
+D1EN7DA2. . . . . . . . . local              REAL*8            8
+D1EN7DA5. . . . . . . . . local              REAL*8            8
+D1EN7DAZ. . . . . . . . . local              REAL*8            8
+D1EN7DBZ. . . . . . . . . local              REAL*8            8
+D1EN8DA1. . . . . . . . . local              REAL*8            8
+D1EN8DA2. . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  28
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+D1EN8DA5. . . . . . . . . local              REAL*8            8
+D1EN8DAZ. . . . . . . . . local              REAL*8            8
+D1EN8DBZ. . . . . . . . . local              REAL*8            8
+D1T1DA1 . . . . . . . . . local              REAL*8            8
+D1T1DA2 . . . . . . . . . local              REAL*8            8
+D1T1DA5 . . . . . . . . . local              REAL*8            8
+D1T1DAZ . . . . . . . . . local              REAL*8            8
+D1T1DBZ . . . . . . . . . local              REAL*8            8
+D1T2DA1 . . . . . . . . . local              REAL*8            8
+D1T2DA2 . . . . . . . . . local              REAL*8            8
+D1T2DA5 . . . . . . . . . local              REAL*8            8
+D1T2DAZ . . . . . . . . . local              REAL*8            8
+D1T2DBZ . . . . . . . . . local              REAL*8            8
+D2EN1DA1. . . . . . . . . local              REAL*8            8
+D2EN1DA2. . . . . . . . . local              REAL*8            8
+D2EN1DA5. . . . . . . . . local              REAL*8            8
+D2EN1DAZ. . . . . . . . . local              REAL*8            8
+D2EN1DBZ. . . . . . . . . local              REAL*8            8
+D2EN2DA1. . . . . . . . . local              REAL*8            8
+D2EN2DA2. . . . . . . . . local              REAL*8            8
+D2EN2DA5. . . . . . . . . local              REAL*8            8
+D2EN2DAZ. . . . . . . . . local              REAL*8            8
+D2EN2DBZ. . . . . . . . . local              REAL*8            8
+D2EN3DA1. . . . . . . . . local              REAL*8            8
+D2EN3DA2. . . . . . . . . local              REAL*8            8
+D2EN3DA5. . . . . . . . . local              REAL*8            8
+D2EN3DAZ. . . . . . . . . local              REAL*8            8
+D2EN3DBZ. . . . . . . . . local              REAL*8            8
+D2EN4DA1. . . . . . . . . local              REAL*8            8
+D2EN4DA2. . . . . . . . . local              REAL*8            8
+D2EN4DA5. . . . . . . . . local              REAL*8            8
+D2EN4DAZ. . . . . . . . . local              REAL*8            8
+D2EN4DBZ. . . . . . . . . local              REAL*8            8
+D2EN5DA1. . . . . . . . . local              REAL*8            8
+D2EN5DA2. . . . . . . . . local              REAL*8            8
+D2EN5DA5. . . . . . . . . local              REAL*8            8
+D2EN5DAZ. . . . . . . . . local              REAL*8            8
+D2EN5DBZ. . . . . . . . . local              REAL*8            8
+D2EN6DA1. . . . . . . . . local              REAL*8            8
+D2EN6DA2. . . . . . . . . local              REAL*8            8
+D2EN6DA5. . . . . . . . . local              REAL*8            8
+D2EN6DAZ. . . . . . . . . local              REAL*8            8
+D2EN6DBZ. . . . . . . . . local              REAL*8            8
+D2EN7DA1. . . . . . . . . local              REAL*8            8
+D2EN7DA2. . . . . . . . . local              REAL*8            8
+D2EN7DA5. . . . . . . . . local              REAL*8            8
+D2EN7DAZ. . . . . . . . . local              REAL*8            8
+D2EN7DBZ. . . . . . . . . local              REAL*8            8
+D2EN8DA1. . . . . . . . . local              REAL*8            8
+D2EN8DA2. . . . . . . . . local              REAL*8            8
+D2EN8DA5. . . . . . . . . local              REAL*8            8
+D2EN8DAZ. . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  29
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+D2EN8DBZ. . . . . . . . . local              REAL*8            8
+D2T1DA1 . . . . . . . . . local              REAL*8            8
+D2T1DA2 . . . . . . . . . local              REAL*8            8
+D2T1DA5 . . . . . . . . . local              REAL*8            8
+D2T1DAZ . . . . . . . . . local              REAL*8            8
+D2T1DBZ . . . . . . . . . local              REAL*8            8
+D2T2DA1 . . . . . . . . . local              REAL*8            8
+D2T2DA2 . . . . . . . . . local              REAL*8            8
+D2T2DA5 . . . . . . . . . local              REAL*8            8
+D2T2DAZ . . . . . . . . . local              REAL*8            8
+D2T2DBZ . . . . . . . . . local              REAL*8            8
+D3T1DA1 . . . . . . . . . local              REAL*8            8
+D3T1DA2 . . . . . . . . . local              REAL*8            8
+D3T1DA5 . . . . . . . . . local              REAL*8            8
+D3T1DAZ . . . . . . . . . local              REAL*8            8
+D3T1DBZ . . . . . . . . . local              REAL*8            8
+D3T2DA1 . . . . . . . . . local              REAL*8            8
+D3T2DA2 . . . . . . . . . local              REAL*8            8
+D3T2DA5 . . . . . . . . . local              REAL*8            8
+D3T2DAZ . . . . . . . . . local              REAL*8            8
+D3T2DBZ . . . . . . . . . local              REAL*8            8
+D4T1DA1 . . . . . . . . . local              REAL*8            8
+D4T1DA2 . . . . . . . . . local              REAL*8            8
+D4T1DA5 . . . . . . . . . local              REAL*8            8
+D4T1DAZ . . . . . . . . . local              REAL*8            8
+D4T1DBZ . . . . . . . . . local              REAL*8            8
+D4T2DA1 . . . . . . . . . local              REAL*8            8
+D4T2DA2 . . . . . . . . . local              REAL*8            8
+D4T2DA5 . . . . . . . . . local              REAL*8            8
+D4T2DAZ . . . . . . . . . local              REAL*8            8
+D4T2DBZ . . . . . . . . . local              REAL*8            8
+DA1 . . . . . . . . . . . local              REAL*8            8
+DA2 . . . . . . . . . . . local              REAL*8            8
+DB. . . . . . . . . . . . local              REAL*8            8
+DEERDA1 . . . . . . . . . local              REAL*8            8
+DEERDA2 . . . . . . . . . local              REAL*8            8
+DEERDA5 . . . . . . . . . local              REAL*8            8
+DEERDAZ . . . . . . . . . local              REAL*8            8
+DEERDBZ . . . . . . . . . local              REAL*8            8
+DENADA1 . . . . . . . . . local              REAL*8            8
+DENADA2 . . . . . . . . . local              REAL*8            8
+DENADA5 . . . . . . . . . local              REAL*8            8
+DENADAZ . . . . . . . . . local              REAL*8            8
+DENADBZ . . . . . . . . . local              REAL*8            8
+DENDA1. . . . . . . . . . DEN(0)             REAL*8            8
+DENDA1P . . . . . . . . . DEN(40)            REAL*8            8
+DENDA2. . . . . . . . . . DEN(8)             REAL*8            8
+DENDA2P . . . . . . . . . DEN(48)            REAL*8            8
+DENDA5. . . . . . . . . . DEN(16)            REAL*8            8
+DENDA5P . . . . . . . . . DEN(56)            REAL*8            8
+DENDAZ. . . . . . . . . . DEN(24)            REAL*8            8
+DENDAZP . . . . . . . . . DEN(64)            REAL*8            8
+
+                                                                        PAGE  30
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+DENDBZ. . . . . . . . . . DEN(32)            REAL*8            8
+DENDBZP . . . . . . . . . DEN(72)            REAL*8            8
+DER1DA1 . . . . . . . . . local              REAL*8            8
+DER1DA2 . . . . . . . . . local              REAL*8            8
+DER1DA5 . . . . . . . . . local              REAL*8            8
+DER1DAZ . . . . . . . . . local              REAL*8            8
+DER1DBZ . . . . . . . . . local              REAL*8            8
+DER2DA1 . . . . . . . . . local              REAL*8            8
+DER2DA2 . . . . . . . . . local              REAL*8            8
+DER2DA5 . . . . . . . . . local              REAL*8            8
+DER2DAZ . . . . . . . . . local              REAL*8            8
+DER2DBZ . . . . . . . . . local              REAL*8            8
+DER3DA1 . . . . . . . . . local              REAL*8            8
+DER3DA2 . . . . . . . . . local              REAL*8            8
+DER3DA5 . . . . . . . . . local              REAL*8            8
+DER3DAZ . . . . . . . . . local              REAL*8            8
+DER3DBZ . . . . . . . . . local              REAL*8            8
+DER4DA1 . . . . . . . . . local              REAL*8            8
+DER4DA2 . . . . . . . . . local              REAL*8            8
+DER4DA5 . . . . . . . . . local              REAL*8            8
+DER4DAZ . . . . . . . . . local              REAL*8            8
+DER4DBZ . . . . . . . . . local              REAL*8            8
+DERDA1. . . . . . . . . . DER(0)             REAL*8            8
+DERDA2. . . . . . . . . . DER(8)             REAL*8            8
+DERDA5. . . . . . . . . . DER(16)            REAL*8            8
+DERDAZ. . . . . . . . . . DER(24)            REAL*8            8
+DERDBZ. . . . . . . . . . DER(32)            REAL*8            8
+DFLAG . . . . . . . . . . param                                4
+DH. . . . . . . . . . . . local              ADDRESS*8         4
+DHDA1 . . . . . . . . . . local              ADDRESS*8         4
+DHDA2 . . . . . . . . . . local              ADDRESS*8         4
+DHDA5 . . . . . . . . . . local              ADDRESS*8         4
+DHDAZ . . . . . . . . . . local              ADDRESS*8         4
+DHDBZ . . . . . . . . . . local              ADDRESS*8         4
+DOV1DA1 . . . . . . . . . local              REAL*8            8
+DOV1DA2 . . . . . . . . . local              REAL*8            8
+DOV1DA5 . . . . . . . . . local              REAL*8            8
+DOV1DAZ . . . . . . . . . local              REAL*8            8
+DOV1DBZ . . . . . . . . . local              REAL*8            8
+DOV2DA1 . . . . . . . . . local              REAL*8            8
+DOV2DA2 . . . . . . . . . local              REAL*8            8
+DOV2DA5 . . . . . . . . . local              REAL*8            8
+DOV2DAZ . . . . . . . . . local              REAL*8            8
+DOV2DBZ . . . . . . . . . local              REAL*8            8
+DOV3DA1 . . . . . . . . . local              REAL*8            8
+DOV3DA2 . . . . . . . . . local              REAL*8            8
+DOV3DA5 . . . . . . . . . local              REAL*8            8
+DOV3DAZ . . . . . . . . . local              REAL*8            8
+DOV3DBZ . . . . . . . . . local              REAL*8            8
+DOV4DA1 . . . . . . . . . local              REAL*8            8
+DOV4DA2 . . . . . . . . . local              REAL*8            8
+DOV4DA5 . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  31
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+DOV4DAZ . . . . . . . . . local              REAL*8            8
+DOV4DBZ . . . . . . . . . local              REAL*8            8
+DOVDA1. . . . . . . . . . DOV(0)             REAL*8            8
+DOVDA2. . . . . . . . . . DOV(8)             REAL*8            8
+DOVDA5. . . . . . . . . . DOV(16)            REAL*8            8
+DOVDAZ. . . . . . . . . . DOV(24)            REAL*8            8
+DOVDBZ. . . . . . . . . . DOV(32)            REAL*8            8
+DOVNDA1 . . . . . . . . . DOVN(0)            REAL*8            8
+DOVNDA2 . . . . . . . . . DOVN(8)            REAL*8            8
+DOVNDA5 . . . . . . . . . DOVN(16)           REAL*8            8
+DOVNDAZ . . . . . . . . . DOVN(24)           REAL*8            8
+DOVNDBZ . . . . . . . . . DOVN(32)           REAL*8            8
+DS. . . . . . . . . . . . local              ADDRESS*8         4
+DSDA1 . . . . . . . . . . local              ADDRESS*8         4
+DSDA2 . . . . . . . . . . local              ADDRESS*8         4
+DSDA5 . . . . . . . . . . local              ADDRESS*8         4
+DSDAZ . . . . . . . . . . local              ADDRESS*8         4
+DSDBZ . . . . . . . . . . local              ADDRESS*8         4
+DTDA1 . . . . . . . . . . local              REAL*8            8
+DTDA2 . . . . . . . . . . local              REAL*8            8
+DTDA5 . . . . . . . . . . local              REAL*8            8
+DTDAZ . . . . . . . . . . local              REAL*8            8
+DTDBZ . . . . . . . . . . local              REAL*8            8
+DTKDA1. . . . . . . . . . DTK(0)             REAL*8            8
+DTKDA2. . . . . . . . . . DTK(8)             REAL*8            8
+DTKDA5. . . . . . . . . . DTK(16)            REAL*8            8
+DTKDAZ. . . . . . . . . . DTK(24)            REAL*8            8
+DTKDBZ. . . . . . . . . . DTK(32)            REAL*8            8
+EER1. . . . . . . . . . . local              REAL*8            8
+EMIN. . . . . . . . . . . param                                4
+EN. . . . . . . . . . . . local              REAL*8            8
+EN1 . . . . . . . . . . . local              REAL*8            8
+EN10. . . . . . . . . . . local              REAL*8            8
+EN11. . . . . . . . . . . local              REAL*8            8
+EN12. . . . . . . . . . . local              REAL*8            8
+EN13. . . . . . . . . . . local              REAL*8            8
+EN14. . . . . . . . . . . local              REAL*8            8
+EN15. . . . . . . . . . . local              REAL*8            8
+EN16. . . . . . . . . . . local              REAL*8            8
+EN2 . . . . . . . . . . . local              REAL*8            8
+EN3 . . . . . . . . . . . local              REAL*8            8
+EN4 . . . . . . . . . . . local              REAL*8            8
+EN5 . . . . . . . . . . . local              REAL*8            8
+EN6 . . . . . . . . . . . local              REAL*8            8
+EN7 . . . . . . . . . . . local              REAL*8            8
+EN8 . . . . . . . . . . . local              REAL*8            8
+EN9 . . . . . . . . . . . local              REAL*8            8
+ENG . . . . . . . . . . . local              REAL*8            8
+ENN1. . . . . . . . . . . local              REAL*8            8
+ER. . . . . . . . . . . . local              REAL*8            8
+ER1 . . . . . . . . . . . local              REAL*8            8
+ER2 . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  32
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+ER3 . . . . . . . . . . . local              REAL*8            8
+ER4 . . . . . . . . . . . local              REAL*8            8
+ERROR . . . . . . . . . . local              INTEGER*4         4
+EVEC. . . . . . . . . . . param                                4
+EX1 . . . . . . . . . . . local              REAL*8            8
+EX2 . . . . . . . . . . . local              REAL*8            8
+EY1 . . . . . . . . . . . local              REAL*8            8
+EY2 . . . . . . . . . . . local              REAL*8            8
+EZ1 . . . . . . . . . . . local              REAL*8            8
+EZ2 . . . . . . . . . . . local              REAL*8            8
+GRAD. . . . . . . . . . . param                                4
+GRADA . . . . . . . . . . local              ADDRESS*8         4
+GRADC . . . . . . . . . . local              ADDRESS*8         4
+GRADM . . . . . . . . . . local              ADDRESS*8         4
+H . . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+IC. . . . . . . . . . . . local              INTEGER*4         4
+IPERM . . . . . . . . . . const              INTEGER*4         4
+ISYMM . . . . . . . . . . const              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . OVER(4)            INTEGER*4         4
+KIM . . . . . . . . . . . local              INTEGER*4         4
+KLM . . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . OVER(0)            INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MMAX. . . . . . . . . . . local              INTEGER*4         4
+NB. . . . . . . . . . . . local              INTEGER*4         4
+NN. . . . . . . . . . . . local              INTEGER*4         4
+NX. . . . . . . . . . . . local              INTEGER*4         4
+OV1 . . . . . . . . . . . local              REAL*8            8
+OV2 . . . . . . . . . . . local              REAL*8            8
+OV3 . . . . . . . . . . . local              REAL*8            8
+OV4 . . . . . . . . . . . local              REAL*8            8
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+S . . . . . . . . . . . . param                                4
+SCALE . . . . . . . . . . local              REAL*8            8
+SUMH. . . . . . . . . . . local              REAL*8            8
+SUMS. . . . . . . . . . . local              REAL*8            8
+T . . . . . . . . . . . . local              REAL*8            8
+T1. . . . . . . . . . . . local              REAL*8            8
+T2. . . . . . . . . . . . local              REAL*8            8
+T3. . . . . . . . . . . . local              REAL*8            8
+T4. . . . . . . . . . . . local              REAL*8            8
+T5. . . . . . . . . . . . local              REAL*8            8
+T6. . . . . . . . . . . . local              REAL*8            8
+T7. . . . . . . . . . . . local              REAL*8            8
+T8. . . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE  33
+                                                                        05-02-96
+                                                                        16:21:24
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+HAMILTON@80  Local symbols
+Name                      Class              Type           Size
+
+
+TEMP. . . . . . . . . . . local              ADDRESS*8         4
+TTT1. . . . . . . . . . . param                                4
+TTT2. . . . . . . . . . . param                                4
+TTT3. . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DEN . . . . . . . . . . . common             ***              80
+DER . . . . . . . . . . . common             ***              40
+DOV . . . . . . . . . . . common             ***              40
+DOVN. . . . . . . . . . . common             ***              40
+DTK . . . . . . . . . . . common             ***              40
+ELREP@88. . . . . . . . . extern             ***             ***
+ENERGY@24 . . . . . . . . extern             ***             ***
+ENUCL@100 . . . . . . . . extern             ***             ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GEOM@24 . . . . . . . . . extern             ***             ***
+HAMILTON@80 . . . . . . . FUNCT              ***             ***
+LBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+LWRITE_I. . . . . . . . . extern             INTEGER*0       ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+OVER. . . . . . . . . . . common             ***               8
+OVERLP@88 . . . . . . . . extern             ***             ***
+TK@84 . . . . . . . . . . extern             ***             ***
+TNOVER. . . . . . . . . . common             ***              12
+UBOUND_INFO . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

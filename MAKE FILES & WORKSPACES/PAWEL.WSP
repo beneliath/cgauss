@@ -1,0 +1,16 @@
+[Header]
+Version=1.00a.0619
+WinVer=13059
+WorkspaceName0=&Edit
+WorkspaceName1=&Debug
+WorkspaceName2=&Custom
+Initial=3
+PromptWhenSave=1
+CloseWindow=1
+Status=-1 -1 -1 0
+[Workspace3]
+Coord=75 74 1043 714
+Style=399441920
+RibbonHidden=0
+StatusHidden=0
+WindowNumber=0

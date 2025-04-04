@@ -1,0 +1,185 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:53:02
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C**************************************************
+     2        SUBROUTINE DK(L,K,R1LZ,AL1,R1KZ,Ak1,                      
+     3       1              R2LZ,AL2,R2KZ,AK2,BL,BK,
+     4       2              DKA1,DKA2,DKB,DKR1,DKR2) 
+     5  C**************************************************
+     6        IMPLICIT REAL*8 (A-H,O-Z)
+     7        DIMENSION DELTA(100,100)
+     8        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/               
+     9  C ***                                                              ***
+    10  C ***    SUBROUTINE DK CALCULATES FIRST DERIVATIVES OF K-FACTOR    ***
+    11  C ***                   
+    12       
+    13        DO 10 IL=1,100
+    14        DO 10 IK=1,100
+    15        DELTA(IL,IK)=0.0
+    16  10    CONTINUE
+    17        DO 11 II=1,100
+    18        DELTA(II,II)=1.0 
+    19  11    CONTINUE
+    20        ALK1=AL1+Ak1                                                      
+    21        ALK2=AL2+Ak2                                                      
+    22        BLK12=BL+BK  
+    23        DETAB=ALK1*ALK2+(ALK1+ALK2)*BLK12
+    24  	DETA1=(1.0+DELTA(L,K))*(ALK2 +BLK12)
+    25  	DETA2=(1.0+DELTA(L,K))*(ALK1 +BLK12)
+    26  	DETB=(1.0+DELTA(L,K))*(ALK1 +ALK2)
+    27  C
+    28  C     --- CENTERS ---
+    29  C
+    30        XK1=EXP(-((AL1*AK1)/ALK1)*((R1LZ-R1KZ)**2))
+    31        XK2=EXP(-((AL2*AK2)/ALK2)*((R2LZ-R2KZ)**2))
+    32  C
+    33        RZ1=(AL1*R1LZ+Ak1*R1KZ)/ALK1
+    34        RZ1A1= ( DELTA(L,K)*R1LZ+R1KZ )/ALK1
+    35       1     -( AL1*R1LZ+Ak1*R1KZ )*(1.0+DELTA(L,K))/ALK1**2.0
+    36        RZ1R1=(AL1*DELTA(L,K) + AK1 )/ALK1	
+    37  C
+    38        RZ2=(AL2*R2LZ+Ak2*R2KZ)/ALK2
+    39        RZ2A2=( DELTA(L,K)*R2LZ+R2KZ )/ALK2
+    40       1     -( AL2*R2LZ+Ak2*R2KZ )*(1.0+DELTA(L,K))/ALK2**2.0
+    41        RZ2R2=(AL2*DELTA(L,K) + AK2 )/ALK2	
+    42  C
+    43        DD=(RZ1-RZ2)**2
+    44        DDA1=  2*(RZ1-RZ2)*RZ1A1
+    45        DDA2=- 2*(RZ1-RZ2)*RZ2A2
+    46        DDR1= 2*(RZ1-RZ2)*RZ1R1	
+    47        DDR2=- 2*(RZ1-RZ2)*RZ2R2
+    48        XK3=EXP(-(ALK1*ALK2*BLK12)*DD/DETAB)
+    49        XK=XK1*XK2*XK3
+    50  C
+    51  C     --- FIRST DERIVATIVE WITH RESPECT TO AK1
+    52  C
+    53  	XK1A1=XK1*(-(AL1+DELTA(L,K)*AK1)/ALK1 
+    54       1       + AL1*AK1*(1.0+DELTA(L,K))/ALK1**2.0 )*((R1LZ-R1KZ)**2)
+    55  	XK3A1=XK3*(-1)
+    56       1  * ( ((1.0+DELTA(L,K))*ALK2*BLK12*DD+ALK1*ALK2*BLK12*DDA1)/DETAB 
+    57       2     -ALK1*ALK2*BLK12*DD*DETA1/DETAB**2.0 )
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:53:02
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  	DKA1=XK1A1*XK2*XK3 +XK3A1*XK2*XK1
+    59  C
+    60  C     --- FIRST DERIVATIVE WITH RESPECT TO Alpha_2
+    61  C
+    62  	XK2A2=XK2*(-( AL2+DELTA(L,K)*AK2)/ALK2 
+    63       1       + AL2*AK2*(1.0+DELTA(L,K))/ALK2**2.0 )*((R2LZ-R2KZ)**2)
+    64  	XK3A2=XK3*(-1)
+    65       1  * ( ((1.0+DELTA(L,K))*ALK1*BLK12*DD+ALK1*ALK2*BLK12*DDA2)/DETAB
+    66       2     -ALK1*ALK2*BLK12*DD*DETA2/DETAB**2.0 )
+    67  	DKA2=XK2A2*XK1*XK3 +XK3A2*XK1*XK2      
+    68  C
+    69  C     --- FIRST DERIVATIVE WITH RESPECT TO Beta_12
+    70  C
+    71  	XK3B=XK3*(-1)
+    72       1  * ( (1.0+DELTA(L,K))*ALK1*ALK2*DD/DETAB
+    73       2     -ALK1*ALK2*BLK12*DD*DETB/DETAB**2.0 )
+    74          DKB=XK3B*XK1*XK2
+    75  C
+    76  C     --- FIRST DERIVATIVE WITH RESPECT TO R1
+    77  C
+    78        XK1R1=XK1*(-AL1*AK1/ALK1)*(R1LZ-R1KZ)*2*( DELTA(L,K)-1.0 )
+    79  	XK3R1=XK3*(-(ALK1*ALK2*BLK12)*DDR1/DETAB)
+    80        DKR1=XK1R1*XK2*XK3 + XK3R1*XK1*XK2
+    81  
+    82  C
+    83  C     --- FIRST DERIVATIVE WITH RESPECT TO R2
+    84  C
+    85        XK2R2=XK2*(-AL2*AK2/ALK2)*(R2LZ-R2KZ)*2*( DELTA(L,K)-1.0 )
+    86  	XK3R2=XK3*(-(ALK1*ALK2*BLK12)*DDR2/DETAB)
+    87        DKR2=XK2R2*XK1*XK3 + XK3R2*XK1*XK2
+    88  
+    89  
+    90        RETURN                                                            
+    91        END     
+
+DK@68  Local symbols
+Name                      Class              Type           Size
+
+
+AK1 . . . . . . . . . . . param                                4
+AK2 . . . . . . . . . . . param                                4
+AL1 . . . . . . . . . . . param                                4
+AL2 . . . . . . . . . . . param                                4
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+BK. . . . . . . . . . . . param                                4
+BL. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+DD. . . . . . . . . . . . local              REAL*8            8
+DDA1. . . . . . . . . . . local              REAL*8            8
+DDA2. . . . . . . . . . . local              REAL*8            8
+DDR1. . . . . . . . . . . local              REAL*8            8
+DDR2. . . . . . . . . . . local              REAL*8            8
+DELTA . . . . . . . . . . local              REAL*8        80000
+DETA1 . . . . . . . . . . local              REAL*8            8
+DETA2 . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:53:02
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+DK@68  Local symbols
+Name                      Class              Type           Size
+
+
+DETB. . . . . . . . . . . local              REAL*8            8
+DKA1. . . . . . . . . . . param                                4
+DKA2. . . . . . . . . . . param                                4
+DKB . . . . . . . . . . . param                                4
+DKR1. . . . . . . . . . . param                                4
+DKR2. . . . . . . . . . . param                                4
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+IK. . . . . . . . . . . . dynam              INTEGER*4         4
+IL. . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . param                                4
+L . . . . . . . . . . . . param                                4
+R1KZ. . . . . . . . . . . param                                4
+R1LZ. . . . . . . . . . . param                                4
+R2KZ. . . . . . . . . . . param                                4
+R2LZ. . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . local              REAL*8            8
+RZ1A1 . . . . . . . . . . local              REAL*8            8
+RZ1R1 . . . . . . . . . . local              REAL*8            8
+RZ2 . . . . . . . . . . . local              REAL*8            8
+RZ2A2 . . . . . . . . . . local              REAL*8            8
+RZ2R2 . . . . . . . . . . local              REAL*8            8
+XK. . . . . . . . . . . . local              REAL*8            8
+XK1 . . . . . . . . . . . local              REAL*8            8
+XK1A1 . . . . . . . . . . local              REAL*8            8
+XK1R1 . . . . . . . . . . local              REAL*8            8
+XK2 . . . . . . . . . . . local              REAL*8            8
+XK2A2 . . . . . . . . . . local              REAL*8            8
+XK2R2 . . . . . . . . . . local              REAL*8            8
+XK3 . . . . . . . . . . . local              REAL*8            8
+XK3A1 . . . . . . . . . . local              REAL*8            8
+XK3A2 . . . . . . . . . . local              REAL*8            8
+XK3B. . . . . . . . . . . local              REAL*8            8
+XK3R1 . . . . . . . . . . local              REAL*8            8
+XK3R2 . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DK@68 . . . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

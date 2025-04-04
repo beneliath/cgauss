@@ -1,0 +1,19 @@
+
+      SUBROUTINE MATRIXM (N,A,MAXA,B,MAXB,C,MAXC)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION A(MAXA,MAXA),B(MAXB,MAXB),C(MAXC,MAXC)
+C     OPEN (UNIT=6,ACCESS='APPEND',FORM='FORMATTED')
+      DO 10 I=1,N
+      DO 10 J=1,N
+C     WRITE(6,*) I,J,A(I,J),B(I,J)
+10    CONTINUE
+C     CLOSE(6)
+      DO 100  I=1,N
+      DO 100  J=1,N
+      C(I,J)=0.0D+00
+      DO 50  K=1,N
+      C(I,J)=C(I,J)+A(I,K)*B(K,J)
+ 50   CONTINUE
+ 100  CONTINUE
+      RETURN
+      END

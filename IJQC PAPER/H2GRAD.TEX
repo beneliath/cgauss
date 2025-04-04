@@ -1,0 +1,850 @@
+
+\documentstyle[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%TCIDATA{Created=Wed Jul 31 13:00:10 1996}
+%TCIDATA{LastRevised=Tue Nov 12 22:45:18 1996}
+%TCIDATA{Language=American English}
+
+\textwidth 17true cm
+\textheight 8.65true in
+\oddsidemargin -0.05true in
+\evensidemargin 0.25true in
+\topmargin -0.5true in
+\headsep 0.4true in
+\renewcommand{\baselinestretch}{1.5}
+\input{tcilatex}
+\begin{document}
+
+\title{ANALYTIC FIRST DERIVATIVES FOR EXPLICITLY CORRELATED, MULTI-CENTER, GAUSSIAN
+GEMINALS}
+\author{D. Gilmore, Pawel M. Kozlowski\thanks{%
+Department of Chemistry, Princeton University, Princeton, New Jersey 08544},
+D. B. Kinghorn\ and L. Adamowicz \\
+%EndAName
+Department of Chemistry, University of Arizona, Tucson AZ 85721.}
+\date{(Received...........................................................)}
+\maketitle
+
+\begin{abstract}
+Variational calculations utilizing the analytic gradient of explicitly
+correlated Gaussian molecular integrals are presented for the ground state
+of the hydrogen molecule. Preliminary results serve to motivate the need for
+general formulae for analytic first derivatives of molecular integrals
+involving multi-center, explicitly correlated Gaussian geminals with respect
+to Gaussian exponents and coordinates of the orbital centers. Explicit
+formulae for analytic first derivatives of Gaussian functions containing
+correlation factors of the form $\exp (-\beta r_{ij}^2)$ are derived and
+discussed.
+\end{abstract}
+
+\newpage
+
+\section{Introduction}
+
+The idea of including explicitly interparticular distances in variational
+wavefunctions has a long history in quantum chemistry. It appears in the
+early work of Hylleraas \cite{hyl29}, James and Coolidge \cite{jam33} and in
+some of the most accurate studies for the $H_2$ molecule by Kolos and
+Wolniewicz \cite{kol65}. It is generally accepted that Hylleraas-type
+expansions give the most accurate description of two- and three-electron
+systems, as well as reproducing the electron-cusp correctly. The difficulty
+of extending the Hylleraas expansion for larger systems lies in the
+complexity of the required integrals, both in their analytical derivation
+and computational implementation (see, for example \cite{fromm1, king1}).
+The basis set of explicitly correlated Gaussians (ECG) proposed by Boys \cite
+{boy60} and Singer \cite{sin60} mitigate this problem with all the required
+integrals having closed analytic forms \cite{les64, koz91, koz92a}. Since
+the introductory work of Boys and Singer, basis sets of ECG functions, in
+particular Gaussian geminals (GG), have been applied to many different
+chemically and physically significant problems. An extensive bibliography on
+ECG's may be found in references \cite{sza83} and \cite{koz91}. Very recent
+applications constitute the nonadiabatic studies of small systems \cite
+{koz93a, koz93} and accurate multiple-moment calculations for $H_2$ and $D_2$
+\cite{kom93}. In all applications of GG's, careful optimization of the
+non-linear parameters is essential to obtain high-quality results. Although
+ECG's do not possess correct behavior near singularities, one may expect
+that long and well-optimized expansions should reproduce the cusp reasonably
+well. Recent studies presented by Cencek and Rychlewski \cite{cen93} support
+this contention and place application of ECG's in a new perspective. These
+authors use a wavefunction expanded in terms of ECG's for the ground state
+of $H_2$ at $R=1.4011a.u.$ internuclear separation. When this molecular
+system is adjusted to $R=1.4a.u.$, one obtains an energy better than the one
+corresponding to the generalized James and Coolidge expansion. Liu and
+Hagstrom \cite{liu93}, and more recently Kolos \cite{kol94}, have suggested
+that the generalized James-Coolidge expansion may not have been sufficiently
+flexible and therefore would not have converged to the true Born-Oppenheimer
+energy.
+
+These results encourage further study of ECG's and show that the quality of
+results obtained can be comparable to Hylleraas-type implementations.
+Moreover, with the relatively simple evaluation of molecular, two-electron
+integrals, application of ECG's does not suffer from restriction to
+few-electron systems as methods employing Hylleraas functions do.
+
+In most applications of GG's, or other types of explicitly correlated
+Gaussians, the optimization of the non-linear parameters has been achieved
+using numerical methods such as Powell's conjugate gradient method \cite
+{powell1}. Other optimization methods have been based on tempering
+procedures \cite{poshusta1, Alexander1, Alexander2, Rybak} where the
+Gaussian exponents were generated as a sequence of parameters with only a
+few of the variables being optimized. It is surprising that standard
+optimization techniques based on analytical derivatives, widely used in
+other areas of quantum chemistry, were only just applied to correlated
+Gaussians quite recently \cite{koz92a, koz92b, kinghorn1}. In our previous
+works, we developed analytical first- and second-derivatives in conjunction
+with non-adiabatic, few-body calculations \cite{koz92a, koz92b}. In our
+present work, we continue this research direction by considering the problem
+of calculating first derivatives of multi-center, two-electron integrals for
+use in variational Born-Oppenheimer calculations.
+
+The object of this paper is to present the derivation of analytical first
+derivatives for multi-center GG's and to propose the possibility of using
+them in variational calculations. The existing code for evaluation of
+integrals can be easily modified to obtain appropriate formulae for
+analytical derivatives of the integrals with respect to the parameters in
+the basis functions. The final section of this paper contains preliminary
+numerical calculations for the ground state of the hydrogen molecule
+utilizing analytic first derivatives of the Rayleigh energy functional with
+respect to linear and non-linear parameters of the wavefunction.
+
+\section{Basic properties of Gaussian Geminals}
+
+Analytical differentiation of an energy functional requires the evaluation
+of appropriate derivatives of molecular integrals with respect to the
+non-linear parameters. Three different type of derivatives will be
+considered: those with respect to orbital exponents, correlation exponents
+and orbital centers. In this section we discuss basic properties of GG that
+are important for the derivation of analytical first derivatives. It should
+be pointed out that analytical derivatives, expressed in terms of GG, can be
+rather long and complicated. We would like to keep the main body of the
+paper as simple as possible; to that extent, let us introduce the following
+notation for a one-dimensional Cartesian Gaussian: 
+\begin{equation}
+g(l^\mu ,x,R_x^\mu ,\alpha ^\mu )=(x-R_x^\mu )^{l^\mu }\exp (-\alpha ^\mu
+|x-R_x^\mu |^2),
+\end{equation}
+thus, for a general Cartesian Gaussian we have, 
+\begin{equation}
+G(l^\mu ,m^\mu ,n^\mu ,{\bf r},{\bf R}^\mu ,\alpha ^\mu )=g(l^\mu ,x,R_x^\mu
+,\alpha ^\mu )g(m^\mu ,y,R_y^\mu ,\alpha ^\mu )g(n^\mu ,z,R_z^\mu ,\alpha
+^\mu ),
+\end{equation}
+and finally for a Cartesian GG, 
+\[
+\phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,%
+{\bf R}_2^\mu )=
+\]
+\begin{equation}
+G(l_1^\mu ,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu
+)G(l_2^\mu ,m_2^\mu ,n_2^\mu ,{\bf r}_2,{\bf R}_2^\mu ,\alpha _2^\mu )\exp
+(-\beta _{12}^\mu {\bf r}_{12}^2).  \label{eq3}
+\end{equation}
+Alternatively, the last equation can be rewritten as a product of three
+two-dimensional GG's: 
+\[
+\phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,%
+{\bf R}_2^\mu )=
+\]
+\begin{equation}
+\phi (l_1^\mu ,l_2^\mu ;R_{1,x}^\mu ,R_{2,x}^\mu )\phi (m_1^\mu ,m_2^\mu
+;R_{1,y}^\mu ,R_{2,y}^\mu )\phi (n_1^\mu ,n_2^\mu ;R_{1,z}^\mu ,R_{2,z}^\mu )%
+\text{.}
+\end{equation}
+where, for example, the {\it x}-component is given as,
+\[
+\phi (l_1^\mu ,l_2^\mu ;R_{1,x}^\mu ,R_{2,x}^\mu )=g(l_1^\mu
+,x_1,R_{1,x}^\mu ,\alpha _1^\mu )g(l_2^\mu ,x_2,R_{2,x}^\mu ,\alpha _2^\mu
+)\exp \left[ -\beta _{12}^\mu {\bf (}x_1-x_2)^2\right] .
+\]
+
+The general expression for analytical derivatives of molecular integrals
+with respect to orbital exponents, correlation exponents or orbital centers
+can be obtained by direct differentiation of general formulae for GG
+integrals. Before we demonstrate this expressly, let us examine the result
+of differentiating a GG with respect to non-linear parameters. Examination
+of the result of differentiation of the GG with respect to orbital
+exponents, which can be expressed in terms of products involving
+one-dimensional Gaussians, yields: 
+\[
+{\frac{{\partial }}{{\ \partial \alpha _1^\mu }}}\phi (l_1^\mu ,m_1^\mu
+,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu )\ =
+\]
+\[
+-\ [g(l_1^\mu +2,x_1,R_{1x}^\mu ,\alpha _1^\mu )g(m_1^\mu ,y_1,R_{1y}^\mu
+,\alpha _1^\mu )g(n_1^\mu ,z_1,R_{1z}^\mu ,\alpha _1^\mu )\ +
+\]
+\[
+g(l_1^\mu ,x_1,R_{1x}^\mu ,\alpha _1^\mu )g(m_1^\mu +2,y_1,R_{1y}^\mu
+,\alpha _1^\mu )g(n_1^\mu ,z_1,R_{1z}^\mu ,\alpha _1^\mu )\ +
+\]
+\[
+g(l_1^\mu ,x_1,R_{1x}^\mu ,\alpha _1^\mu )g(m_1^\mu ,y_1,R_{1y}^\mu ,\alpha
+_1^\mu )g(n_1^\mu +2,z_1,R_{1z}^\mu ,\alpha _1^\mu )]\times 
+\]
+\begin{equation}
+G(l_2^\mu ,m_2^\mu ,n_2^\mu ,{\bf r}_2,{\bf R}_2^\mu ,\alpha _2^\mu )\exp
+(-\beta _{12}^\mu {\bf r}_{12}^2).
+\end{equation}
+The derivative with respect to correlation exponents 
+\begin{equation}
+{\frac{{\partial }}{{\ \partial \beta _{12}^\mu }}}\phi (l_1^\mu ,m_1^\mu
+,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu )\
+=-r_{12}^2\phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}%
+_1^\mu ,{\bf R}_2^\mu ),
+\end{equation}
+has a rather simple form. This becomes a little more complicated when one
+wishes to replace the right hand side of the last equation by the
+appropriate combination of Cartesian Gaussians. To demonstrate this, recall
+that $xg(l^\mu ,x,R_x^\mu ,\alpha ^\mu )$ can be rewritten as a sum of two
+Gaussians. 
+\begin{equation}
+xg(l^\mu ,x,R_x^\mu ,\alpha ^\mu )=g(l^\mu +1,x,R_x^\mu ,\alpha ^\mu
+)+R_x^\mu g(l^\mu ,x,R_x^\mu ,\alpha ^\mu ).
+\end{equation}
+Multiple application of the above operation to the derivative with respect
+to correlation exponents leads to the following (for brevity, we demonstrate
+only the $x$-component of this expression): 
+\[
+(x_2-x_1)^2\phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R%
+}_1^\mu ,{\bf R}_2^\mu )\ =
+\]
+\[
+\bigg[
+\phi (l_1^\mu +2,l_2^\mu ;R_{1,x}^\mu ,R_{2,x}^\mu )\ -\ 2\phi (l_1^\mu
++1,l_2^\mu +1;R_{1,x}^\mu ,R_{2,x}^\mu )\ +\ \phi (l_1^\mu ,l_2^\mu
++2;R_{1,x}^\mu ,R_{2,x}^\mu )
+\]
+\[
+\ +\ 2(R_{1,x}^\mu -R_{2,x}^\mu )\phi (l_1^\mu +1,l_2^\mu ;R_{1,x}^\mu
+,R_{2,x}^\mu )\ +\ 2(R_{2,x}^\mu -R_{1,x}^\mu )\phi (l_1^\mu ,l_2^\mu
++1;R_{1,x}^\mu ,R_{2,x}^\mu )\ +\ 
+\]
+\begin{equation}
+\ +\ (R_{1,x}^\mu -R_{2,x}^\mu )^2\phi (l_1^\mu ,l_2^\mu ;R_{1,x}^\mu
+,R_{2,x}^\mu )\bigg] \phi (m_1^\mu ,m_2^\mu ;R_{1,y}^\mu ,R_{2,y}^\mu )\phi
+(n_1^\mu ,n_2^\mu ;R_{1,z}^\mu ,R_{2,z}^\mu )
+\end{equation}
+The last derivative, to be considered in this section, is that with respect
+to the orbital centers: 
+\[
+{\frac{{\partial }}{{\ \partial R_{1,x}^\mu }}}\phi (l_1^\mu ,m_1^\mu
+,n_1^\mu ,l_2^\mu ,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu )\ =
+\]
+\[
+\lbrack 2\alpha _1^\mu g(l_1^\mu +1,x_1,R_{1y}^\mu ,\alpha _1^\mu )-l_1^\mu
+g(l_1^\mu -1,x_1,R_{1x}^\mu ,\alpha _1^\mu )]\times 
+\]
+\begin{equation}
+g(m_1^\mu ,y_1,R_{1y}^\mu ,\alpha _1^\mu )g(n_1^\mu ,z_1,R_{1z}^\mu ,\alpha
+_1^\mu )G(l_2^\mu ,m_2^\mu ,n_2^\mu ,{\bf r}_2,{\bf R}_2^\mu ,\alpha _2^\mu
+)\exp (-\beta _{12}^\mu {\bf r}_{12}^2)
+\end{equation}
+
+Let us summarize some of properties of interest for GG's which are helpful
+for the generation of analytical derivatives. Let ${\bf R}^{\mu \nu }$
+denote the third common center of two Gaussians as: 
+\begin{equation}
+{\bf R}^{\mu \nu }={\frac{\alpha ^\mu {\bf R}^\mu +\alpha ^\nu {\bf R}^\nu }{%
+\alpha ^\mu +\alpha ^\nu }}.
+\end{equation}
+The product of two Gaussian can be expressed as: 
+\begin{equation}
+\phi (0,0,0,0;{\bf R}_1^\mu ,{\bf R}_2^\mu )\phi (0,0,0,0;{\bf R}_1^\nu ,%
+{\bf R}_2^\nu )=K_{\mu \nu }\phi (0,0,0,0;{\bf R}_1^{\mu \nu },{\bf R}%
+_2^{\mu \nu }),
+\end{equation}
+with $K_{\mu \nu }$ represented as, 
+\begin{equation}
+K_{\mu \nu }=\exp \left( -\sum_{i=1}^2{\frac{\alpha _i^\mu \alpha _i^\nu }{%
+\alpha _i^\mu +\alpha _i^\nu }}|{\bf R}_i^\mu -{\bf R}_i^\nu |^2\right) .
+\label{k}
+\end{equation}
+For a general Cartesian Gaussian, expansion of the polynomial of coordinates
+and center positions with respect to the common centers yields: 
+\begin{equation}
+(x_p-R_p^\mu )^{l_p^\mu }(x_p-R_p^\nu )^{l_p^\nu }=\sum_i^{l_p^\mu +l_p^\nu
+}f_i(l_p^\mu ,l_p^\nu ,\overline{R_{p,x}^{\mu \nu }R_{p,x}^\mu },\overline{%
+R_{p,x}^{\mu \nu }R_{p,x}^\nu })(x_p-R_{p,x}^{\mu \nu })^i,
+\end{equation}
+with 
+\begin{equation}
+f_j(l,m,a,b)=\sum_{i=\max \left\{ 0,j-m\right\} }^{\min \left\{ j,l\right\} }%
+{\binom li}{\binom m{j-i}}a^{l-i}b^{m+i-j},
+\end{equation}
+and 
+\begin{equation}
+\overline{R_{p,x}^{\mu \nu }R_{p,x}^\mu }=R_{p,x}^{\mu \nu }-R_{p,x}^\mu .
+\end{equation}
+The final product takes the following form: 
+\begin{equation}
+\phi (l_1^\mu ,l_2^\mu ;R_{1,x}^\mu ,R_{2,x}^\mu )\phi (l_1^\nu ,l_2^\nu
+;R_{1,x}^\nu ,R_{2,x}^\nu )=K_{\mu \nu }^x\sum_{i_1}^{l_1^\mu +l_1^\nu
+}\sum_{i_2}^{l_2^\mu +l_2^\nu }f_{i_1}f_{i_2}\phi (i_1,i_2;R_{1,x}^{\mu \nu
+},R_{2,x}^{\mu \nu }),
+\end{equation}
+where for simplicity, only the $x$-component has been shown.
+
+\section{Analytical derivatives of molecular integrals}
+
+To demonstrate the analytical differentiation of molecular integrals over
+GG's, consider integrals of the following form: 
+\begin{equation}
+O_{\mu \nu }=\int \!\!\!\int \phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu
+,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu ){\hat{O}}\phi (l_1^\nu
+,m_1^\nu ,n_1^\nu ,l_2^\nu ,m_2^\nu ,n_2^\nu ;{\bf R}_1^\nu ,{\bf R}_2^\nu )d%
+{\bf r}_1d{\bf r}_2.
+\end{equation}
+Suppose, that we would like to calculate derivatives of the above integral
+with respect to $\xi ^\mu $, $(\xi =\alpha _1^\mu ,\alpha _2^\mu ,\beta
+_{12}^\mu ,R_{1,x}^\mu \ldots )$. These can be obtained as follows: 
+\begin{equation}
+{\frac{\partial O_{\mu \nu }}{\partial \xi ^\mu }}=\int \!\!\!\int \left( {%
+\frac \partial {\partial \xi ^\mu }}\phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu
+,m_2^\mu ,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu )\right) {\hat{O}}\phi
+(l_1^\nu ,m_1^\nu ,n_1^\nu ,l_2^\nu ,m_2^\nu ,n_2^\nu ;{\bf R}_1^\nu ,{\bf R}%
+_2^\nu )d{\bf r}_1d{\bf r}_2.
+\end{equation}
+This procedure can be applied to the overlap integral, nuclear attraction
+integral and electron repulsion integral; however, it cannot be applied
+directly to the kinetic energy. The kinetic energy integral must first be
+expressed in terms of overlap integrals thereby permitting the
+straightforward implementation of the above procedure.
+
+\subsection{Overlap Integral}
+
+The overlap integral over GG's can be expressed as a product of three
+two-dimensional overlap integrals:
+
+\begin{equation}
+<\phi _\mu |\phi _\nu >\ =\ <l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu ><m_1^\mu
+,m_2^\mu |m_1^\nu ,m_2^\nu ><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >,
+\end{equation}
+where these overlap integrals are represented as, 
+\begin{equation}
+<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu >\ =\
+<0,0|0,0>\sum_{i_1,i_2,r_1,r_2,u}A_{i_1,i_2,r_1,r_2,u},
+\end{equation}
+with the spherical component of the overlap integral expressed as, 
+\begin{equation}
+<0,0|0,0>\ =\ {\frac{{\ \pi K_{\mu \nu }^x}}{\sqrt{a_1^{\mu \nu }a_2^{\mu
+\nu }+\beta ^{\mu \nu }(a_1^{\mu \nu }+a_2^{\mu \nu })}},}  \label{detab}
+\end{equation}
+where ${K_{\mu \nu }^x}$ is given in eq.(\ref{k}), and the Cartesian
+components as, 
+\[
+A_{i_1,i_2,r_1,r_2,u}=(-)^{i_1+u}f_{i_1}(l_1^\mu ,l_1^\nu ,\overline{%
+R_{1,x}^{\mu \nu }R_{1,x}^\mu },\overline{R_{1,x}^{\mu \nu }R_{1,x}^\nu }%
+)f_{i_2}(l_1^\mu ,l_1^\nu ,\overline{R_{2,x}^{\mu \nu }R_{2,x}^\mu },%
+\overline{R_{2,x}^{\mu \nu }R_{2,x}^\nu })C_{r_1}^{i_1}C_{r_2}^{i_2}\times 
+\]
+\begin{equation}
+\left( {\frac{a_1^{\mu \nu }a_2^{\mu \nu }+\beta _{12}^{\mu \nu }(a_1^{\mu
+\nu }+a_2^{\mu \nu })}{4a_1^{\mu \nu }a_2^{\mu \nu }\beta _{12}^{\mu \nu }}}%
+\right) ^{2(r_1+r_2)+u-i_1-i_2}(\overline{R_{1,x}^{\mu \nu }R_{2,x}^{\mu \nu
+}})^{i_1+i_2-2(r_1+r_2+u)}
+\end{equation}
+where, 
+\begin{equation}
+C_m^n={\frac{n!\ }{2^n\alpha ^{n-m}m!\ (n-2m)!\ }}.
+\end{equation}
+Using the prescriptions for derivatives of GG's presented previously, the
+derivatives with respect to orbital exponents are obtained: 
+\[
+{\frac{{\partial <\phi _\mu |\phi _\nu >}}{{\ \partial \alpha _1^\mu }}}=
+\]
+\[
+-[<l_1^\mu +2,l_2^\mu |l_1^\nu ,l_2^\nu ><m_1^\mu ,m_2^\mu |m_1^\nu ,m_2^\nu
+><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >\ +
+\]
+\[
+<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu ><m_1^\mu +2,m_2^\mu |m_1^\nu ,m_2^\nu
+><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >+
+\]
+\begin{equation}
+<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu ><m_1^\mu ,m_2^\mu |m_1^\nu ,m_2^\nu
+><n_1^\mu +2,n_2^\mu |n_1^\nu ,n_2^\nu >],
+\end{equation}
+and in a similar fashion, derivatives with respect to the correlation
+exponent, 
+\[
+{\frac{{\partial <\phi _\mu |\phi _\nu >}}{{\ \partial \beta _{12}^\mu }}}=
+\]
+\[
+-\bigg[
+<l_1^\mu +2,l_2^\mu |l_1^\nu ,l_2^\nu >\ -\ 2<l_1^\mu +1,l_2^\mu +1|l_1^\nu
+,l_2^\nu >\ +\ <l_1^\mu ,l_2^\mu +2|l_1^\nu ,l_2^\nu >
+\]
+\[
+\ +\ 2(R_{1,x}^\mu \ -\ R_{2,x}^\mu )<l_1^\mu +1,l_2^\mu |l_1^\nu ,l_2^\nu
+>\ +\ 2(R_{2,x}^\mu \ -\ R_{1,x}^\mu )<l_1^\mu ,l_2^\mu +1|l_1^\nu ,l_2^\nu >
+\]
+\[
+\ +\ (R_{1,x}^\mu -R_{2,x}^\mu )^2<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu >%
+\bigg]  
+<m_1^\mu ,m_2^\mu |m_1^\nu ,m_2^\nu ><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >
+\]
+\begin{equation}
+\ +\ y_{comp}\ +\ z_{comp}.
+\end{equation}
+Partial differentiation with respect to the orbital center can be performed
+in the following manner: 
+\[
+{\frac{{\partial <\phi _\mu |\phi _\nu >}}{{\ \partial R_{1,x}^\mu }}}=
+\]
+\[
+\lbrack 2\alpha _1^\mu <l_1^\mu +1,l_2^\mu |l_1^\nu ,l_2^\nu >-l_1^\mu
+<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu >]\times 
+\]
+\begin{equation}
+<m_1^\mu ,m_2^\mu |m_1^\nu ,m_2^\nu ><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >.
+\end{equation}
+This method is extensible to derivatives with respect to other orbital
+centers as well.
+
+\subsection{Kinetic-Energy Integral}
+
+The kinetic energy matrix element can be considered as a sum of two
+components: 
+\begin{equation}
+<T^{\mu \nu }>\ =\ <T_1^{\mu \nu }>\ +\ <T_2^{\mu \nu }>
+\end{equation}
+where, the first component has the following form for example, 
+\[
+2<T_1^{\mu \nu }>\ =
+\]
+\begin{equation}
+-\ \int \!\!\!\int \phi (l_1^\mu ,m_1^\mu ,n_1^\mu ,l_2^\mu ,m_2^\mu
+,n_2^\mu ;{\bf R}_1^\mu ,{\bf R}_2^\mu ){\nabla _1^2}\phi (l_1^\nu ,m_1^\nu
+,n_1^\nu ,l_2^\nu ,m_2^\nu ,n_2^\nu ;{\bf R}_1^\nu ,{\bf R}_2^\nu )d{\bf r}%
+_1d{\bf r}_2.
+\end{equation}
+This last equation cannot be differentiated directly, as previously
+discussed. We must first find an expression in terms of overlap integrals,
+whose derivatives are easily managed. To demonstrate this, let us transform
+the kinetic energy integral using Green's theorem \cite{les64}: 
+\[
+2<T_1^{\mu \nu }>\ =\int d{\bf r}_2G(l_2^\mu ,m_2^\mu ,n_2^\mu ,{\bf r}_2,%
+{\bf R}_2^\mu ,\alpha _2^\mu )G(l_2^\nu ,m_2^\nu ,n_2^\nu ,{\bf r}_2,{\bf R}%
+_2^\nu ,\alpha _2^\nu )\times 
+\]
+\[
+\int d{\bf r}_1\{4\beta _{12}^\mu \beta _{12}^\nu r_{12}^2G(l_1^\mu ,m_1^\mu
+,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu )G(l_1^\nu ,m_1^\nu
+,n_1^\nu ,{\bf r}_1,{\bf R}_1^\nu ,\alpha _1^\nu )
+\]
+\begin{equation}
+-(\beta _{12}^\mu +\beta _{12}^\nu )^{-1}W({\bf r}_1)\}\exp [-(\beta
+_{12}^\mu +\beta _{12}^\nu )r_{12}^2],
+\end{equation}
+where 
+\[
+W({\bf r}_1)\ =\ 
+\]
+\[
+\left( \frac{\beta _{12}^\nu }{\beta _{12}^\mu +\beta _{12}^\nu }\right)
+G(l_1^\nu ,m_1^\nu ,n_1^\nu ,{\bf r}_1,{\bf R}_1^\nu ,\alpha _1^\nu ){\nabla
+_1^2}G(l_1^\mu ,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu )
+\]
+\begin{equation}
++\ \left( \frac{\beta _{12}^\mu }{\beta _{12}^\mu +\beta _{12}^\nu }\right)
+G(l_1^\mu ,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu ){\nabla
+_1^2}G(l_1^\nu ,m_1^\nu ,n_1^\nu ,{\bf r}_1,{\bf R}_1^\nu ,\alpha _1^\nu ).
+\end{equation}
+This formula is valid for \{$\beta _{12}^\mu =0$, $\beta _{12}^\nu \neq 0$%
+\}, or \{$\beta _{12}^\mu \neq 0$, $\beta _{12}^\nu =0$\}, and additionally
+holds for \{$\beta _{12}^\mu =$ $\beta _{12}^\nu =0$\}. In the later case,
+it can be shown that $\beta _{12}^\mu /(\beta _{12}^\mu +\beta _{12}^\nu )$
+and $\beta _{12}^\nu /(\beta _{12}^\mu +\beta _{12}^\nu )$ must be replaced
+by ($\frac 12$). The first term in the expression for the kinetic energy, as
+shown above, can be expressed as: 
+\[
+2<T_1^{\mu \nu }>\ =\ 
+\]
+\[
+4\beta _{12}^\mu \beta _{12}^\nu \bigg[
+<l_1^\mu +2,l_2^\mu |l_1^\nu ,l_2^\nu >\ -\ 2<l_1^\mu +1,l_2^\mu +1|l_1^\nu
+,l_2^\nu >\ +\ <l_1^\mu ,l_2^\mu +2|l_1^\nu ,l_2^\nu >
+\]
+\[
+\ +\ 2(R_{1,x}^\mu \ -\ R_{2,x}^\mu )<l_1^\mu +1,l_2^\mu |l_1^\nu ,l_2^\nu
+>\ +\ 2(R_{2,x}^\mu \ -\ R_{1,x}^\mu )<l_1^\mu ,l_2^\mu +1|l_1^\nu ,l_2^\nu >
+\]
+\[
+\ +\ (R_{1,x}^\mu -R_{2,x}^\mu )^2<l_1^\mu ,l_2^\mu |l_1^\nu ,l_2^\nu >%
+\bigg]  
+<m_1^\mu ,m_2^\mu |m_1^\nu ,m_2^\nu ><n_1^\mu ,n_2^\mu |n_1^\nu ,n_2^\nu >
+\]
+\[
+\ +\ 4\beta _{12}^\mu \beta _{12}^\nu y_{comp}\ +\ 4\beta _{12}^\mu \beta
+_{12}^\nu z_{comp}
+\]
+\[
+\int d{\bf r}_2G(l_2^\mu ,m_2^\mu ,n_2^\mu ,{\bf r}_2,{\bf R}_2^\mu ,\alpha
+_2^\mu )G(l_2^\nu ,m_2^\nu ,n_2^\nu ,{\bf r}_2,{\bf R}_2^\nu ,\alpha _2^\nu
+)\times 
+\]
+\begin{equation}
+\int d{\bf r}_1\{-\ (\beta _{12}^\mu +\beta _{12}^\nu )^{-1}W({\bf r}%
+_1)\}\exp [-(\beta _{12}^\mu +\beta _{12}^\nu )r_{12}^2],
+\end{equation}
+where for brevity, again only the $x$-component has been shown. One now
+obtains: 
+\[
+{\nabla _1^2}G(l_1^\mu ,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha
+_1^\mu )\ =\ -2\alpha _1^\mu [2(l_1^\mu +m_1^\mu +n_1^\mu )+3]G(l_1^\mu
+,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu )
+\]
+\[
+-4\alpha _1^\mu [G(l_1^\mu +2,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu
+,\alpha _1^\mu )\ +\ G(l_1^\mu ,m_1^\mu +2,n_1^\mu ,{\bf r}_1,{\bf R}_1^\mu
+,\alpha _1^\mu )
+\]
+\[
+\ +\ G(l_1^\mu ,m_1^\mu ,n_1^\mu +2,{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu
+)]\ +\ \ l_1^\mu (l_1^\mu -1)G(l_1^\mu -2,m_1^\mu ,n_1^\mu ,{\bf r}_1,{\bf R}%
+_1^\mu ,\alpha _1^\mu )
+\]
+\begin{equation}
++\ m_1^\mu (m_1^\mu -1)G(l_1^\mu ,m_1^\mu -2,n_1^\mu ,{\bf r}_1,{\bf R}%
+_1^\mu ,\alpha _1^\mu )+\ n_1^\mu (n_1^\mu -1)G(l_1^\mu ,m_1^\mu ,n_1^\mu -2,%
+{\bf r}_1,{\bf R}_1^\mu ,\alpha _1^\mu ).
+\end{equation}
+Differentiation of the kinetic integral can now be easily expressed in terms
+of integrals of the overlap.
+
+\subsection{Nuclear Attraction Integral}
+
+The analytical derivatives of the nuclear attraction integrals and electron
+repulsion integrals can be evaluated in similar fashion; however, for
+economy of presentation, we will keep them in separate subsections.
+According to Lester and Krauss \cite{les64}, the nuclear attraction integral
+has the generalized form: 
+\begin{equation}
+<\phi _\mu |{\frac 1{|{\bf r}-{\bf R_E}|}}|\phi _\nu >\ =\ B_0\sum_{\{I\}}\
+B_{\{I\}}\sum_{\{J\}}\ B_{\{J\}}\sum_{\{K\}}\ B_{\{K\}}F_\nu (Z_1)
+\end{equation}
+which can be denoted as $<l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu
+,n_2^\mu |{\frac 1{|{\bf r}-{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu
+,n_1^\mu ,n_2^\mu >$. The derivative with respect to orbital exponents has
+the following form: 
+\[
+{\frac \partial {{\ \partial \alpha _1^\mu }}}<\phi _\mu |{\frac 1{|{\bf r}-%
+{\bf R_E}|}}|\phi _\nu >\ =\ 
+\]
+\[
+<l_1^\mu +2,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}-%
+{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu >
+\]
+\[
+<l_1^\mu ,l_2^\mu ,m_1^\mu +2,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}-%
+{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu >
+\]
+\begin{equation}
+<l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu +2,n_2^\mu |{\frac 1{|{\bf r}-%
+{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu >
+\end{equation}
+Differentiation with respect to correlation exponents: 
+\[
+{\frac \partial {{\ \partial \beta _{12}^\mu }}}<\phi _\mu |{\frac 1{|{\bf r}%
+-{\bf R_E}|}}|\phi _\nu >\ =\ 
+\]
+\[
++\ <l_1^\mu +2,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}%
+-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu ,m_2^\nu ,n_1^\nu ,n_2^\nu >
+\]
+\[
+-\ 2<l_1^\mu +1,l_2^\mu +1,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|%
+{\bf r}-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu ,m_2^\nu ,n_1^\nu ,n_2^\nu >
+\]
+\[
++\ <l_1^\mu ,l_2^\mu +2,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}%
+-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu ,m_2^\nu ,n_1^\nu ,n_2^\nu >
+\]
+\[
+\ +\ 2(R_{1,x}^\mu -R_{2,x}^\mu )<l_1^\mu +1,l_2^\mu ,m_1^\mu ,m_2^\mu
+,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu
+,m_2^\nu ,n_1^\nu ,n_2^\nu >
+\]
+\[
+\ +\ 2(R_{2,x}^\mu -R_{1,x}^\mu )<l_1^\mu ,l_2^\mu +1,m_1^\mu ,m_2^\mu
+,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu
+,m_2^\nu ,n_1^\nu ,n_2^\nu >
+\]
+\begin{equation}
+\ +\ (R_{1,x}^\mu -R_{2,x}^\mu )^2<l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu
+,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}-{\bf R_E}|}}|l_1^\nu ,l_2^\nu ,m_1^\nu
+,m_2^\nu ,n_1^\nu ,n_2^\nu >+y_{comp}+z_{comp}
+\end{equation}
+The derivative with respect to orbital centers can now be obtained as: 
+\[
+{\frac \partial {{\ \partial R_{1,x}^\mu }}}<\phi _\mu |{\frac 1{|{\bf r}-%
+{\bf R_E}|}}|\phi _\nu >\ =\ 
+\]
+\[
+2\alpha _1^\mu <l_1^\mu +1,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{%
+\frac 1{|{\bf r}-{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu
+,n_2^\mu >
+\]
+\begin{equation}
+-l_1^\mu <l_1^\mu -1,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|%
+{\bf r}-{\bf R_E}|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu >.
+\end{equation}
+
+\subsection{Electron Repulsion Integral}
+
+\begin{equation}
+<\phi _\mu |{\frac 1{|{\bf r}_2-{\bf r}_1|}}|\phi _\nu >\ =\ \sum_{\{I\}}\
+C_{\{I\}}\sum_{\{J\}}\ C_{\{J\}}\sum_{\{K\}}\ C_{\{K\}}F_\nu (Z),
+\end{equation}
+can be recast into a representation similar to the nuclear attraction
+integral: 
+\begin{equation}
+<l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu |{\frac 1{|{\bf r}_2-%
+{\bf r}_1|}}|l_1^\mu ,l_2^\mu ,m_1^\mu ,m_2^\mu ,n_1^\mu ,n_2^\mu >.
+\end{equation}
+The formulae derived above are quite valid for ER integrals after the
+appropriate exchange of ${\frac 1{|{\bf r}-{\bf R_E}|}}$ for ${\frac 1{|{\bf %
+r}_2-{\bf r}_1|}}$ . Such a procedure should be straightforward and need not
+be redundantly stated here.
+
+\section{Numerical Results}
+
+A simple implementation of a gradient-based calculation for molecular
+hydrogen was performed. The preliminary results served to motivate the
+derivation of the above generalized formulae for analytic derivatives in the
+GG\ basis. In this section, we will briefly describe how this
+gradient-optimization of the ground-state of H$_2$ was performed in a
+multi-center GG basis.
+
+The form of the spatial part of the ground state wavefunction used in the
+present calculations (properly symmetrized with respect to exchange of
+identical particles) was: 
+\begin{equation}
+\Psi (1,2)=\sum\limits_{\mu =1}^nc_\mu (1+P_{12})(1+P_{H_1H_2})\phi _\mu
+(0,0,0,0,0,0;R_A^\mu ,R_B^\mu ),
+\end{equation}
+where 
+\begin{equation}
+\phi _\mu (0,0,0,0,0,0;R_A^\mu ,R_B^\mu )=e^{\alpha _1^\mu \left|
+r_1-R_A^\mu \right| ^2-\alpha _2^\mu \left| r_2-R_B^\mu \right| ^2-\beta
+_{12}^\mu \left| r_1-r_2\right| ^2}
+\end{equation}
+[see eq.(\ref{eq3})],$\;P_{12}$ represents exchange of electrons, and $%
+P_{H_1H_2}$ represents exchange of nuclei. $R_A$ and $R_B$ are not
+necessarily assumed to represent the centers of the nuclei ($R_{H1},R_{H2}$%
+). Nor should it be assumed that $R_A=R_B$.
+
+The analytical derivatives of the GG molecular integrals were realized via
+''automatic differentiation'' of Fortran90 program code with the aid of
+readily available software packages. (A paper anticipated to detail the
+procedure of ''automatic differentiation'', among other items of interest,
+should reach publication some time hence\cite{gilmore1}). The components of
+the analytical derivative were rigorously tested by finite differencing of
+the original program code.
+
+Optimization occurs via minimization of the Rayleigh quotient:
+\begin{equation}
+E_{Ground\ State}=\stackunder{\left\{ c,a\right\} }{\min }(E_{Rayleigh}),
+\end{equation}
+\begin{equation}
+E_{Rayleigh}=\frac{\left\langle \Psi (1,2)\right| \widehat{H}\left| \Psi
+(1,2)\right\rangle }{\left\langle \Psi (1,2)\right| \left. \Psi
+(1,2)\right\rangle }=\frac{c^{\prime }H\left( a\right) c}{c^{\prime }S\left(
+a\right) c},
+\end{equation}
+with respect to linear and non-linear parameters, where the prime ($^{\prime
+}$) indicates transposition, $c$\ represents the linear parameters, $a$ the
+set of all non-linear optimization parameters: $\left\{ \alpha _1^\mu
+,\alpha _2^\mu ,\beta _{12}^\mu ,R_1^\mu ,R_2^\mu \right\} $, $H$\ the
+Hamiltonian matrix, and $S$ the overlap matrix. The optimization is
+constrained by requiring that each GG is a square-integrable function; which
+condition is fulfilled when the determinant: 
+\begin{equation}
+det\left( 
+\begin{array}{ll}
+\alpha _1+\beta _{12} & -\beta _{12} \\ 
+-\beta _{12} & \alpha _2+\beta _{12}
+\end{array}
+\right) =a_1^\mu a_2^\mu +\beta _{12}^\mu (a_1^\mu +a_2^\mu ),
+\end{equation}
+remains positive (see eq.\ref{detab}). This is accomplished by utilizing the
+following relation: $\det (tt^{\prime })>0$, which is true for any
+lower-triangular, full-rank matrix 
+\[
+t=\left( 
+\begin{array}{ll}
+t_1 & 0 \\ 
+t_3 & t_2
+\end{array}
+\right) ,
+\]
+whose elements are not constrained (except for $t_1\neq 0$ and $t_2\neq 0$).
+This requires the following Choelesky decomposition: 
+\[
+tt^{\prime }=\left( 
+\begin{array}{ll}
+\alpha _1+\beta _{12} & -\beta _{12} \\ 
+-\beta _{12} & \alpha _2+\beta _{12}
+\end{array}
+\right) .
+\]
+From this equation, we obtain the following relations between $\alpha
+_1,\alpha _2,\beta _{12}$ and $t_1,t_2,t_3$: 
+\begin{equation}
+\alpha _1=t_1^2+t_1t_3
+\end{equation}
+\begin{equation}
+\alpha _2=t_2^2+t_3^2+t_1t_3
+\end{equation}
+\begin{equation}
+\beta _{12}=-t_1t_3.
+\end{equation}
+Optimization proceeds with the substitution of the unconstrained variables \{%
+$t_1^\mu ,t_2^\mu ,t_3^\mu $\} for the constrained ones \{$\alpha _1^\mu
+,\alpha _2^\mu ,\beta _{12}^\mu $\}.
+
+The differential with respect to the linear coefficients is given as: 
+\begin{equation}
+\partial E_{linear}=\frac{2c^{\prime }(H-ES)\partial c}{c^{\prime }Sc}.
+\end{equation}
+The differential with respect to the non-linear parameters is given as: 
+\begin{equation}
+\partial E_{non-linear}=\frac{2c^{\prime }(\partial H-E\partial S)c}{%
+c^{\prime }Sc}=(c\otimes c)^{\prime }\left( \frac{\partial vecH}{\partial
+a^{\prime }}-E\frac{\partial vecS}{\partial a^{\prime }}\right) \partial a,
+\label{nonlinearE}
+\end{equation}
+where the Kronecker product ($\otimes $) and the matrix vectorization
+operator ($vec$) were utilized as described by Kinghorn\cite{kinghorn2}. The
+non-zero terms in the matrix $\partial vecH/\partial a^{\prime }$ are the
+partial derivatives with respect to all of the non-linear parameters in the
+basis (e.g., components such as $\partial T_{\mu \nu }/\partial \alpha
+_1^\mu $). The right-hand-side of eq.(\ref{nonlinearE}) contains sparse
+matrices which were re-assembled into a dense-matrix data structure\cite
+{kinghorn1} and numerically verified.
+
+Several optimization algorithms were investigated, as is required by most
+non-linear optimization problems. The method of choice was a
+''stochastic-growth, gradient minimization'' algorithm\cite{gilmore1} in
+which the GG\ basis set was systematically grown from $n=1$ to $n=140$. The
+IMSL\ DUMING, 'double precision, multi-variate, quasi-newton, analytic
+gradient based' optimization routine was employed with energy functional
+minimization proceeding to double precision, machine-specific convergence
+criteria.
+
+When the basis set is small, calculations proceed quite rapidly. When the
+basis set starts to become large, it has previously gone through several
+optimization iterations and is considered to be quite well optimized
+already. The result of this is that subsequent optimization steps require
+fewer iterations to achieve the convergence criteria.
+
+\medskip \medskip 
+
+The best GG literature result at present is -1.174475931 obtained with 700
+functions\cite{rych1} and is represented by the horizontal line to which our
+convergence profile appears asymptotic in {\it Figure 1}. The results
+reported in {\it Table 1} represent 17 of the 141 stochastic-growth
+iterations which were performed. These points were selected based upon the
+consideration of having converged very well relative to the remaining
+iterations.
+
+We do not report a new bound on the GG\ calculation of molecular hydrogen.
+Instead, we have presented a rudimentary implementation of an
+analytic-gradient optimization which preliminarily shows a rapidly
+convergent method of conducting such calculations. To that end, we have
+provided the necessary generalized formulae for analytic first derivatives
+in the multi-center GG\ basis. Proposed future efforts would include
+refinement of this procedure to improve efficiency for large basis set size.
+An analytic form for the Hessian would be of important utility should basis
+set term-coupling exist, and would be expected to greatly enhance overall
+convergence as well. Successful achievement of these goals would
+significantly contribute to the application of this general methodology to
+n-particle systems and systems with higher angular momentum.
+
+\subsection{Acknowledgments}
+
+This study was supported by the National Science Foundation under the grant
+No. CHE-9300497
+
+\begin{thebibliography}{99}
+\bibitem{hyl29}  E. A. Hylleraas {\it Z. Phys.} {\bf 54}, 347 (1929).
+
+\bibitem{jam33}  H. M. James and A. S. Coolidge, {\it J. Chem. Phys.} {\bf 1}%
+, 825 (1933).
+
+\bibitem{kol65}  W. Kolos and L. Wolniewicz, {\it J. Chem. Phys.} {\bf 43},
+2429 (1965).
+
+\bibitem{fromm1}  D. M. Fromm and R. N. Hill, {\it Phys. Rev. }A {\bf 36},
+1013 (1987).
+
+\bibitem{king1}  F. W. King, {\it Phys. Rev. }A {\bf 44}, 7108 (1991).
+
+\bibitem{boy60}  S. F. Boys, {\it Proc. R. Soc.} London Ser. {\bf A258}, 402
+(1960).
+
+\bibitem{sin60}  K. Singer, {\it Proc. R. Soc.} London Ser. {\bf A258}, 412
+(1960).
+
+\bibitem{les64}  W. A. Lester, Jr. and M. Krauss, {\it J. Chem. Phys.} {\bf %
+41}, 1407 (1964); {\bf 41}, 2990 (1965).
+
+\bibitem{koz91}  P. M. Kozlowski and L. Adamowicz, {\it J. Chem. Phys.} {\bf %
+95}, 6681 (1991).
+
+\bibitem{koz92a}  P. M. Kozlowski and L. Adamowicz, {\it J. Compt. Chem.} 
+{\bf 13}, 602 (1992).
+
+\bibitem{sza83}  K. Szalewicz, B. Jeziorski, H. J. Monkhorst and J. G.
+Zabolitzky, {\it J. Chem. Phys.} {\bf 78}, 1420 (1983).
+
+\bibitem{koz93a}  P. M. Kozlowski and L. Adamowicz, {\it Phys. Rev.} A {\bf %
+48}, 1903 (1993).
+
+\bibitem{koz93}  P. M. Kozlowski and L. Adamowicz, {\it Chem. Rev.} {\bf 93}%
+, 2007 (1993).
+
+\bibitem{kom93}  J. Komasa and A. J. Thakkar, {\it Mol. Phys.} {\bf 78},
+1093 (1993).
+
+\bibitem{cen93}  W. Cencek and J. Rychlewski, {\it J. Chem. Phys.} {\bf 98},
+1253 (1993).
+
+\bibitem{liu93}  J. W. Liu and S. Hagstrom, {\it Phys. Rev. A} {\bf 48}, 166
+(1993).
+
+\bibitem{kol94}  W. Kolos, {\it J. Chem. Phys.} {\bf 101}, 1330 (1994).
+
+\bibitem{powell1}  M. J. D. Powell, {\it Mathematical Programming } {\bf 29}%
+, 297 (1977).
+
+\bibitem{poshusta1}  R. D. Poshusta, {\it J. Quantum Chem., Quantum Chem.
+Symposium }{\bf 13}, 59 (1979).
+
+\bibitem{Alexander1}  S. A. Alexander, H. J. Monkhorst, and K. Szalewicz, 
+{\it J. Chem. Phys. }{\bf 85}, 5821 (1986).
+
+\bibitem{Alexander2}  S. A. Alexander, H. J. Monkhorst, and R. Roeland, {\it %
+J. Chem. Phys. }{\bf 93}, 4230 (1990).
+
+\bibitem{Rybak}  S. Rybak and K. Szalewicz, {\it J. Chem. Phys. }{\bf 91},
+4479 (1989).
+
+\bibitem{koz92b}  P. M. Kozlowski and L. Adamowicz, {\it J. Chem. Phys.} 
+{\bf 96}, 9013 (1992).
+
+\bibitem{kinghorn1}  D. B. Kinghorn, {\it Int. J. Quantum Chem.}, in press
+
+\bibitem{gilmore1}  D. Gilmore, D. B. Kinghorn, and L. Adamowicz, to be
+published.
+
+\bibitem{kinghorn2}  D. B. Kinghorn, {\it Int. J. Quantum Chem.}, {\bf 57},
+141-155 (1996).
+
+\bibitem{rych1}  J. Rychlewski et al., {\it Chem. Phys. Let.,} {\bf 229},
+659 (1994).
+\end{thebibliography}
+
+\enddocument
+
+\end{document}

@@ -1,0 +1,4656 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     2  C     -----------------------------------------------------
+     3        SUBROUTINE GUESS(METHOD,M,A1,RX1,RY1,RZ1,A2,RX2,RY2,RZ2,B12,EVEC)
+     4  C     -----------------------------------------------------
+     5        IMPLICIT REAL*8 (A-H,O-Z)
+     6  	INTEGER METHOD,M,ERROR,I,MMAX,MF
+     7        REAL*8, DIMENSION(M) ::	A1,RX1,RY1,RZ1,
+     8  	-						A2,RX2,RY2,RZ2,
+     9       -						B12,EVEC
+    10        REAL*4 TEMP
+    11        REAL*8 TEMP1,TEMP2,BD
+    12  C     -----------------------------------------------------
+    13        PARAMETER (BD=1.4D+00)
+    14  C     -----------------------------------------------------
+    15  C     --- Data Follows ---
+    16  C     -----------------------------------------------------
+    17        INCLUDE 'FLIB.FD'
+    **** Begin listing of D:\MSDEV\INCLUDE/FLIB.FD
+#    1  !****************************** Module Header **************************
+     2  !*
+     3  !* Copyright (c) 1990-1995  Microsoft Corporation
+     4  !*
+     5  !* Module Name: FLIB.FD
+     6  !*
+     7  !* This module provides parameter and structure type declarations
+     8  !* needed to communicate with subprograms found in the various Fortran
+     9  !* libraries.  
+    10  !*
+    11  !* The functional areas covered are the following.
+    12  !*
+    13  !*    Data Type Codes
+    14  !*    Math error support
+    15  !*    Signal support
+    16  !*    Coprocessor Control
+    17  !*    Random Numbers
+    18  !*    Drives and Directories
+    19  !*    Files
+    20  !*    Keyboard
+    21  !*    Errors
+    22  !*    Sorting and Searching Arrays
+    23  !*    Configuration
+    24  !*    QuickWin Support
+    25  !*
+#   26  !***********************************************************************
+    27  
+#   28  !* NOTE: When modifying this file, you must follow the following rules t
+    29  !* ensure compatibility with fixed form and free form source:
+    30  !*   1) All comments must start with '!'
+    31  !*   2) All code must be within columns 7 to 72
+    32  !*   3) For continuation, place a '&' in column 73,
+    33  !*      and a '&' in column 6 of the continuation line
+    34  
+    35  $if .not. defined (_MSFORTRAN_)
+    36  $define _MSFORTRAN_ = 100
+    37  $endif
+    38  
+    39  $if .not. defined($MSFLIB$ProgramUnitNumber)
+
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    40  $define $MSFLIB$ProgramUnitNumber = -1
+    41  $endif
+    42  $if .not. defined($MSFLIB$FDProgUnitNum) 
+    43  $define $MSFLIB$FDProgUnitNum = -2
+    44  $endif
+    45  
+    46  $if .not. defined(__MSFLIB_FGRAPH_INCLUDE)
+    47  
+    48  !fi2mod:off
+    49  $if _MSFORTRAN_ .GE. 300
+    50  
+#   51  ! Pull in the needed interface, data structures, and parameter definitio
+    52  ! from the msflib module.  But, don't pull in definitions for fgraph.
+    53  $if .not. defined(__MSFLIB_FLIB_INCLUDE)
+    54  $define __MSFLIB_FLIB_INCLUDE
+    55  $endif
+    56        INCLUDE 'msflib.fd'
+    **** Begin listing of D:\MSDEV\INCLUDE/msflib.fd
+     1  $freeform
+     2  !* fgraph.fi - declare constants and functions for graphics library
+     3  !*
+#    4  !*   Copyright (c) 1987-1995 Microsoft Corporation.  All rights reserved
+     5  !*
+     6  !* Purpose:
+     7  !*   This file declares the graphics library functions and
+     8  !*   the constants that are used with them.
+     9  !*
+    10  
+#   11  !* NOTE: When modifying this file, you must follow the following rules t
+    12  !* ensure compatibility with fixed form and free form source:
+    13  !*   1) All comments must start with '!'
+    14  !*   2) All code must be within columns 7 to 72
+    15  !*   3) For continuation, place a '&' in column 73,
+    16  !*      and a '&' in column 6 of the continuation line
+    17  
+    18  $if .not. defined (_MSFORTRAN_)
+    19  $define _MSFORTRAN_ = 100
+    20  $endif
+    21  
+    22  $if .not. defined($MSFLIB$ProgramUnitNumber)
+    23  $define $MSFLIB$ProgramUnitNumber = -1
+    24  $endif
+    25  $if .not. defined($MSFLIB$FIProgUnitNum) 
+    26  $define $MSFLIB$FIProgUnitNum = -2
+    27  $endif
+    28  
+    29  $if .not. defined (__MSFLIB_FLIB_INCLUDE)
+    30  
+    31  
+    32  !     User-visible declarations for FORTRAN Graphics Library
+    33  
+    34        INTERFACE
+    35          FUNCTION arc(x1,y1,x2,y2,x3,y3,x4,y4)
+    36            INTEGER*2 arc[C,ALIAS:"__arc"],x1,y1,x2,y2,x3,y3,x4,y4
+    37          END FUNCTION
+    38        END INTERFACE
+    39  
+
+                                                                        PAGE   3
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    40        INTERFACE
+    41          FUNCTION arc_w(wx1,wy1,wx2,wy2,wx3,wy3,wx4,wy4)
+    42            INTEGER*2 arc_w[C,ALIAS:"__arc_w"]
+    43            DOUBLE PRECISION wx1,wy1,wx2,wy2,wx3,wy3,wx4,wy4
+    44          END FUNCTION
+    45        END INTERFACE
+    46  
+    47        INTERFACE
+    48          FUNCTION getarcinfo(lpstart,lpend,lppaint)
+    49            INTEGER*2 getarcinfo[C,ALIAS:"__getarcinfo"]
+    50            STRUCTURE/xycoord/
+    51                INTEGER*2 xcoord
+    52                INTEGER*2 ycoord
+    53            END STRUCTURE
+    54            RECORD/xycoord/lpstart[REFERENCE]
+    55            RECORD/xycoord/lpend[REFERENCE]
+    56            RECORD/xycoord/lppaint[REFERENCE]
+    57          END FUNCTION
+    58        END INTERFACE
+    59  
+    60        INTERFACE
+    61          SUBROUTINE clearscreen[C,ALIAS:"__FQclearscreen"](area)
+    62            INTEGER*2 area
+    63          END SUBROUTINE
+    64        END INTERFACE
+    65  
+    66        INTERFACE
+    67          FUNCTION displaycursor(toggle)
+    68            INTEGER*2 displaycursor[C,ALIAS:"__FQdisplaycursor"],toggle
+    69          END FUNCTION
+    70        END INTERFACE
+    71  
+    72        INTERFACE
+    73          FUNCTION ellipse(control,x1,y1,x2,y2)
+    74            INTEGER*2 ellipse[C,ALIAS:"__ellipse"],control,x1,y1,x2,y2
+    75          END FUNCTION
+    76        END INTERFACE
+    77  
+    78        INTERFACE
+    79          FUNCTION ellipse_w(control,wx1,wy1,wx2,wy2)
+    80            INTEGER*2 ellipse_w[C,ALIAS:"__ellipse_w"],control
+    81            DOUBLE PRECISION wx1,wy1,wx2,wy2
+    82          END FUNCTION
+    83        END INTERFACE
+    84  
+    85        INTERFACE
+    86          FUNCTION floodfill(x,y,boundary)
+    87            INTEGER*2 floodfill[C,ALIAS:"__floodfill"],x,y,boundary
+    88          END FUNCTION
+    89        END INTERFACE
+    90  
+    91        INTERFACE
+    92          FUNCTION floodfillrgb(x,y,bcolor)
+    93            INTEGER*2 floodfillrgb[C,ALIAS:"__floodfillrgb"],x,y
+    94            INTEGER*4 bcolor
+    95          END FUNCTION
+    96        END INTERFACE
+
+                                                                        PAGE   4
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    97  
+    98        INTERFACE
+    99          FUNCTION floodfill_w(wx1,wy1,boundary)
+   100            INTEGER*2 floodfill_w[C,ALIAS:"__floodfill_w"],boundary
+   101            DOUBLE PRECISION wx1,wy1
+   102          END FUNCTION
+   103        END INTERFACE
+   104  
+   105        INTERFACE
+   106          FUNCTION floodfillrgb_w(wx,wy,bcolor)
+   107            INTEGER*2 floodfillrgb_w[C,ALIAS:"__floodfillrgb_w"]
+   108            DOUBLE PRECISION wx,wy
+   109            INTEGER*4 bcolor
+   110          END FUNCTION
+   111        END INTERFACE
+   112  
+   113        INTERFACE
+   114          FUNCTION getactivepage()
+   115            INTEGER*2 getactivepage[C,ALIAS:"__getactivepage"]
+   116          END FUNCTION
+   117        END INTERFACE
+   118  
+   119        INTERFACE
+   120          FUNCTION getbkcolor()
+   121            INTEGER*4 getbkcolor[C,ALIAS:"__getbkcolor"]
+   122          END FUNCTION
+   123        END INTERFACE
+   124  
+   125        INTERFACE
+   126          FUNCTION getcolor()
+   127            INTEGER*2 getcolor[C,ALIAS:"__getcolor"]
+   128          END FUNCTION
+   129        END INTERFACE
+   130  
+   131        INTERFACE
+#  132          SUBROUTINE getcurrentposition[ALIAS:"__f_getcurrentposition@4"](
+   133            STRUCTURE/xycoord/
+   134                INTEGER*2 xcoord
+   135                INTEGER*2 ycoord
+   136            END STRUCTURE
+   137            RECORD/xycoord/s[REFERENCE]
+   138          END SUBROUTINE
+   139        END INTERFACE
+   140  
+   141        INTERFACE
+#  142          SUBROUTINE getcurrentposition_w[ALIAS:"__f_getcurrentposition_wx
+   143            STRUCTURE/wxycoord/
+   144                DOUBLE PRECISION wx
+   145                DOUBLE PRECISION wy
+   146            END STRUCTURE
+   147            RECORD/wxycoord/s[REFERENCE]
+   148          END SUBROUTINE
+   149        END INTERFACE
+   150  
+   151        INTERFACE
+   152          SUBROUTINE getfillmask[C,ALIAS:"__getfillmask"](mask)
+   153            INTEGER*1 mask[REFERENCE](8)
+
+                                                                        PAGE   5
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   154          END SUBROUTINE
+   155        END INTERFACE
+   156  
+   157        INTERFACE
+   158          SUBROUTINE getimage[C,ALIAS:"__getimage"](x1,y1,x2,y2,image)
+   159            INTEGER*2 x1,y1,x2,y2
+   160            INTEGER*1 image[REFERENCE](*)
+   161          END SUBROUTINE
+   162        END INTERFACE
+   163  
+   164        INTERFACE
+#  165          SUBROUTINE getimage_w[C,ALIAS:"__getimage_w"](wx1,wy1,wx2,wy2,im
+   166            DOUBLE PRECISION wx1,wy1,wx2,wy2
+   167            INTEGER*1 image[REFERENCE](*)
+   168          END SUBROUTINE
+   169        END INTERFACE
+   170  
+   171        INTERFACE
+   172          FUNCTION getlinestyle()
+   173            INTEGER*2 getlinestyle[C,ALIAS:"__getlinestyle"]
+   174          END FUNCTION
+   175        END INTERFACE
+   176  
+   177  $if _MSFORTRAN_ .lt. 300
+   178        INTERFACE
+   179          SUBROUTINE getphyscoord[ALIAS:"__f_getphyscoord@12"](x,y,s)
+   180            INTEGER*2 x,y
+   181            STRUCTURE/xycoord/
+   182                INTEGER*2 xcoord
+   183                INTEGER*2 ycoord
+   184            END STRUCTURE
+   185            RECORD/xycoord/s[REFERENCE]
+   186          END SUBROUTINE
+   187        END INTERFACE
+   188  $else
+   189        INTERFACE GETPHYSCOORD
+#  190        SUBROUTINE $$MSFLIB$GETPHYSCOORD$22                               
+   191       & [alias:'__f_getphyscoord@12'](x,y,s)
+   192        INTEGER*2 x
+   193        INTEGER*2 y
+   194        STRUCTURE/xycoord/
+   195            INTEGER*2 xcoord
+   196            INTEGER*2 ycoord
+   197        END STRUCTURE
+   198        RECORD/xycoord/s[REFERENCE]
+   199        END SUBROUTINE
+#  200        SUBROUTINE $$MSFLIB$GETPHYSCOORD$24                               
+   201       & [alias:'__f_getphyscoord@12'](x,y,s)
+   202        INTEGER*2 x
+   203        INTEGER*4 y
+   204        STRUCTURE/xycoord/
+   205            INTEGER*2 xcoord
+   206            INTEGER*2 ycoord
+   207        END STRUCTURE
+   208        RECORD/xycoord/s[REFERENCE]
+   209        END SUBROUTINE
+#  210        SUBROUTINE $$MSFLIB$GETPHYSCOORD$42                               
+
+                                                                        PAGE   6
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   211       & [alias:'__f_getphyscoord@12'](x,y,s)
+   212        INTEGER*4 x
+   213        INTEGER*2 y
+   214        STRUCTURE/xycoord/
+   215            INTEGER*2 xcoord
+   216            INTEGER*2 ycoord
+   217        END STRUCTURE
+   218        RECORD/xycoord/s[REFERENCE]
+   219        END SUBROUTINE
+#  220        SUBROUTINE $$MSFLIB$GETPHYSCOORD$44                               
+   221       & [alias:'__f_getphyscoord@12'](x,y,s)
+   222        INTEGER*4 x
+   223        INTEGER*4 y
+   224        STRUCTURE/xycoord/
+   225            INTEGER*2 xcoord
+   226            INTEGER*2 ycoord
+   227        END STRUCTURE
+   228        RECORD/xycoord/s[REFERENCE]
+   229        END SUBROUTINE
+   230        END INTERFACE
+   231  $endif
+   232  
+   233  
+   234  
+   235        INTERFACE
+   236          FUNCTION getpixel(x,y)
+   237            INTEGER*2 getpixel[C,ALIAS:"__getpixel"],x,y
+   238          END FUNCTION
+   239        END INTERFACE
+   240  
+   241        INTERFACE
+   242          FUNCTION getpixel_w(wx,wy)
+   243            INTEGER*2 getpixel_w[C,ALIAS:"__getpixel_w"]
+   244            DOUBLE PRECISION wx,wy
+   245          END FUNCTION
+   246        END INTERFACE
+   247  
+   248        INTERFACE
+   249          SUBROUTINE getpixels[C, ALIAS:"__getpixels"](n, x, y, c)
+   250            INTEGER*4 n                 ! input : size of arrays
+   251            INTEGER*2 x[REFERENCE](*)   ! input : x coordinates
+   252            INTEGER*2 y[REFERENCE](*)   ! input : y coordinates
+   253            INTEGER*2 c[REFERENCE](*)   ! input : palette indices
+   254          END SUBROUTINE
+   255        END INTERFACE
+   256  
+   257        INTERFACE
+   258          FUNCTION gettextcolor()
+   259            INTEGER*2 gettextcolor[C,ALIAS:"__gettextcolor"]
+   260          END FUNCTION
+   261        END INTERFACE
+   262  
+   263        INTERFACE
+   264          FUNCTION gettextcursor()
+   265            INTEGER*2 gettextcursor[C,ALIAS:"__gettextcursor"]
+   266          END FUNCTION
+   267        END INTERFACE
+
+                                                                        PAGE   7
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   268  
+   269        INTERFACE
+   270          SUBROUTINE gettextposition[ALIAS:"__fq_gettextposition@4"](s)
+   271            STRUCTURE/rccoord/
+   272                INTEGER*2 row
+   273                INTEGER*2 col
+   274            END STRUCTURE
+   275            RECORD/rccoord/s[REFERENCE]
+   276          END SUBROUTINE
+   277        END INTERFACE
+   278  
+   279        INTERFACE
+   280          SUBROUTINE gettextwindow[C,ALIAS:"__gettextwindow"](r1,c1,r2,c2)
+   281            INTEGER*2 r1[REFERENCE],c1[REFERENCE]
+   282            INTEGER*2 r2[REFERENCE],c2[REFERENCE]
+   283          END SUBROUTINE
+   284        END INTERFACE
+   285  
+   286        INTERFACE
+   287          SUBROUTINE getvideoconfig[C,ALIAS:"__getvideoconfig"](s)
+   288            STRUCTURE/videoconfig/
+   289                INTEGER*2 numxpixels       ! number of pixels on X axis
+   290                INTEGER*2 numypixels       ! number of pixels on Y axis
+#  291                INTEGER*2 numtextcols      ! number of text columns availa
+   292                INTEGER*2 numtextrows      ! number of text rows available
+   293                INTEGER*2 numcolors        ! number of actual colors
+   294                INTEGER*2 bitsperpixel     ! number of bits per pixel
+#  295                INTEGER*2 numvideopages    ! number of available video pag
+   296                INTEGER*2 mode             ! current video mode
+   297                INTEGER*2 adapter          ! active display adapter
+   298                INTEGER*2 monitor          ! active display monitor
+#  299                INTEGER*2 memory           ! adapter video memory in K byt
+   300            END STRUCTURE
+   301            RECORD/videoconfig/s[REFERENCE]
+   302          END SUBROUTINE
+   303        END INTERFACE
+   304  
+   305  $if _MSFORTRAN_ .lt. 300
+   306        INTERFACE
+   307          SUBROUTINE getviewcoord[ALIAS:"__f_getviewcoord@12"](x,y,s)
+   308            INTEGER*2 x,y
+   309            STRUCTURE/xycoord/
+   310                INTEGER*2 xcoord
+   311                INTEGER*2 ycoord
+   312            END STRUCTURE
+   313            RECORD/xycoord/s[REFERENCE]
+   314          END SUBROUTINE
+   315        END INTERFACE
+   316  $else
+   317        INTERFACE GETVIEWCOORD
+#  318        SUBROUTINE $$MSFLIB$GETVIEWCOORD$22                               
+   319       & [alias:'__f_getviewcoord@12'](x,y,s)
+   320        INTEGER*2 x
+   321        INTEGER*2 y
+   322        STRUCTURE/xycoord/
+   323            INTEGER*2 xcoord
+   324            INTEGER*2 ycoord
+
+                                                                        PAGE   8
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   325        END STRUCTURE
+   326        RECORD/xycoord/s[REFERENCE]
+   327        END SUBROUTINE
+#  328        SUBROUTINE $$MSFLIB$GETVIEWCOORD$24                               
+   329       & [alias:'__f_getviewcoord@12'](x,y,s)
+   330        INTEGER*2 x
+   331        INTEGER*4 y
+   332        STRUCTURE/xycoord/
+   333            INTEGER*2 xcoord
+   334            INTEGER*2 ycoord
+   335        END STRUCTURE
+   336        RECORD/xycoord/s[REFERENCE]
+   337        END SUBROUTINE
+#  338        SUBROUTINE $$MSFLIB$GETVIEWCOORD$42                               
+   339       & [alias:'__f_getviewcoord@12'](x,y,s)
+   340        INTEGER*4 x
+   341        INTEGER*2 y
+   342        STRUCTURE/xycoord/
+   343            INTEGER*2 xcoord
+   344            INTEGER*2 ycoord
+   345        END STRUCTURE
+   346        RECORD/xycoord/s[REFERENCE]
+   347        END SUBROUTINE
+#  348        SUBROUTINE $$MSFLIB$GETVIEWCOORD$44                               
+   349       & [alias:'__f_getviewcoord@12'](x,y,s)
+   350        INTEGER*4 x
+   351        INTEGER*4 y
+   352        STRUCTURE/xycoord/
+   353            INTEGER*2 xcoord
+   354            INTEGER*2 ycoord
+   355        END STRUCTURE
+   356        RECORD/xycoord/s[REFERENCE]
+   357        END SUBROUTINE
+   358        END INTERFACE
+   359  $endif
+   360  
+   361  
+   362        INTERFACE
+#  363          SUBROUTINE getviewcoord_w[ALIAS:"__f_getviewcoord_w@12"](wx,wy,s
+   364            DOUBLE PRECISION wx,wy
+   365            STRUCTURE/xycoord/
+   366                INTEGER*2 xcoord
+   367                INTEGER*2 ycoord
+   368            END STRUCTURE
+   369            RECORD/xycoord/s[REFERENCE]
+   370          END SUBROUTINE
+   371        END INTERFACE
+   372  
+   373        INTERFACE
+   374          FUNCTION getvisualpage()
+   375            INTEGER*2 getvisualpage[C,ALIAS:"__getvisualpage"]
+   376          END FUNCTION
+   377        END INTERFACE
+   378  
+   379  $if _MSFORTRAN_ .lt. 300
+   380        INTERFACE
+   381          SUBROUTINE getwindowcoord[ALIAS:"__f_getwindowcoord@12"](x,y,s)
+
+                                                                        PAGE   9
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   382            INTEGER*2 x,y
+   383            STRUCTURE/wxycoord/
+   384              DOUBLE PRECISION wx
+   385              DOUBLE PRECISION wy
+   386            END STRUCTURE
+   387            RECORD/wxycoord/s[REFERENCE]
+   388          END SUBROUTINE
+   389        END INTERFACE
+   390  $else
+   391        INTERFACE GETWINDOWCOORD
+#  392        SUBROUTINE $$MSFLIB$GETWINDOWCOORD$22                             
+   393       & [alias:'__f_getwindowcoord@12'](x,y,s)
+   394        INTEGER*2 x
+   395        INTEGER*2 y
+   396        STRUCTURE/wxycoord/
+   397           DOUBLE PRECISION wx
+   398          DOUBLE PRECISION wy
+   399        END STRUCTURE
+   400        RECORD/wxycoord/s[REFERENCE]
+   401        END SUBROUTINE
+#  402        SUBROUTINE $$MSFLIB$GETWINDOWCOORD$24                             
+   403       & [alias:'__f_getwindowcoord@12'](x,y,s)
+   404        INTEGER*2 x
+   405        INTEGER*4 y
+   406        STRUCTURE/wxycoord/
+   407           DOUBLE PRECISION wx
+   408          DOUBLE PRECISION wy
+   409        END STRUCTURE
+   410        RECORD/wxycoord/s[REFERENCE]
+   411        END SUBROUTINE
+#  412        SUBROUTINE $$MSFLIB$GETWINDOWCOORD$42                             
+   413       & [alias:'__f_getwindowcoord@12'](x,y,s)
+   414        INTEGER*4 x
+   415        INTEGER*2 y
+   416        STRUCTURE/wxycoord/
+   417          DOUBLE PRECISION wx
+   418          DOUBLE PRECISION wy
+   419        END STRUCTURE
+   420        RECORD/wxycoord/s[REFERENCE]
+   421        END SUBROUTINE
+#  422        SUBROUTINE $$MSFLIB$GETWINDOWCOORD$44                             
+   423       & [alias:'__f_getwindowcoord@12'](x,y,s)
+   424        INTEGER*4 x
+   425        INTEGER*4 y
+   426        STRUCTURE/wxycoord/
+   427          DOUBLE PRECISION wx
+   428          DOUBLE PRECISION wy
+   429        END STRUCTURE
+   430        RECORD/wxycoord/s[REFERENCE]
+   431        END SUBROUTINE
+   432        END INTERFACE
+   433  $endif
+   434  
+   435  
+   436  
+   437        INTERFACE
+   438          FUNCTION getwritemode()
+
+                                                                        PAGE  10
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   439            INTEGER*2 getwritemode[C,ALIAS:"__getwritemode"]
+   440          END FUNCTION
+   441        END INTERFACE
+   442  
+   443        INTERFACE
+   444          FUNCTION grstatus()
+   445            INTEGER*2 grstatus[C,ALIAS:"__grstatus"]
+   446          END FUNCTION
+   447        END INTERFACE
+   448  
+   449        INTERFACE
+   450          FUNCTION imagesize(x1,y1,x2,y2)
+   451            INTEGER*4 imagesize[C,ALIAS:"__imagesize"]
+   452            INTEGER*2 x1,y1,x2,y2
+   453          END FUNCTION
+   454        END INTERFACE
+   455  
+   456        INTERFACE
+   457          FUNCTION imagesize_w(wx1,wy1,wx2,wy2)
+   458            INTEGER*4 imagesize_w[C,ALIAS:"__imagesize_w"]
+   459            DOUBLE PRECISION wx1,wy1,wx2,wy2
+   460          END FUNCTION
+   461        END INTERFACE
+   462  
+   463        INTERFACE
+   464          FUNCTION lineto(x,y)
+   465            INTEGER*2 lineto[C,ALIAS:"__lineto"],x,y
+   466          END FUNCTION
+   467        END INTERFACE
+   468  
+   469        INTERFACE
+   470          FUNCTION lineto_w(wx,wy)
+   471            INTEGER*2 lineto_w[C,ALIAS:"__lineto_w"]
+   472            DOUBLE PRECISION wx,wy
+   473          END FUNCTION
+   474        END INTERFACE
+   475  
+   476        INTERFACE
+#  477          INTEGER*4 FUNCTION loadimage[ALIAS:"__f_loadimage@16"](fname,x,y
+   478            CHARACTER*(*) fname[REFERENCE]
+   479            INTEGER*4 x,y
+   480          END FUNCTION
+   481        END INTERFACE
+   482  
+   483        INTERFACE
+#  484          INTEGER*4 FUNCTION loadimage_w[C, ALIAS:"__loadimage_w"](fname,w
+   485            CHARACTER*(*) fname[REFERENCE]
+   486            DOUBLE PRECISION wx, wy
+   487          END FUNCTION
+   488        END INTERFACE
+   489  
+   490  $if _MSFORTRAN_ .lt. 300
+   491        INTERFACE
+   492          SUBROUTINE moveto[ALIAS:"__f_moveto@12"](x,y,s)
+   493            INTEGER*2 x,y
+   494            STRUCTURE/xycoord/
+   495                INTEGER*2 xcoord
+
+                                                                        PAGE  11
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   496                INTEGER*2 ycoord
+   497            END STRUCTURE
+   498            RECORD/xycoord/s[REFERENCE]
+   499          END SUBROUTINE
+   500        END INTERFACE
+   501  $else
+   502        INTERFACE MOVETO
+   503        SUBROUTINE $$MSFLIB$MOVETO$22[alias:'__f_moveto@12'](x,y,s)
+   504        INTEGER*2 x
+   505        INTEGER*2 y
+   506        STRUCTURE/xycoord/
+   507            INTEGER*2 xcoord
+   508            INTEGER*2 ycoord
+   509        END STRUCTURE
+   510        RECORD/xycoord/s[REFERENCE]
+   511        END SUBROUTINE
+   512        SUBROUTINE $$MSFLIB$MOVETO$24[alias:'__f_moveto@12'](x,y,s)
+   513        INTEGER*2 x
+   514        INTEGER*4 y
+   515        STRUCTURE/xycoord/
+   516            INTEGER*2 xcoord
+   517            INTEGER*2 ycoord
+   518        END STRUCTURE
+   519        RECORD/xycoord/s[REFERENCE]
+   520        END SUBROUTINE
+   521        SUBROUTINE $$MSFLIB$MOVETO$42[alias:'__f_moveto@12'](x,y,s)
+   522        INTEGER*4 x
+   523        INTEGER*2 y
+   524        STRUCTURE/xycoord/
+   525            INTEGER*2 xcoord
+   526            INTEGER*2 ycoord
+   527        END STRUCTURE
+   528        RECORD/xycoord/s[REFERENCE]
+   529        END SUBROUTINE
+   530        SUBROUTINE $$MSFLIB$MOVETO$44[alias:'__f_moveto@12'](x,y,s)
+   531        INTEGER*4 x
+   532        INTEGER*4 y
+   533        STRUCTURE/xycoord/
+   534            INTEGER*2 xcoord
+   535            INTEGER*2 ycoord
+   536        END STRUCTURE
+   537        RECORD/xycoord/s[REFERENCE]
+   538        END SUBROUTINE
+   539        END INTERFACE
+   540  $endif
+   541  
+   542        INTERFACE
+   543          SUBROUTINE moveto_w[ALIAS:"__f_moveto_w@12"](wx,wy,s)
+   544            DOUBLE PRECISION wx,wy
+   545            STRUCTURE/wxycoord/
+   546                DOUBLE PRECISION wx
+   547                DOUBLE PRECISION wy
+   548            END STRUCTURE
+   549            RECORD/wxycoord/s[REFERENCE]
+   550          END SUBROUTINE
+   551        END INTERFACE
+   552  
+
+                                                                        PAGE  12
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   553        INTERFACE
+   554          SUBROUTINE outtext[ALIAS:"__fq_outtext@8"](text)
+   555            CHARACTER*(*) text[REFERENCE]
+   556          END SUBROUTINE
+   557        END INTERFACE
+   558  
+   559        INTERFACE
+   560          FUNCTION pie(i,x1,y1,x2,y2,x3,y3,x4,y4)
+   561            INTEGER*2 pie[C,ALIAS:"__pie"],i,x1,y1,x2,y2,x3,y3,x4,y4
+   562          END FUNCTION
+   563        END INTERFACE
+   564  
+   565        INTERFACE
+   566          FUNCTION pie_w(i,wx1,wy1,wx2,wy2,wx3,wy3,wx4,wy4)
+   567            INTEGER*2 pie_w[C,ALIAS:"__pie_w"],i
+   568            DOUBLE PRECISION wx1,wy1,wx2,wy2,wx3,wy3,wx4,wy4
+   569          END FUNCTION
+   570        END INTERFACE
+   571  
+   572        INTERFACE
+   573          FUNCTION polygon(control,lppoints,cpoints)
+   574            INTEGER*2 polygon[C,ALIAS:"__polygon"],control,cpoints
+   575            STRUCTURE/xycoord/
+   576                INTEGER*2 xcoord
+   577                INTEGER*2 ycoord
+   578            END STRUCTURE
+   579            RECORD/xycoord/lppoints[REFERENCE](*)
+   580          END FUNCTION
+   581        END INTERFACE
+   582  
+   583        INTERFACE
+   584          FUNCTION polygon_w(control,lppoints,cpoints)
+   585            INTEGER*2 polygon_w[C,ALIAS:"__polygon_w"],control,cpoints
+   586            STRUCTURE/wxycoord/
+   587                DOUBLE PRECISION wx
+   588                DOUBLE PRECISION wy
+   589            END STRUCTURE
+   590            RECORD/wxycoord/lppoints[REFERENCE](*)
+   591          END FUNCTION
+   592        END INTERFACE
+   593  
+   594        INTERFACE
+   595          SUBROUTINE putimage[C,ALIAS:"__putimage"](x,y,image,action)
+   596            INTEGER*2 x,y,action
+   597            INTEGER*1 image[REFERENCE](*)
+   598          END SUBROUTINE
+   599        END INTERFACE
+   600  
+   601        INTERFACE
+#  602          SUBROUTINE putimage_w[C,ALIAS:"__putimage_w"](wx,wy,image,action
+   603            DOUBLE PRECISION wx,wy
+   604            INTEGER*1 image[REFERENCE](*)
+   605            INTEGER*2 action
+   606          END SUBROUTINE
+   607        END INTERFACE
+   608  
+   609        INTERFACE
+
+                                                                        PAGE  13
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   610          FUNCTION rectangle(control,x1,y1,x2,y2)
+   611            INTEGER*2 rectangle[C,ALIAS:"__rectangle"]
+   612            INTEGER*2 control,x1,y1,x2,y2
+   613          END FUNCTION
+   614        END INTERFACE
+   615  
+   616        INTERFACE
+   617          FUNCTION rectangle_w(control,wx1,wy1,wx2,wy2)
+   618            INTEGER*2 rectangle_w[C,ALIAS:"__rectangle_w"],control
+   619            DOUBLE PRECISION wx1,wy1,wx2,wy2
+   620          END FUNCTION
+   621        END INTERFACE
+   622  
+   623        INTERFACE
+   624          FUNCTION remappalette(index,color)
+   625            INTEGER*4 remappalette[C,ALIAS:"__remappalette"],color
+   626            INTEGER*2 index
+   627          END FUNCTION
+   628        END INTERFACE
+   629  
+   630        INTERFACE
+   631          FUNCTION remappalettergb(index,color)
+   632            INTEGER*4 remappalettergb[C,ALIAS:"__remappalettergb"],color
+   633            INTEGER*2 index
+   634          END FUNCTION
+   635        END INTERFACE
+   636  
+   637  
+   638        INTERFACE
+   639          FUNCTION remapallpalette(colors)
+   640            INTEGER*2 remapallpalette[C,ALIAS:"__remapallpalette"]
+   641            INTEGER*4 colors[REFERENCE](*)
+   642          END FUNCTION
+   643        END INTERFACE
+   644  
+   645        INTERFACE
+   646          FUNCTION remapallpalettergb(colors)
+   647            INTEGER*2 remapallpalettergb[C,ALIAS:"__remapallpalettergb"]
+   648            INTEGER*4 colors[REFERENCE](*)
+   649          END FUNCTION
+   650        END INTERFACE
+   651  
+   652  
+   653        INTERFACE
+#  654          INTEGER*4 FUNCTION saveimage[ALIAS:"__f_saveimage@24"](fname,x1,
+   655            CHARACTER*(*) fname[REFERENCE]
+   656            INTEGER*4 x1,y1,x2,y2
+   657          END FUNCTION
+   658        END INTERFACE
+   659  
+   660        INTERFACE
+#  661          INTEGER*4 FUNCTION saveimage_w[C, ALIAS:"__saveimage_w"](fname,w
+   662            CHARACTER*(*) fname[REFERENCE]
+   663            DOUBLE PRECISION wx1,wy1,wx2,wy2
+   664          END FUNCTION
+   665        END INTERFACE
+   666  
+
+                                                                        PAGE  14
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   667        INTERFACE
+#  668          SUBROUTINE scrolltextwindow[C,ALIAS:"__FQscrolltextwindow"](rows
+   669            INTEGER*2 rows
+   670          END SUBROUTINE
+   671        END INTERFACE
+   672  
+   673        INTERFACE
+   674          FUNCTION selectpalette(number)
+   675            INTEGER*2 selectpalette[C,ALIAS:"__selectpalette"],number
+   676          END FUNCTION
+   677        END INTERFACE
+   678  
+   679        INTERFACE
+   680          FUNCTION setactivepage(page)
+   681            INTEGER*2 setactivepage[C,ALIAS:"__setactivepage"],page
+   682          END FUNCTION
+   683        END INTERFACE
+   684  
+   685        INTERFACE
+   686          FUNCTION setbkcolor(color)
+   687            INTEGER*4 setbkcolor[C,ALIAS:"__setbkcolor"],color
+   688          END FUNCTION
+   689        END INTERFACE
+   690  
+   691        INTERFACE
+   692          SUBROUTINE setcliprgn[C,ALIAS:"__setcliprgn"](x1,y1,x2,y2)
+   693            INTEGER*2 x1,y1,x2,y2
+   694          END SUBROUTINE
+   695        END INTERFACE
+   696  
+   697        INTERFACE
+   698          FUNCTION setcolor(color)
+   699            INTEGER*2 setcolor[C,ALIAS:"__setcolor"]
+   700            INTEGER*2 color
+   701          END FUNCTION
+   702        END INTERFACE
+   703  
+   704        INTERFACE
+   705          SUBROUTINE setfillmask[C,ALIAS:"__setfillmask"](mask)
+   706            INTEGER*1 mask[REFERENCE](8)
+   707          END SUBROUTINE
+   708        END INTERFACE
+   709  
+   710        INTERFACE
+   711          SUBROUTINE setlinestyle[C,ALIAS:"__setlinestyle"](mask)
+   712            INTEGER*2 mask
+   713          END SUBROUTINE
+   714        END INTERFACE
+   715  
+   716        INTERFACE
+   717          FUNCTION setpixel(x,y)
+   718            INTEGER*2 setpixel[C,ALIAS:"__setpixel"],x,y
+   719          END FUNCTION
+   720        END INTERFACE
+   721  
+   722        INTERFACE
+   723          FUNCTION setpixel_w(wx,wy)
+
+                                                                        PAGE  15
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   724            INTEGER*2 setpixel_w[C,ALIAS:"__setpixel_w"]
+   725            DOUBLE PRECISION wx,wy
+   726          END FUNCTION
+   727        END INTERFACE
+   728  
+   729        INTERFACE
+   730          SUBROUTINE setpixels[C, ALIAS:"__setpixels"](n, x, y, c)
+   731            INTEGER*4 n                 ! input : size of arrays
+   732            INTEGER*2 x[REFERENCE](*)   ! input : x coordinates
+   733            INTEGER*2 y[REFERENCE](*)   ! input : y coordinates
+   734            INTEGER*2 c[REFERENCE](*)   ! input : palette indices
+   735          END SUBROUTINE
+   736        END INTERFACE
+   737  
+   738        INTERFACE
+   739          FUNCTION settextcolor(index)
+   740            INTEGER*2 settextcolor[C,ALIAS:"__settextcolor"],index
+   741          END FUNCTION
+   742        END INTERFACE
+   743  
+   744        INTERFACE
+   745          FUNCTION settextcursor(attr)
+   746            INTEGER*2 settextcursor[C,ALIAS:"__settextcursor"],attr
+   747          END FUNCTION
+   748        END INTERFACE
+   749  
+   750  $if _MSFORTRAN_ .lt. 300
+   751        INTERFACE
+#  752          SUBROUTINE settextposition[ALIAS:"__fq_settextposition@12"](row,
+   753            INTEGER*2 row,col
+   754            STRUCTURE/rccoord/
+   755                INTEGER*2 row
+   756                INTEGER*2 col
+   757            END STRUCTURE
+   758            RECORD/rccoord/s[REFERENCE]
+   759          END SUBROUTINE
+   760        END INTERFACE
+   761  $else
+   762        INTERFACE SETTEXTPOSITION
+#  763        SUBROUTINE $$MSFLIB$SETTEXTPOSITION$22                            
+   764       & [alias:'__fq_settextposition@12'](row, col, s)
+   765        INTEGER*2 row
+   766        INTEGER*2 col
+   767        STRUCTURE/rccoord/
+   768            INTEGER*2 row
+   769            INTEGER*2 col
+   770        END STRUCTURE
+   771        RECORD/rccoord/s[REFERENCE]
+   772        END SUBROUTINE
+#  773        SUBROUTINE $$MSFLIB$SETTEXTPOSITION$24                            
+   774       & [alias:'__fq_settextposition@12'](row, col, s)
+   775        INTEGER*2 row
+   776        INTEGER*4 col
+   777        STRUCTURE/rccoord/
+   778            INTEGER*2 row
+   779            INTEGER*2 col
+   780        END STRUCTURE
+
+                                                                        PAGE  16
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   781        RECORD/rccoord/s[REFERENCE]
+   782        END SUBROUTINE
+#  783        SUBROUTINE $$MSFLIB$SETTEXTPOSITION$42                            
+   784       & [alias:'__fq_settextposition@12'](row, col, s)
+   785        INTEGER*4 row
+   786        INTEGER*2 col
+   787        STRUCTURE/rccoord/
+   788            INTEGER*2 row
+   789            INTEGER*2 col
+   790        END STRUCTURE
+   791        RECORD/rccoord/s[REFERENCE]
+   792        END SUBROUTINE
+#  793        SUBROUTINE $$MSFLIB$SETTEXTPOSITION$44                            
+   794       & [alias:'__fq_settextposition@12'](row, col, s)
+   795        INTEGER*4 row
+   796        INTEGER*4 col
+   797        STRUCTURE/rccoord/
+   798            INTEGER*2 row
+   799            INTEGER*2 col
+   800        END STRUCTURE
+   801        RECORD/rccoord/s[REFERENCE]
+   802        END SUBROUTINE
+   803        END INTERFACE
+   804  $endif
+   805  
+   806  
+   807        INTERFACE
+   808          FUNCTION settextrows(rows)
+   809            INTEGER*2 settextrows[C,ALIAS:"__settextrows"],rows
+   810          END FUNCTION
+   811        END INTERFACE
+   812  
+   813        INTERFACE
+   814          SUBROUTINE settextwindow[C,ALIAS:"__settextwindow"](r1,c1,r2,c2)
+   815            INTEGER*2 r1,c1,r2,c2
+   816          END SUBROUTINE
+   817        END INTERFACE
+   818  
+   819        INTERFACE
+   820          FUNCTION setvideomode(mode)
+   821            INTEGER*2 setvideomode[C,ALIAS:"__setvideomode"],mode
+   822          END FUNCTION
+   823        END INTERFACE
+   824  
+   825        INTERFACE
+   826          FUNCTION setvideomoderows(mode,rows)
+   827            INTEGER*2 setvideomoderows[C,ALIAS:"__setvideomoderows"]
+   828            INTEGER*2 mode,rows
+   829          END FUNCTION
+   830        END INTERFACE
+   831  
+   832  $if _MSFORTRAN_ .lt. 300
+   833        INTERFACE
+   834          SUBROUTINE setvieworg[ALIAS:"__f_setvieworg@12"](x,y,s)
+   835            INTEGER*2 x,y
+   836            STRUCTURE/xycoord/
+   837                INTEGER*2 xcoord
+
+                                                                        PAGE  17
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   838                INTEGER*2 ycoord
+   839            END STRUCTURE
+   840            RECORD/xycoord/s[REFERENCE]
+   841          END SUBROUTINE
+   842        END INTERFACE
+   843  $else
+   844        INTERFACE SETVIEWORG
+#  845        SUBROUTINE $$MSFLIB$SETVIEWORG$22                                 
+   846       & [alias:'__f_setvieworg@12'](x,y,s)
+   847        INTEGER*2 x
+   848        INTEGER*2 y
+   849        STRUCTURE/xycoord/
+   850            INTEGER*2 xcoord
+   851            INTEGER*2 ycoord
+   852        END STRUCTURE
+   853        RECORD/xycoord/s[REFERENCE]
+   854        END SUBROUTINE
+#  855        SUBROUTINE $$MSFLIB$SETVIEWORG$24                                 
+   856       & [alias:'__f_setvieworg@12'](x,y,s)
+   857        INTEGER*2 x
+   858        INTEGER*4 y
+   859        STRUCTURE/xycoord/
+   860            INTEGER*2 xcoord
+   861            INTEGER*2 ycoord
+   862        END STRUCTURE
+   863        RECORD/xycoord/s[REFERENCE]
+   864        END SUBROUTINE
+#  865        SUBROUTINE $$MSFLIB$SETVIEWORG$42                                 
+   866       & [alias:'__f_setvieworg@12'](x,y,s)
+   867        INTEGER*4 x
+   868        INTEGER*2 y
+   869        STRUCTURE/xycoord/
+   870            INTEGER*2 xcoord
+   871            INTEGER*2 ycoord
+   872        END STRUCTURE
+   873        RECORD/xycoord/s[REFERENCE]
+   874        END SUBROUTINE
+#  875        SUBROUTINE $$MSFLIB$SETVIEWORG$44                                 
+   876       & [alias:'__f_setvieworg@12'](x,y,s)
+   877        INTEGER*4 x
+   878        INTEGER*4 y
+   879        STRUCTURE/xycoord/
+   880            INTEGER*2 xcoord
+   881            INTEGER*2 ycoord
+   882        END STRUCTURE
+   883        RECORD/xycoord/s[REFERENCE]
+   884        END SUBROUTINE
+   885        END INTERFACE
+   886  $endif
+   887  
+   888        INTERFACE
+   889          SUBROUTINE setviewport[C,ALIAS:"__setviewport"](x1,y1,x2,y2)
+   890            INTEGER*2 x1,y1,x2,y2
+   891          END SUBROUTINE
+   892        END INTERFACE
+   893  
+   894        INTERFACE
+
+                                                                        PAGE  18
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   895          FUNCTION setvisualpage(page)
+   896            INTEGER*2 setvisualpage[C,ALIAS:"__setvisualpage"],page
+   897          END FUNCTION
+   898        END INTERFACE
+   899  
+   900        INTERFACE
+   901          FUNCTION setwindow(finvert,wx1,wy1,wx2,wy2)
+   902            INTEGER*2 setwindow[C,ALIAS:"__setwindow"]
+   903            LOGICAL*2 finvert
+   904            DOUBLE PRECISION wx1,wy1,wx2,wy2
+   905          END FUNCTION
+   906        END INTERFACE
+   907  
+   908        INTERFACE
+   909          FUNCTION setwritemode(wmode)
+   910            INTEGER*2 setwritemode[C,ALIAS:"__setwritemode"],wmode
+   911          END FUNCTION
+   912        END INTERFACE
+   913  
+   914        INTERFACE
+   915          FUNCTION wrapon(option)
+   916            INTEGER*2 wrapon[C,ALIAS:"__wrapon"],option
+   917          END FUNCTION
+   918        END INTERFACE
+   919  
+   920  ! FONTS
+   921  
+   922        INTERFACE
+   923          FUNCTION getfontinfo(fi)
+   924            INTEGER*2 getfontinfo[ALIAS:"__f_getfontinfo@4"]
+   925            STRUCTURE/fontinfo/
+   926                INTEGER*4 type        ! b0 set = vector,clear = bit map
+   927                INTEGER*4 ascent      ! pix dist from top to baseline
+   928                INTEGER*4 pixwidth    ! character width in pixels, 0=prop
+   929                INTEGER*4 pixheight   ! character height in pixels
+   930                INTEGER*4 avgwidth    ! average character width in pixels
+   931                CHARACTER*81 filename ! file name including path
+   932                CHARACTER*32 facename ! font name
+   933                LOGICAL*1 italic      ! .true. - font  is italic
+#  934                LOGICAL*1 emphasized  ! .true. - font is  emphasized (bold
+   935                LOGICAL*1 underline   ! .true. - font is underline
+   936            END STRUCTURE
+   937            RECORD/fontinfo/fi[REFERENCE]
+   938          END FUNCTION
+   939        END INTERFACE
+   940  
+   941        INTERFACE
+   942          FUNCTION getgtextextent(text)
+   943            INTEGER*2 getgtextextent[ALIAS:"__f_getgtextextent@8"]
+   944            CHARACTER*(*) text[REFERENCE]
+   945          END FUNCTION
+   946        END INTERFACE
+   947  
+   948        INTERFACE
+   949          SUBROUTINE getgtextvector[ALIAS:"__f_getgtextvector@8"](x,y)
+   950            INTEGER*2 x[REFERENCE],y[REFERENCE]
+   951          END SUBROUTINE
+
+                                                                        PAGE  19
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   952        END INTERFACE
+   953  
+   954        INTERFACE
+   955          SUBROUTINE outgtext[ALIAS:"__f_outgtext@8"](text)
+   956            CHARACTER*(*) text[REFERENCE]
+   957          END SUBROUTINE
+   958        END INTERFACE
+   959  
+   960        INTERFACE
+   961          FUNCTION registerfonts(filename)
+   962            INTEGER*2 registerfonts[ALIAS:"__f_registerfonts@8"]
+   963            CHARACTER*(*) filename[REFERENCE]
+   964          END FUNCTION
+   965        END INTERFACE
+   966  
+   967        INTERFACE
+   968          FUNCTION initializefonts()
+   969            INTEGER*2 initializefonts[ALIAS:"__initializefonts"]
+   970          END FUNCTION
+   971        END INTERFACE
+   972  
+   973        INTERFACE
+   974          FUNCTION setfont(options)
+   975            INTEGER*2 setfont[ALIAS:"__f_setfont@8"]
+   976            CHARACTER*(*) options[REFERENCE]
+   977          END FUNCTION
+   978        END INTERFACE
+   979  
+   980        INTERFACE
+   981          SUBROUTINE settextfont[ALIAS:"__f_settextfont@4"] (fontname)
+   982            CHARACTER*(*) fontname[REFERENCE]
+   983          END SUBROUTINE
+   984        END INTERFACE
+   985  
+   986  
+   987        INTERFACE
+   988          SUBROUTINE setgtextvector[C,ALIAS:"__setgtextvector"](x,y)
+   989            INTEGER*2 x,y
+   990          END SUBROUTINE
+   991        END INTERFACE
+   992  
+   993        INTERFACE
+   994          SUBROUTINE unregisterfonts[C,ALIAS:"__unregisterfonts"]()
+   995          END SUBROUTINE
+   996        END INTERFACE
+   997  
+   998        INTERFACE
+#  999          SUBROUTINE setgtextrotation[C,ALIAS:"__setgtextrotation"](degree
+  1000            INTEGER*4 degrees
+  1001          END SUBROUTINE
+  1002        END INTERFACE
+  1003  
+  1004        INTERFACE
+  1005          FUNCTION getgtextrotation()
+  1006            INTEGER*4 getgtextrotation[C,ALIAS:"__getgtextrotation"]
+  1007          END FUNCTION
+  1008        END INTERFACE
+
+                                                                        PAGE  20
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1009  
+  1010        INTERFACE
+  1011          FUNCTION getcolorrgb()
+  1012            INTEGER*4 getcolorrgb[C,ALIAS:"__getcolorrgb"]
+  1013          END FUNCTION
+  1014        END INTERFACE
+  1015  
+  1016        INTERFACE
+  1017          FUNCTION getbkcolorrgb()
+  1018            INTEGER*4 getbkcolorrgb[C,ALIAS:"__getbkcolorrgb"]
+  1019          END FUNCTION
+  1020        END INTERFACE
+  1021  
+  1022        INTERFACE
+  1023          FUNCTION gettextcolorrgb()
+  1024            INTEGER*4 gettextcolorrgb[C,ALIAS:"__gettextcolorrgb"]
+  1025          END FUNCTION
+  1026        END INTERFACE
+  1027  
+  1028        INTERFACE
+  1029          FUNCTION getpixelrgb(x,y)
+  1030            INTEGER*4 getpixelrgb[C,ALIAS:"__getpixelrgb"]
+  1031            INTEGER*2 x
+  1032            INTEGER*2 y
+  1033          END FUNCTION
+  1034        END INTERFACE
+  1035  
+  1036        INTERFACE
+  1037          FUNCTION getpixelrgb_w(wx, wy)
+  1038            INTEGER*4 getpixelrgb_w[C,ALIAS:"__getpixelrgb_w"]
+  1039            REAL*8          wx
+  1040            REAL*8          wy
+  1041          END FUNCTION
+  1042        END INTERFACE
+  1043  
+  1044        INTERFACE
+  1045          SUBROUTINE setpixelsrgb[C,ALIAS:"__setpixelsrgb"](n,x,y,color)
+  1046            INTEGER*4 n
+  1047            INTEGER*2 x [REFERENCE](*)
+  1048            INTEGER*2 y [REFERENCE](*)
+  1049            INTEGER*4 color [REFERENCE](*)
+  1050          END SUBROUTINE
+  1051        END INTERFACE
+  1052  
+  1053        INTERFACE
+  1054          SUBROUTINE getpixelsrgb[C,ALIAS:"__getpixelsrgb"](n,x,y,color)
+  1055            INTEGER*4 n
+  1056            INTEGER*2 x [REFERENCE](*)
+  1057            INTEGER*2 y [REFERENCE](*)
+  1058            INTEGER*4 color [REFERENCE](*)
+  1059          END SUBROUTINE
+  1060        END INTERFACE
+  1061  
+  1062        INTERFACE
+  1063          FUNCTION setcolorrgb(color)
+  1064            INTEGER*4 setcolorrgb[C,ALIAS:"__setcolorrgb"]
+  1065            INTEGER*4 color
+
+                                                                        PAGE  21
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1066          END FUNCTION
+  1067        END INTERFACE
+  1068  
+  1069        INTERFACE
+  1070          FUNCTION setbkcolorrgb(color)
+  1071            INTEGER*4 setbkcolorrgb[C,ALIAS:"__setbkcolorrgb"]
+  1072            INTEGER*4 color
+  1073          END FUNCTION
+  1074        END INTERFACE
+  1075  
+  1076        INTERFACE
+  1077          FUNCTION setpixelrgb(x,y,color)
+  1078            INTEGER*4 setpixelrgb[C,ALIAS:"__setpixelrgb"]
+  1079            INTEGER*2 x
+  1080            INTEGER*2 y
+  1081            INTEGER*4 color
+  1082          END FUNCTION
+  1083        END INTERFACE
+  1084  
+  1085        INTERFACE
+  1086          FUNCTION setpixelrgb_w(x,y,color)
+  1087            INTEGER*4 setpixelrgb_w[C,ALIAS:"__setpixelrgb_w"]
+  1088            REAL*8          x
+  1089            REAL*8          y
+  1090            INTEGER*4       color
+  1091          END FUNCTION
+  1092        END INTERFACE
+  1093  
+  1094        INTERFACE
+  1095          FUNCTION settextcolorrgb(color)
+  1096            INTEGER*4 settextcolorrgb[C,ALIAS:"__settextcolorrgb"]
+  1097            INTEGER*4 color
+  1098          END FUNCTION
+  1099        END INTERFACE
+  1100  
+  1101        INTERFACE
+  1102          FUNCTION rgbtointeger(red,green,blue)
+  1103            INTEGER*4 rgbtointeger[C,ALIAS:"__rgbtointeger"]
+  1104            INTEGER*4 red,green,blue
+  1105          END FUNCTION
+  1106        END INTERFACE
+  1107  
+  1108        INTERFACE
+# 1109          SUBROUTINE integertorgb[C,ALIAS:"__integertorgb"] (rgb, red, gre
+  1110            INTEGER*4 rgb
+  1111            INTEGER*4 red    [REFERENCE]
+  1112            INTEGER*4 green  [REFERENCE]
+  1113            INTEGER*4 blue   [REFERENCE]
+  1114          END SUBROUTINE
+  1115        END INTERFACE
+  1116  
+  1117        INTERFACE
+# 1118          SUBROUTINE setdblclkinterval[C,ALIAS:"_setdblclkintervalqq"](int
+  1119            INTEGER interval
+  1120          END SUBROUTINE
+  1121        END INTERFACE
+  1122  
+
+                                                                        PAGE  22
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1123        INTERFACE
+  1124          FUNCTION unregistermouseevent(Unit,MouseEvents)
+# 1125            INTEGER unregistermouseevent[C,ALIAS:"_unregistermouseeventqq"
+  1126            INTEGER Unit
+  1127            INTEGER MouseEvents
+  1128          END FUNCTION
+  1129        END INTERFACE
+  1130  
+  1131        INTERFACE
+  1132          FUNCTION registermouseevent(Unit,MouseEvents,CallBackRoutine)
+  1133            INTEGER registermouseevent[C,ALIAS:"_registermouseeventqq"]
+  1134            INTEGER Unit
+  1135            INTEGER MouseEvents
+  1136            EXTERNAL CallBackRoutine
+  1137          END FUNCTION
+  1138        END INTERFACE
+  1139  
+  1140        INTERFACE
+  1141          FUNCTION waitonmouseevent(MouseEvents,KeyState,x,y)
+  1142            INTEGER waitonmouseevent[C,ALIAS:"_waitonmouseeventqq"]
+  1143            INTEGER MouseEvents
+  1144            INTEGER KeyState [REFERENCE]
+  1145            INTEGER x [REFERENCE]
+  1146            INTEGER y [REFERENCE]
+  1147          END FUNCTION
+  1148        END INTERFACE
+  1149  
+  1150        INTERFACE
+# 1151          SUBROUTINE setframewindow[C,ALIAS:"__setframewindow"](X,Y,width,
+  1152            INTEGER X
+  1153            INTEGER Y
+  1154            INTEGER width
+  1155            INTEGER height
+  1156          END SUBROUTINE
+  1157        END INTERFACE
+  1158  
+  1159        INTERFACE
+  1160          SUBROUTINE setmessageqq[C,ALIAS:"__f_setmessageqq"](msg, id)
+  1161            CHARACTER*(*) msg[reference]
+  1162            INTEGER*4     id
+  1163          END SUBROUTINE
+  1164        END INTERFACE
+  1165  
+  1166        INTERFACE
+# 1167          SUBROUTINE setstatusmessage[C,ALIAS:"__f_setstatusmessage@8"](ms
+  1168            CHARACTER*(*) msg[reference]
+  1169            INTEGER*4     id
+  1170          END SUBROUTINE
+  1171        END INTERFACE
+  1172  
+  1173  ! We only include the following code once inside the same program unit.
+  1174  ! This code is shared with flib.fi.
+# 1175  $if _MSFORTRAN_ .lt. 300   ! if using /4fps1, DO NOT include the code be
+  1176  $undefine $MSFLIB$FIProgUnitNum
+  1177  $define $MSFLIB$FIProgUnitNum = -1
+  1178  $endif
+  1179  $if $MSFLIB$FIProgUnitNum .ne. $MSFLIB$ProgramUnitNumber
+
+                                                                        PAGE  23
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1180  $undefine $MSFLIB$FIProgUnitNum
+  1181  $define $MSFLIB$FIProgUnitNum = $MSFLIB$ProgramUnitNumber
+  1182  
+  1183        INTERFACE
+  1184          FUNCTION INCHARQQ()
+  1185            INTEGER*2 INCHARQQ[C,ALIAS:"__inchar"]
+  1186          END FUNCTION
+  1187        END INTERFACE
+  1188  
+  1189        INTERFACE
+  1190          FUNCTION WGOPENQQ(name)
+  1191            INTEGER*4 WGOPENQQ[C,ALIAS:"__wgopen"]
+  1192            CHARACTER*(*) name
+  1193          END FUNCTION
+  1194        END INTERFACE
+  1195  
+  1196        INTERFACE
+  1197          FUNCTION WGCLOSEQQ(handle)
+  1198            INTEGER*4 WGCLOSEQQ[C,ALIAS:"__wgclose"], handle
+  1199          END FUNCTION
+  1200        END INTERFACE
+  1201  
+  1202        INTERFACE
+  1203          FUNCTION WGSETACTIVEQQ(handle)
+  1204            INTEGER*4 WGSETACTIVEQQ[C,ALIAS:"__wgsetactive"], handle
+  1205          END FUNCTION
+  1206        END INTERFACE
+  1207  
+  1208        INTERFACE
+  1209          FUNCTION WGGETACTIVEQQ()
+  1210            INTEGER*4 WGGETACTIVEQQ[C,ALIAS:"__wggetactive"]
+  1211          END FUNCTION
+  1212        END INTERFACE
+  1213  $endif
+  1214  
+  1215  
+  1216  $endif  ! $if .not. defined (__MSFLIB_FLIB_INCLUDE)
+# 1217  !****************************** Module Header **************************
+  1218  !*
+  1219  !* Copyright (c) 1990-1995  Microsoft Corporation
+  1220  !*
+  1221  !* Module Name: FLIB.FI
+  1222  !*
+  1223  !* This module provides interface descriptions for subprograms found
+  1224  !* in the various Fortran libraries.  
+  1225  !*
+  1226  !* The functional areas covered are the following.
+  1227  !*
+  1228  !*    Math error support
+  1229  !*    Signal support
+  1230  !*    Coprocessor Control
+  1231  !*    Time and Date Support
+  1232  !*    Command Line Arguments
+  1233  !*    Random Numbers
+  1234  !*    Running Programs and System Commands
+  1235  !*    Drives and Directories
+  1236  !*    Files
+
+                                                                        PAGE  24
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1237  !*    Keyboard
+  1238  !*    Errors
+  1239  !*    Environment
+  1240  !*    Beep and Sleep
+  1241  !*    Sorting and Searching Arrays
+  1242  !*    Configuration
+  1243  !*    QuickWin Support
+  1244  !*    Access to Windows Handles for QuickWin components
+  1245  !*    QuickWin Default Menu Support
+  1246  !*    
+  1247  !*
+# 1248  !***********************************************************************
+  1249  
+# 1250  !* NOTE: When modifying this file, you must follow the following rules t
+  1251  !* ensure compatibility with fixed form and free form source:
+  1252  !*   1) All comments must start with '!'
+  1253  !*   2) All code must be within columns 7 to 72
+  1254  !*   3) For continuation, place a '&' in column 73,
+  1255  !*      and a '&' in column 6 of the continuation line
+  1256  
+  1257  $if .not. defined (_MSFORTRAN_)
+  1258  $define _MSFORTRAN_ = 100
+  1259  $endif
+  1260  
+  1261  $if .not. defined($MSFLIB$ProgramUnitNumber)
+  1262  $define $MSFLIB$ProgramUnitNumber = -1
+  1263  $endif
+  1264  $if .not. defined($MSFLIB$FIProgUnitNum)
+  1265  $define $MSFLIB$FIProgUnitNum = -2
+  1266  $endif
+  1267  
+  1268  $if .not. defined (__MSFLIB_FGRAPH_INCLUDE)
+  1269  
+  1270  
+  1271  ! -----------------------------------------------------------------
+  1272  ! Math Error Support
+  1273  ! -----------------------------------------------------------------
+  1274  ! MATHERRQQ -- user callbacks cannot be in the module MSFLIB
+  1275  
+  1276  ! -----------------------------------------------------------------
+  1277  ! Signal support
+  1278  ! -----------------------------------------------------------------
+  1279        INTERFACE
+  1280          INTEGER*4 FUNCTION SIGNALQQ[c,alias:'_signal'](SIGNAL, HANDLER)
+  1281            INTEGER*4 SIGNAL[value]
+  1282            integer*4 handler
+  1283            EXTERNAL HANDLER
+  1284          END FUNCTION
+  1285        END INTERFACE
+  1286  
+  1287        INTERFACE
+  1288          INTEGER*4 FUNCTION RAISEQQ[c,alias:'_raise'](SIGNAL)
+  1289            INTEGER*4 SIGNAL[value]
+  1290          END FUNCTION
+  1291        END INTERFACE
+  1292  
+  1293  ! -----------------------------------------------------------------
+
+                                                                        PAGE  25
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1294  ! Coprocessor Control
+  1295  ! -----------------------------------------------------------------
+  1296  
+  1297        INTERFACE
+  1298          SUBROUTINE LCWRQQ(CONTROL)
+  1299            INTEGER*2 CONTROL
+  1300          END SUBROUTINE
+  1301        END INTERFACE
+  1302  
+  1303        INTERFACE
+  1304          SUBROUTINE SCWRQQ(CONTROL)
+  1305            INTEGER*2 CONTROL
+  1306          END SUBROUTINE
+  1307        END INTERFACE
+  1308  
+  1309        INTERFACE
+  1310          SUBROUTINE SSWRQQ(STATUS)
+  1311            INTEGER*2 STATUS
+  1312          END SUBROUTINE
+  1313        END INTERFACE
+  1314  
+  1315        INTERFACE
+  1316          SUBROUTINE SETCONTROLFPQQ[alias:'_LCWRQQ@4'](CONTROL)
+  1317            INTEGER*2 CONTROL
+  1318          END SUBROUTINE
+  1319        END INTERFACE
+  1320  
+  1321        INTERFACE
+  1322          SUBROUTINE GETCONTROLFPQQ[alias:'_SCWRQQ@4'](CONTROL)
+  1323            INTEGER*2 CONTROL
+  1324          END SUBROUTINE
+  1325        END INTERFACE
+  1326  
+  1327        INTERFACE
+  1328          SUBROUTINE GETSTATUSFPQQ[alias:'_SSWRQQ@4'](STATUS)
+  1329            INTEGER*2 STATUS
+  1330          END SUBROUTINE
+  1331        END INTERFACE
+  1332  
+  1333  ! -----------------------------------------------------------------
+  1334  ! Time and Date Support
+  1335  ! -----------------------------------------------------------------
+  1336        INTERFACE
+  1337          SUBROUTINE GETTIM(IHR, IMIN, ISEC, I100TH)
+  1338            INTEGER*2 IHR, IMIN, ISEC, I100TH
+  1339          END SUBROUTINE
+  1340        END INTERFACE
+  1341  
+  1342        INTERFACE
+  1343          LOGICAL FUNCTION SETTIM(IHR, IMIN, ISEC, I100TH)
+  1344            INTEGER*2 IHR, IMIN, ISEC, I100TH
+  1345          END FUNCTION
+  1346        END INTERFACE
+  1347  
+  1348        INTERFACE
+  1349          SUBROUTINE GETDAT(IYR, IMON, IDAY)
+  1350            INTEGER*2 IYR, IMON, IDAY
+
+                                                                        PAGE  26
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1351          END SUBROUTINE
+  1352        END INTERFACE
+  1353  
+  1354        INTERFACE
+  1355          LOGICAL FUNCTION SETDAT(IYR, IMON, IDAY)
+  1356            INTEGER*2 IYR, IMON, IDAY
+  1357          END FUNCTION
+  1358        END INTERFACE
+  1359  
+  1360  ! -----------------------------------------------------------------
+  1361  ! Command Line Arguments
+  1362  ! -----------------------------------------------------------------
+  1363        INTERFACE
+  1364          INTEGER*4 FUNCTION NARGS()
+  1365          END FUNCTION
+  1366        END INTERFACE
+  1367  
+  1368  $if _MSFORTRAN_ .LT. 300
+  1369        INTERFACE
+  1370          SUBROUTINE GETARG(N, BUFFER, STATUS)
+  1371            INTEGER*2 N
+  1372            CHARACTER*(*) BUFFER
+  1373            INTEGER*2 STATUS          
+  1374          END SUBROUTINE
+  1375        END INTERFACE
+  1376  
+# 1377        ! Note that EXIT does not have an interface for FORTRAN 77 compile
+  1378        ! Thus, EXIT can be used with or without an argument
+  1379        ! (so long as it is used consistently within a program unit).
+  1380  $else
+  1381        INTERFACE
+  1382          SUBROUTINE GETARG(N, BUFFER, STATUS)
+  1383            INTEGER*2 N
+  1384            CHARACTER*(*) BUFFER
+  1385            INTEGER*2, OPTIONAL :: STATUS      
+  1386          END SUBROUTINE
+  1387        END INTERFACE
+  1388  
+  1389        INTERFACE
+  1390          SUBROUTINE EXIT(EXITVALUE)
+  1391            INTEGER*4, OPTIONAL :: EXITVALUE    
+  1392          END SUBROUTINE
+  1393        END INTERFACE
+  1394  $endif
+  1395  
+  1396  ! -----------------------------------------------------------------
+  1397  ! Random Numbers
+  1398  ! -----------------------------------------------------------------
+  1399  
+  1400  $if _MSFORTRAN_ .LT. 300
+  1401        INTERFACE
+  1402          SUBROUTINE RANDOM(ARG)
+  1403            REAL*4 ARG
+  1404          END SUBROUTINE
+  1405        END INTERFACE
+  1406  $else
+  1407  ! Random is a generic interface for use with the RANDOM in portlib
+
+                                                                        PAGE  27
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1408        INTERFACE RANDOM
+  1409           SUBROUTINE $$MSFLIB$RANDOM(ARG)
+  1410  !MS$ATTRIBUTES ALIAS:'_RANDOM@4' :: $$MSFLIB$RANDOM
+  1411           REAL*4 ARG
+  1412           END SUBROUTINE
+  1413        END INTERFACE
+  1414  $endif
+  1415  
+  1416        INTERFACE
+  1417          SUBROUTINE SEED(ARG)
+  1418            INTEGER*4 ARG
+  1419          END SUBROUTINE
+  1420        END INTERFACE
+  1421  
+  1422  ! -----------------------------------------------------------------
+  1423  ! Running Programs and System Commands
+  1424  ! -----------------------------------------------------------------
+  1425        INTERFACE
+  1426          INTEGER*4 FUNCTION RUNQQ(FILENAME, COMMANDLINE)
+  1427            CHARACTER*(*) FILENAME, COMMANDLINE
+  1428          END FUNCTION
+  1429        END INTERFACE
+  1430  
+  1431        INTERFACE
+  1432          LOGICAL*4 FUNCTION SYSTEMQQ(COMMANDLINE)
+  1433            CHARACTER*(*) COMMANDLINE
+  1434          END FUNCTION
+  1435        END INTERFACE
+  1436  
+  1437  ! -----------------------------------------------------------------
+  1438  ! Drives and Directories
+  1439  ! -----------------------------------------------------------------
+  1440  
+  1441        INTERFACE
+  1442          LOGICAL*4 FUNCTION GETDRIVESIZEQQ(DRIVE, TOTAL,AVAIL)
+  1443            CHARACTER*(*) DRIVE
+  1444            INTEGER*4 TOTAL, AVAIL
+  1445          END FUNCTION
+  1446        END INTERFACE
+  1447  
+  1448        INTERFACE
+  1449          CHARACTER*26 FUNCTION GETDRIVESQQ()
+  1450          END FUNCTION
+  1451        END INTERFACE
+  1452  
+  1453        INTERFACE
+  1454          INTEGER*4 FUNCTION GETDRIVEDIRQQ(BUFFER)
+  1455            CHARACTER*(*) BUFFER
+  1456          END FUNCTION
+  1457        END INTERFACE
+  1458  
+  1459        INTERFACE
+  1460          LOGICAL*4 FUNCTION CHANGEDRIVEQQ(DRIVE)
+  1461            CHARACTER*(*) DRIVE
+  1462          END FUNCTION
+  1463        END INTERFACE
+  1464  
+
+                                                                        PAGE  28
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1465        INTERFACE
+  1466          LOGICAL*4 FUNCTION CHANGEDIRQQ(DIR)
+  1467            CHARACTER*(*) DIR
+  1468          END FUNCTION
+  1469        END INTERFACE
+  1470  
+  1471        INTERFACE
+  1472          LOGICAL*4 FUNCTION MAKEDIRQQ(DIR)
+  1473            CHARACTER*(*) DIR
+  1474          END FUNCTION
+  1475        END INTERFACE
+  1476  
+  1477        INTERFACE
+  1478          LOGICAL*4 FUNCTION DELDIRQQ(DIR)
+  1479            CHARACTER*(*) DIR
+  1480          END FUNCTION
+  1481        END INTERFACE
+  1482  
+  1483        INTERFACE
+  1484          INTEGER*4 FUNCTION FULLPATHQQ(NAME, FULLPATH)
+  1485            CHARACTER*(*) NAME, FULLPATH
+  1486          END FUNCTION
+  1487        END INTERFACE
+  1488  
+  1489        INTERFACE
+  1490          INTEGER*4 FUNCTION SPLITPATHQQ(PATH, DRIVE, DIR,NAME, EXT)
+  1491            CHARACTER*(*) PATH, DRIVE, DIR, NAME, EXT
+  1492          END FUNCTION
+  1493        END INTERFACE
+  1494  
+  1495  ! -----------------------------------------------------------------
+  1496  ! Files
+  1497  ! -----------------------------------------------------------------
+  1498  
+  1499        INTERFACE
+  1500          INTEGER*4 FUNCTION GETFILEINFOQQ(FILES, BUFFER,HANDLE)
+  1501            CHARACTER*(*) FILES
+  1502            STRUCTURE / FILE$INFO /
+# 1503              INTEGER*4       CREATION          ! Creation time (-1 on FAT
+  1504              INTEGER*4       LASTWRITE         ! Last write to file
+  1505              INTEGER*4       LASTACCESS        ! Last access (-1 on FAT)
+  1506              INTEGER*4       LENGTH            ! Length of file
+  1507              INTEGER*2       PERMIT            ! File access mode
+  1508              CHARACTER*255   NAME              ! File name
+  1509            END STRUCTURE
+  1510            RECORD / FILE$INFO / BUFFER
+  1511            INTEGER*4 HANDLE
+  1512          END FUNCTION
+  1513        END INTERFACE
+  1514  
+  1515        INTERFACE
+  1516          LOGICAL*4 FUNCTION SETFILETIMEQQ(NAME, TIMEDATE)
+  1517            CHARACTER*(*) NAME
+  1518            INTEGER*4 TIMEDATE
+  1519          END FUNCTION
+  1520        END INTERFACE
+  1521  
+
+                                                                        PAGE  29
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1522        INTERFACE
+  1523          LOGICAL*4 FUNCTION SETFILEACCESSQQ(NAME, ACCESS)
+  1524            CHARACTER*(*) NAME
+  1525            INTEGER*4 ACCESS
+  1526          END FUNCTION
+  1527        END INTERFACE
+  1528  
+  1529        INTERFACE
+  1530          INTEGER*4 FUNCTION DELFILESQQ(FILES)
+  1531            CHARACTER*(*) FILES
+  1532          END FUNCTION
+  1533        END INTERFACE
+  1534  
+  1535        INTERFACE
+  1536          LOGICAL*4 FUNCTION RENAMEFILEQQ(OLDNAME, NEWNAME)
+  1537            CHARACTER*(*) OLDNAME, NEWNAME
+  1538          END FUNCTION
+  1539        END INTERFACE
+  1540  
+  1541        INTERFACE
+  1542          INTEGER*4 FUNCTION FINDFILEQQ(FILE, ENV, BUF)
+  1543            CHARACTER*(*) FILE, ENV, BUF
+  1544          END FUNCTION
+  1545        END INTERFACE
+  1546  
+  1547        INTERFACE
+  1548          SUBROUTINE PACKTIMEQQ(TIMEDATE, IYR, IMON, IDAY,IHR, IMIN, ISEC)
+  1549            INTEGER*4 TIMEDATE
+  1550            INTEGER*2 IYR, IMON, IDAY, IHR, IMIN, ISEC
+  1551          END SUBROUTINE
+  1552        END INTERFACE
+  1553  
+  1554        INTERFACE
+# 1555          SUBROUTINE UNPACKTIMEQQ(TIMEDATE, IYR, IMON, IDAY,IHR, IMIN, ISE
+  1556            INTEGER*4 TIMEDATE
+  1557            INTEGER*2 IYR, IMON, IDAY, IHR, IMIN, ISEC
+  1558          END SUBROUTINE
+  1559        END INTERFACE
+  1560  
+  1561        INTERFACE
+  1562          LOGICAL*4 FUNCTION COMMITQQ(UNIT)
+  1563            INTEGER*4 UNIT
+  1564          END FUNCTION
+  1565        END INTERFACE
+  1566  
+  1567  ! -----------------------------------------------------------------
+  1568  ! Keyboard
+  1569  ! -----------------------------------------------------------------
+  1570  
+  1571        INTERFACE
+  1572          CHARACTER*1 FUNCTION GETCHARQQ()
+  1573          END FUNCTION
+  1574        END INTERFACE
+  1575  
+  1576        INTERFACE
+  1577          LOGICAL*4 FUNCTION PEEKCHARQQ()
+  1578          END FUNCTION
+
+                                                                        PAGE  30
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1579        END INTERFACE
+  1580  
+  1581        INTERFACE
+  1582          INTEGER*4 FUNCTION GETSTRQQ(BUFFER)
+  1583            CHARACTER*(*) BUFFER
+  1584          END FUNCTION
+  1585        END INTERFACE
+  1586  
+  1587  ! -----------------------------------------------------------------
+  1588  ! Errors
+  1589  ! -----------------------------------------------------------------
+  1590  
+  1591        INTERFACE
+  1592          INTEGER*4 FUNCTION GETLASTERRORQQ()
+  1593          END FUNCTION
+  1594        END INTERFACE
+  1595  
+  1596        INTERFACE
+  1597          SUBROUTINE SETERRORMODEQQ(PROMPT)
+  1598            LOGICAL*4 PROMPT
+  1599          END SUBROUTINE
+  1600        END INTERFACE
+  1601  
+  1602  ! -----------------------------------------------------------------
+  1603  ! Environment
+  1604  ! -----------------------------------------------------------------
+  1605  
+  1606        INTERFACE
+  1607          INTEGER*4 FUNCTION GETENVQQ(NAME, VALUE)
+  1608            CHARACTER*(*) NAME, VALUE
+  1609          END FUNCTION
+  1610        END INTERFACE
+  1611  
+  1612        INTERFACE
+  1613          LOGICAL*4 FUNCTION SETENVQQ(NAMVAL)
+  1614            CHARACTER*(*) NAMVAL
+  1615          END FUNCTION
+  1616        END INTERFACE
+  1617  
+  1618  
+  1619  ! -----------------------------------------------------------------
+  1620  ! Beep and Sleep
+  1621  ! -----------------------------------------------------------------
+  1622  
+  1623        INTERFACE
+  1624          SUBROUTINE SLEEPQQ(DURATION)
+  1625            INTEGER*4 DURATION
+  1626          END SUBROUTINE
+  1627        END INTERFACE
+  1628  
+  1629        INTERFACE
+  1630          SUBROUTINE BEEPQQ(FREQUENCY, DURATION)
+  1631            INTEGER*4 FREQUENCY, DURATION
+  1632          END SUBROUTINE
+  1633        END INTERFACE
+  1634  
+  1635  ! ----------------------------------------------------------------
+
+                                                                        PAGE  31
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1636  ! Sorting and Searching Arrays
+  1637  ! ----------------------------------------------------------------
+  1638  
+  1639        INTERFACE
+  1640          SUBROUTINE SORTQQ(ADRARRAY, LENGTH, SIZE)
+  1641            INTEGER*4 ADRARRAY, LENGTH, SIZE
+  1642          END SUBROUTINE
+  1643        END INTERFACE
+  1644  
+  1645        INTERFACE
+  1646          INTEGER*4 FUNCTION BSEARCHQQ(ADRKEY, ADRARRAY,LENGTH, SIZE)
+  1647            INTEGER*4 ADRKEY, ADRARRAY, LENGTH, SIZE
+  1648          END FUNCTION
+  1649        END INTERFACE
+  1650  
+  1651  ! ----------------------------------------------------------------
+  1652  ! Configuration
+  1653  ! ----------------------------------------------------------------
+  1654  
+  1655        INTERFACE
+  1656          INTEGER*4 FUNCTION GETCONFIGQQ()
+  1657          END FUNCTION
+  1658        END INTERFACE
+  1659  
+  1660  ! -----------------------------------------------------------------
+  1661  ! QuickWin Support
+  1662  ! -----------------------------------------------------------------
+  1663  $PACK:1
+  1664  
+  1665        INTERFACE
+  1666          FUNCTION GETWINDOWCONFIG(wc)
+  1667            LOGICAL GETWINDOWCONFIG[ALIAS:"__f_getwindowconfig@4"]
+  1668            STRUCTURE/windowconfig/
+  1669            INTEGER*2 numxpixels
+  1670            INTEGER*2 numypixels
+  1671            INTEGER*2 numtextcols
+  1672            INTEGER*2 numtextrows
+  1673            INTEGER*2 numcolors
+  1674            INTEGER*4 fontsize
+  1675            CHARACTER*(80) title
+  1676            INTEGER*2 bitsperpixel
+  1677            INTEGER*2 numvideopages
+  1678            INTEGER*2 mode
+  1679            INTEGER*2 adapter
+  1680            INTEGER*2 monitor
+  1681            INTEGER*2 memory
+  1682            INTEGER*2 environment
+  1683            CHARACTER*(32) extendfontname
+  1684            INTEGER*4 extendfontsize
+  1685            INTEGER*4 extendfontattributes
+  1686            END STRUCTURE
+  1687            RECORD/windowconfig/wc[REFERENCE]
+  1688          END FUNCTION
+  1689        END INTERFACE
+  1690  
+  1691        INTERFACE
+  1692          FUNCTION SETWINDOWCONFIG(wc)
+
+                                                                        PAGE  32
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1693            LOGICAL SETWINDOWCONFIG[ALIAS:"__f_setwindowconfig@4"]
+  1694            STRUCTURE/windowconfig/
+  1695            INTEGER*2 numxpixels
+  1696            INTEGER*2 numypixels
+  1697            INTEGER*2 numtextcols
+  1698            INTEGER*2 numtextrows
+  1699            INTEGER*2 numcolors
+  1700            INTEGER*4 fontsize
+  1701            CHARACTER*(80) title
+  1702            INTEGER*2 bitsperpixel
+  1703            INTEGER*2 numvideopages
+  1704            INTEGER*2 mode
+  1705            INTEGER*2 adapter
+  1706            INTEGER*2 monitor
+  1707            INTEGER*2 memory
+  1708            INTEGER*2 environment
+  1709            CHARACTER*(32) extendfontname
+  1710            INTEGER*4 extendfontsize
+  1711            INTEGER*4 extendfontattributes
+  1712            END STRUCTURE
+  1713            RECORD/windowconfig/wc[REFERENCE]
+  1714          END FUNCTION
+  1715        END INTERFACE
+  1716  $PACK
+  1717  
+  1718        INTERFACE
+  1719          FUNCTION APPENDMENUQQ(menuID,flags,text,routine)
+  1720            LOGICAL APPENDMENUQQ[C]
+  1721            INTEGER*4 menuID,flags
+  1722            CHARACTER*(*) text[REFERENCE]
+  1723            EXTERNAL routine
+  1724          END FUNCTION
+  1725        END INTERFACE
+  1726  
+  1727        INTERFACE
+  1728          FUNCTION INSERTMENUQQ(menuID,itemID,flags,text,routine)
+  1729            LOGICAL INSERTMENUQQ[C]
+  1730            INTEGER*4 menuID,itemID,flags
+  1731            CHARACTER*(*) text[REFERENCE]
+  1732            EXTERNAL routine
+  1733          END FUNCTION
+  1734        END INTERFACE
+  1735  
+  1736        INTERFACE
+  1737          FUNCTION DELETEMENUQQ(menuID,itemID)
+  1738            LOGICAL DELETEMENUQQ[C]
+  1739            INTEGER*4 menuID,itemID
+  1740          END FUNCTION
+  1741        END INTERFACE
+  1742  
+  1743        INTERFACE
+  1744          FUNCTION MODIFYMENUFLAGSQQ(menuID,itemID,flags)
+  1745            LOGICAL MODIFYMENUFLAGSQQ[C]
+  1746            INTEGER*4 menuID,itemID,flags
+  1747          END FUNCTION
+  1748        END INTERFACE
+  1749  
+
+                                                                        PAGE  33
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1750        INTERFACE
+  1751          FUNCTION MODIFYMENUSTRINGQQ(menuID,itemID,text)
+  1752            LOGICAL MODIFYMENUSTRINGQQ[C]
+  1753            INTEGER*4 menuID,itemID
+  1754            CHARACTER*(*) text[REFERENCE]
+  1755          END FUNCTION
+  1756        END INTERFACE
+  1757  
+  1758        INTERFACE
+  1759          FUNCTION MODIFYMENUROUTINEQQ(menuID,itemID,routine)
+  1760            LOGICAL MODIFYMENUROUTINEQQ[C]
+  1761            INTEGER*4 menuID,itemID
+  1762            EXTERNAL routine
+  1763          END FUNCTION
+  1764        END INTERFACE
+  1765  
+  1766        INTERFACE
+  1767          FUNCTION SETWINDOWMENUQQ(menuID)
+  1768            LOGICAL SETWINDOWMENUQQ[C]
+  1769            INTEGER*4 menuID
+  1770          END FUNCTION
+  1771        END INTERFACE
+  1772  
+  1773        INTERFACE
+  1774          SUBROUTINE YIELDQQ()
+  1775          END SUBROUTINE
+  1776        END INTERFACE
+  1777  
+  1778  ! We only include the following code once inside the same program unit.
+  1779  ! This code is shared with fgraph.fi.
+# 1780  $if _MSFORTRAN_ .lt. 300    ! if using /4fps1, always include the code b
+  1781  $undefine $MSFLIB$FIProgUnitNum
+  1782  $define $MSFLIB$FIProgUnitNum = -2
+  1783  $endif
+  1784  $if $MSFLIB$FIProgUnitNum .ne. $MSFLIB$ProgramUnitNumber
+  1785  $undefine $MSFLIB$FIProgUnitNum
+  1786  $define $MSFLIB$FIProgUnitNum = $MSFLIB$ProgramUnitNumber
+  1787  
+  1788        INTERFACE
+  1789          FUNCTION INCHARQQ()
+  1790            INTEGER*2 INCHARQQ[C,ALIAS:"__inchar"]
+  1791          END FUNCTION
+  1792        END INTERFACE
+  1793  
+  1794        INTERFACE
+  1795          FUNCTION WGOPENQQ(name)
+  1796            INTEGER*4 WGOPENQQ[C,ALIAS:"__wgopen"]
+  1797            CHARACTER*(*) name
+  1798          END FUNCTION
+  1799        END INTERFACE
+  1800  
+  1801        INTERFACE
+  1802          FUNCTION WGCLOSEQQ(handle)
+  1803            INTEGER*4 WGCLOSEQQ[C,ALIAS:"__wgclose"], handle
+  1804          END FUNCTION
+  1805        END INTERFACE
+  1806  
+
+                                                                        PAGE  34
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1807        INTERFACE
+  1808          FUNCTION WGSETACTIVEQQ(handle)
+  1809            INTEGER*4 WGSETACTIVEQQ[C,ALIAS:"__wgsetactive"], handle
+  1810          END FUNCTION
+  1811        END INTERFACE
+  1812  
+  1813        INTERFACE
+  1814          FUNCTION WGGETACTIVEQQ()
+  1815            INTEGER*4 WGGETACTIVEQQ[C,ALIAS:"__wggetactive"]
+  1816          END FUNCTION
+  1817        END INTERFACE
+  1818  $endif
+  1819  
+  1820        INTERFACE
+  1821          FUNCTION SETACTIVEQQ(lunit)
+  1822            INTEGER*4 SETACTIVEQQ[C,ALIAS:"__wgsetactiveunit"], lunit
+  1823          END FUNCTION
+  1824        END INTERFACE
+  1825  
+  1826        INTERFACE
+  1827          FUNCTION GETACTIVEQQ()
+  1828            INTEGER*4 GETACTIVEQQ[C,ALIAS:"__wggetactiveunit"]
+  1829          END FUNCTION
+  1830        END INTERFACE
+  1831  
+  1832        INTERFACE
+  1833          FUNCTION FOCUSQQ(IUNIT)
+  1834            INTEGER*4 FOCUSQQ, IUNIT
+  1835          END FUNCTION
+  1836        END INTERFACE
+  1837  
+  1838        INTERFACE
+  1839          FUNCTION INQFOCUSQQ(IUNIT)
+  1840            INTEGER*4 INQFOCUSQQ,IUNIT
+  1841          END FUNCTION
+  1842        END INTERFACE
+  1843  
+  1844        INTERFACE
+  1845          FUNCTION GETHANDLEQQ(IUNIT)
+  1846            INTEGER*4 GETHANDLEQQ, IUNIT
+  1847          END FUNCTION
+  1848        END INTERFACE
+  1849  
+  1850        INTERFACE
+  1851          FUNCTION GETHWNDQQ(IUNIT)
+  1852            INTEGER*4 GETHWNDQQ, IUNIT
+  1853          END FUNCTION
+  1854        END INTERFACE
+  1855  
+  1856        INTERFACE
+  1857          FUNCTION GETUNITQQ(IHANDLE)
+  1858            INTEGER*4 GETUNITQQ, IHANDLE
+  1859          END FUNCTION
+  1860        END INTERFACE
+  1861  
+  1862        INTERFACE
+  1863          FUNCTION ABOUTBOXQQ(STR)
+
+                                                                        PAGE  35
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1864            INTEGER*4 ABOUTBOXQQ[C,ALIAS:"__QWINSetAboutString"]
+  1865            CHARACTER*(*) STR[REFERENCE]
+  1866          END FUNCTION
+  1867        END INTERFACE
+  1868  
+  1869        INTERFACE
+  1870          FUNCTION CLICKQQ(ITEM)
+  1871            INTEGER*4 CLICKQQ[C,ALIAS:"__QWINMenuClick"],ITEM
+  1872          END FUNCTION
+  1873        END INTERFACE
+  1874  
+  1875        INTERFACE
+  1876          FUNCTION CLICKMENUQQ(ITEM)
+  1877            INTEGER*4 CLICKMENUQQ[C,ALIAS:"__QWINMenuClick"]
+  1878            INTEGER*4 ITEM
+  1879          END FUNCTION
+  1880        END INTERFACE
+  1881  
+  1882  
+  1883        INTERFACE
+  1884          FUNCTION SETWSIZEQQ(IUNIT,WINFO)
+  1885            STRUCTURE /QWINFO/
+  1886                INTEGER*2 TYPE          ! request type
+  1887                INTEGER*2 X             ! x coordinate for upper left
+  1888                INTEGER*2 Y             ! y coordinate for upper left
+  1889                INTEGER*2 H             ! window height
+  1890                INTEGER*2 W             ! window width
+  1891            END STRUCTURE
+  1892            INTEGER*4 SETWSIZEQQ, IUNIT
+  1893            RECORD /QWINFO/ WINFO
+  1894          END FUNCTION
+  1895        END INTERFACE
+  1896  
+  1897        INTERFACE
+  1898          FUNCTION GETWSIZEQQ(IUNIT,IREQ,WINFO)
+  1899            STRUCTURE /QWINFO/
+  1900                INTEGER*2 TYPE          ! request type
+  1901                INTEGER*2 X             ! x coordinate for upper left
+  1902                INTEGER*2 Y             ! y coordinate for upper left
+  1903                INTEGER*2 H             ! window height
+  1904                INTEGER*2 W             ! window width
+  1905            END STRUCTURE
+  1906            INTEGER*4 GETWSIZEQQ, IUNIT
+  1907            INTEGER*4 IREQ
+  1908            RECORD /QWINFO/ WINFO
+  1909          END FUNCTION
+  1910        END INTERFACE
+  1911  
+  1912        INTERFACE
+  1913          FUNCTION MESSAGEBOXQQ(MSG,CAPTION,MTYPE)
+  1914            CHARACTER*(*) MSG[REFERENCE]
+  1915            CHARACTER*(*) CAPTION[REFERENCE]
+  1916            INTEGER*4  MESSAGEBOXQQ[C,ALIAS:"__QWINMsgBox"],MTYPE
+  1917          END FUNCTION
+  1918        END INTERFACE
+  1919  
+  1920        INTERFACE
+
+                                                                        PAGE  36
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1921          FUNCTION GETEXITQQ()
+  1922            INTEGER*4 GETEXITQQ[C, ALIAS:"__QWINGetExit"]
+  1923          END FUNCTION
+  1924        END INTERFACE
+  1925  
+  1926        INTERFACE
+  1927          FUNCTION SETEXITQQ(exitmode)
+  1928            INTEGER*4 SETEXITQQ[C, ALIAS:"__QWINSetExit"]
+  1929            INTEGER*4 exitmode
+  1930          END FUNCTION
+  1931        END INTERFACE
+  1932  
+  1933  ! -----------------------------------------------------------------
+  1934  ! Access to Windows Handles for QuickWin components
+  1935  ! -----------------------------------------------------------------
+  1936        INTERFACE
+  1937          FUNCTION GETHANDLEFRAMEQQ()
+  1938            INTEGER*4 GETHANDLEFRAMEQQ[C,ALIAS:"__QWINTGethFrame"]
+  1939          END FUNCTION
+  1940        END INTERFACE
+  1941  
+  1942        INTERFACE
+  1943          FUNCTION GETHANDLECLIENTQQ()
+  1944            INTEGER*4 GETHANDLECLIENTQQ[C,ALIAS:"__QWINTGethClient"]
+  1945          END FUNCTION
+  1946        END INTERFACE
+  1947  
+  1948        INTERFACE
+  1949          FUNCTION GETHANDLECHILDQQ(QUICKHND)
+  1950            INTEGER*4 GETHANDLECHILDQQ[C,ALIAS:"__QWINGethWnd"]
+  1951            INTEGER*4 QUICKHND
+  1952          END FUNCTION
+  1953        END INTERFACE
+  1954  
+  1955  $if _MSFORTRAN_ .GE. 300
+  1956  ! -----------------------------------------------------------------
+  1957  ! Unused Routine -- simply returns, used to avoid "unused" warnings
+  1958  ! -----------------------------------------------------------------
+  1959        INTERFACE
+  1960          SUBROUTINE UNUSEDQQ[C,REFERENCE,VARYING,ALIAS:"__FFunusedqq"]()
+  1961          END SUBROUTINE
+  1962        END INTERFACE
+  1963  $endif
+  1964        
+  1965  ! -----------------------------------------------------------------
+  1966  ! QuickWin Default Menu Support
+  1967  ! -----------------------------------------------------------------
+  1968  ! INITIALMENU -- user callbacks cannot be in the module MSFLIB
+  1969  ! INITIALSETTINGS -- user callbacks cannot be in the module MSFLIB
+  1970  
+  1971        INTERFACE
+  1972          SUBROUTINE WINPRINT()
+  1973          END SUBROUTINE
+  1974        END INTERFACE
+  1975  
+  1976        INTERFACE
+  1977          SUBROUTINE WINSAVE()
+
+                                                                        PAGE  37
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  1978          END SUBROUTINE
+  1979        END INTERFACE
+  1980  
+  1981        INTERFACE
+  1982          SUBROUTINE WINEXIT()
+  1983          END SUBROUTINE
+  1984        END INTERFACE
+  1985  
+  1986        INTERFACE
+  1987          SUBROUTINE WINCOPY()
+  1988          END SUBROUTINE
+  1989        END INTERFACE
+  1990  
+  1991        INTERFACE
+  1992          SUBROUTINE WINPASTE()
+  1993          END SUBROUTINE
+  1994        END INTERFACE
+  1995  
+  1996        INTERFACE
+  1997          SUBROUTINE WINSIZETOFIT()
+  1998          END SUBROUTINE
+  1999        END INTERFACE
+  2000  
+  2001        INTERFACE
+  2002          SUBROUTINE WINFULLSCREEN()
+  2003          END SUBROUTINE
+  2004        END INTERFACE
+  2005  
+  2006        INTERFACE
+  2007          SUBROUTINE WINSTATE()
+  2008          END SUBROUTINE
+  2009        END INTERFACE
+  2010  
+  2011        INTERFACE
+  2012          SUBROUTINE WINCASCADE()
+  2013          END SUBROUTINE
+  2014        END INTERFACE
+  2015  
+  2016        INTERFACE
+  2017          SUBROUTINE WINTILE()
+  2018          END SUBROUTINE
+  2019        END INTERFACE
+  2020  
+  2021        INTERFACE
+  2022          SUBROUTINE WINARRANGE()
+  2023          END SUBROUTINE
+  2024        END INTERFACE
+  2025  
+  2026        INTERFACE
+  2027          SUBROUTINE WININPUT()
+  2028          END SUBROUTINE
+  2029        END INTERFACE
+  2030  
+  2031        INTERFACE
+  2032          SUBROUTINE WINCLEARPASTE()
+  2033          END SUBROUTINE
+  2034        END INTERFACE
+
+                                                                        PAGE  38
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2035  
+  2036        INTERFACE
+  2037          SUBROUTINE WINSTATUS()
+  2038          END SUBROUTINE
+  2039        END INTERFACE
+  2040  
+  2041        INTERFACE
+  2042          SUBROUTINE WININDEX()
+  2043          END SUBROUTINE
+  2044        END INTERFACE
+  2045  
+  2046        INTERFACE
+  2047          SUBROUTINE WINUSING()
+  2048          END SUBROUTINE
+  2049        END INTERFACE
+  2050  
+  2051        INTERFACE
+  2052          SUBROUTINE WINABOUT()
+  2053          END SUBROUTINE
+  2054        END INTERFACE
+  2055  
+  2056        INTERFACE
+  2057          SUBROUTINE WINSELECTTEXT()
+  2058          END SUBROUTINE
+  2059        END INTERFACE
+  2060  
+  2061        INTERFACE
+  2062          SUBROUTINE WINSELECTGRAPHICS()
+  2063          END SUBROUTINE
+  2064        END INTERFACE
+  2065  
+  2066        INTERFACE
+  2067          SUBROUTINE WINSELECTALL()
+  2068          END SUBROUTINE
+  2069        END INTERFACE
+  2070  
+  2071        INTERFACE
+  2072          SUBROUTINE NUL()
+  2073          END SUBROUTINE
+  2074        END INTERFACE
+  2075  
+  2076  
+  2077  $endif  ! $if .not. defined (__MSFLIB_FGRAPH_INCLUDE)
+  2078  !* fgraph.fd - declare constants and functions for graphics library
+  2079  !*
+# 2080  !*   Copyright (c) 1987-1995 Microsoft Corporation.  All rights reserved
+  2081  !*
+  2082  !* Purpose:
+  2083  !*   This file declares the graphics library functions and
+  2084  !*   the constants that are used with them.
+  2085  !*
+  2086  
+# 2087  !* NOTE: When modifying this file, you must follow the following rules t
+  2088  !* ensure compatibility with fixed form and free form source:
+  2089  !*   1) All comments must start with '!'
+  2090  !*   2) All code must be within columns 7 to 72
+  2091  !*   3) For continuation, place a '&' in column 73,
+
+                                                                        PAGE  39
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2092  !*      and a '&' in column 6 of the continuation line
+  2093  
+  2094  $if .not. defined (_MSFORTRAN_)
+  2095  $define _MSFORTRAN_ = 100
+  2096  $endif
+  2097  $if_MSFORTRAN_ .LT. 300
+  2098  $NOTSTRICT         ! uses structures which are non-standard conforming
+  2099  $endif
+  2100  
+  2101  $if .not. defined($MSFLIB$ProgramUnitNumber)
+  2102  $define $MSFLIB$ProgramUnitNumber = -1
+  2103  $endif
+  2104  $if .not. defined($MSFLIB$FDProgUnitNum) 
+  2105  $define $MSFLIB$FDProgUnitNum = -2
+  2106  $endif
+  2107  
+  2108  $if .not. defined(__MSFLIB_FLIB_INCLUDE)
+  2109  
+  2110  
+  2111  !     User-visible declarations for FORTRAN Graphics Library
+  2112  
+  2113  !     Structure for getvideoconfig() as visible to user
+  2114        STRUCTURE/videoconfig/
+  2115          INTEGER*2 numxpixels       ! number of pixels on X axis
+  2116          INTEGER*2 numypixels       ! number of pixels on Y axis
+  2117          INTEGER*2 numtextcols      ! number of text columns available
+  2118          INTEGER*2 numtextrows      ! number of text rows available
+  2119          INTEGER*2 numcolors        ! number of actual colors
+  2120          INTEGER*2 bitsperpixel     ! number of bits per pixel
+  2121          INTEGER*2 numvideopages    ! number of available video pages
+  2122          INTEGER*2 mode             ! current video mode
+  2123          INTEGER*2 adapter          ! active display adapter
+  2124          INTEGER*2 monitor          ! active display monitor
+  2125          INTEGER*2 memory           ! adapter video memory in K bytes
+  2126        END STRUCTURE
+  2127  
+  2128  !     Return value of getcurrentposition(), etc.
+  2129        STRUCTURE/xycoord/
+  2130          INTEGER*2 xcoord
+  2131          INTEGER*2 ycoord
+  2132        END STRUCTURE
+  2133  
+  2134  !     Structure for text position
+  2135        STRUCTURE/rccoord/
+  2136          INTEGER*2 row
+  2137          INTEGER*2 col
+  2138        END STRUCTURE
+  2139  
+  2140  !     ERROR HANDLING
+  2141  
+  2142  !     Status info returned by grstatus()
+# 2143        INTEGER*2 $GRPARAMETERALTERED,$GRCLIPPED,$GRNOOUTPUT,$GROK,       
+# 2144       &            $GRERROR,$GRMODENOTSUPPORTED,$GRNOTINPROPERMODE,      
+# 2145       &            $GRINVALIDPARAMETER,$GRFONTFILENOTFOUND,              
+# 2146       &            $GRINVALIDFONTFILE,$GRCORRUPTEDFONTFILE,              
+# 2147       &            $GRINSUFFICIENTMEMORY,$GRINVALIDIMAGEBUFFER,          
+# 2148       &            $GRNOBITMAPFILE, $GRFILEREADERROR,                    
+
+                                                                        PAGE  40
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+# 2149       &            $GRIMPROPERBITMAPFORMAT, $GRBITMAPTOOLARGE,           
+# 2150       &            $GRBITMAPDISPLAYERROR, $GRIMAGEREADERROR,             
+  2151       &            $GRFILEOPENERROR, $GRFILEWRITERROR
+  2152  !     Successful
+  2153        PARAMETER($GROK                     = 0)  ! success
+  2154  !     Warnings
+  2155        PARAMETER($GRNOOUTPUT               = 1)  ! nothing drawn
+# 2156        PARAMETER($GRCLIPPED                = 2)  ! output was partially c
+# 2157        PARAMETER($GRPARAMETERALTERED       = 3)  ! input parameters adjus
+  2158  !     Errors
+# 2159        PARAMETER($GRERROR                  = -1)  ! generic graphics erro
+# 2160        PARAMETER($GRMODENOTSUPPORTED       = -2)  ! video mode not suppor
+# 2161        PARAMETER($GRNOTINPROPERMODE        = -3)  ! not supported in curr
+  2162        PARAMETER($GRINVALIDPARAMETER       = -4)  ! bad parameter
+  2163        PARAMETER($GRFONTFILENOTFOUND       = -5)  ! font file not found
+  2164        PARAMETER($GRINVALIDFONTFILE        = -6)  ! not a font file
+# 2165        PARAMETER($GRCORRUPTEDFONTFILE      = -7)  ! inconsistent font fil
+  2166        PARAMETER($GRINSUFFICIENTMEMORY     = -8)  ! out of memory
+# 2167        PARAMETER($GRINVALIDIMAGEBUFFER     = -9)  ! bad image buffer dete
+  2168        PARAMETER($GRNOBITMAPFILE           = -10) ! bitmap file not found
+# 2169        PARAMETER($GRFILEREADERROR          = -11) ! error reading bitmap 
+# 2170        PARAMETER($GRIMPROPERBITMAPFORMAT   = -12) ! bitmap format not sup
+# 2171        PARAMETER($GRBITMAPTOOLARGE         = -13) ! bitmap size > window 
+# 2172        PARAMETER($GRBITMAPDISPLAYERROR     = -14) ! error displaying bitm
+  2173        PARAMETER($GRIMAGEREADERROR         = -15) ! error reading image
+# 2174        PARAMETER($GRFILEOPENERROR          = -16) ! error opening bitmap 
+# 2175        PARAMETER($GRFILEWRITERROR          = -17) ! error writing bitmap 
+  2176  
+  2177  !     SETUP AND CONFIGURATION
+  2178  
+  2179  !     Arguments to setvideomode()
+# 2180        INTEGER*2 $MAXRESMODE,$MAXCOLORMODE,$DEFAULTMODE,$TEXTBW40,       
+# 2181       &            $TEXTC40,$TEXTBW80,$TEXTC80,$TEXTMONO,$MRES16COLOR,   
+# 2182       &            $HRES16COLOR,$ERESNOCOLOR,$ERESCOLOR,$VRES2COLOR,     
+# 2183       &            $VRES16COLOR,$MRES256COLOR,$ORESCOLOR,$ORES256COLOR,  
+# 2184       &            $VRES256COLOR,$SRES16COLOR,$SRES256COLOR,$XRES16COLOR,
+  2185       &            $XRES256COLOR,$ZRES16COLOR,$ZRES256COLOR
+# 2186        PARAMETER($MAXRESMODE   =-3)    ! graphics mode with highest resol
+  2187        PARAMETER($MAXCOLORMODE =-2)    ! graphics mode with most colors
+  2188        PARAMETER($DEFAULTMODE  =-1)    ! restore screen to original mode
+  2189        PARAMETER($TEXTBW40      =0)    ! 40 x 25 text, 16 grey
+  2190        PARAMETER($TEXTC40       =1)    ! 40 x 25 text, 16/8 color
+  2191        PARAMETER($TEXTBW80      =2)    ! 80 x 25 text, 16 grey
+  2192        PARAMETER($TEXTC80       =3)    ! 80 x 25 text, 16/8 color
+  2193        PARAMETER($TEXTMONO      =7)    ! 80 x 25 text, BW
+  2194        PARAMETER($MRES16COLOR   =13)   ! 320 x 200, 16 color
+  2195        PARAMETER($HRES16COLOR   =14)   ! 640 x 200, 16 color
+  2196        PARAMETER($ERESNOCOLOR   =15)   ! 640 x 350, BW
+  2197        PARAMETER($ERESCOLOR     =16)   ! 640 x 350, 4 or 16 color
+  2198        PARAMETER($VRES2COLOR    =17)   ! 640 x 480, BW
+  2199        PARAMETER($VRES16COLOR   =18)   ! 640 x 480, 16 color
+  2200        PARAMETER($MRES256COLOR  =19)   ! 320 x 200, 256 color
+# 2201        PARAMETER($ORESCOLOR     =64)   ! 640 x 400, 1 of 16 colors (Olive
+  2202  
+  2203  !     The following 8 modes require VESA SuperVGA BIOS extensions
+  2204        PARAMETER($ORES256COLOR  =#0100)        ! 640 x 400, 256 color
+  2205        PARAMETER($VRES256COLOR  =#0101)        ! 640 x 480, 256 color
+
+                                                                        PAGE  41
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2206  
+# 2207  !     WARNING: DO NOT attempt to set the following modes without ensurin
+# 2208  !     that your monitor can safely handle that resolution. Otherwise, yo
+# 2209  !     may risk damaging your display monitor! Consult your owner's manua
+  2210  !     for details.
+# 2211  !     Note: _MAXRESMODE and _MAXCOLORMODE never select SRES, XRES, or ZR
+  2212  !     modes.
+  2213  
+  2214  !     Requires NEC MultiSync 3D or equivalent, or better
+  2215        PARAMETER($SRES16COLOR   =#0102)        ! 800 x 600, 16 color
+  2216        PARAMETER($SRES256COLOR  =#0103)        ! 800 x 600, 256 color
+  2217  
+  2218  !     Requires NEC MultiSync 4D or equivalent, or better
+  2219        PARAMETER($XRES16COLOR   =#0104)        ! 1024 x 768, 16 color
+  2220        PARAMETER($XRES256COLOR  =#0105)        ! 1024 x 768, 256 color
+  2221  
+  2222  !     Requires NEC MultiSync 5D or equivalent, or better
+  2223        PARAMETER($ZRES16COLOR   =#0106)        ! 1280 x 1024, 16 color
+  2224        PARAMETER($ZRES256COLOR  =#0107)        ! 1280 x 1024, 256 color
+  2225  
+  2226  !     VIDEOCONFIG adapter values
+  2227  
+  2228  !     These constants can be used to determine the type of the active
+  2229  !     adapter, using either simple comparisons or the bitwise-AND
+  2230  !     operator
+  2231        INTEGER*2 $QUICKWIN, $MDPA,$EGA,$VGA,$OEGA,$OVGA,$SVGA
+# 2232        PARAMETER($QUICKWIN =#0000)  ! Quick Win Graphics is devide indepe
+  2233        PARAMETER($MDPA     =#0001)  ! Monochrome Display Adapter (MDPA)
+  2234        PARAMETER($EGA      =#0004)  ! Enhanced Graphics Adapter  (EGA)
+  2235        PARAMETER($VGA      =#0008)  ! Video Graphics Array       (VGA)
+# 2236        PARAMETER($OEGA     =#0044)  ! Olivetti Enhanced Graphics Adapter 
+# 2237        PARAMETER($OVGA     =#0048)  ! Olivetti Video Graphics Array (OVGA
+# 2238        PARAMETER($SVGA     =#0088)  ! Super VGA with VESA BIOS support (S
+  2239  
+  2240  !     VIDEOCONFIG monitor values
+  2241  
+# 2242  !     These constants can be used to determine the type of monitor in us
+  2243  !     using either simple comparisons or the bitwise-AND operator
+# 2244        INTEGER*2 $MONO,$COLOR,$ENHCOLOR,$ANALOGMONO,                     
+  2245       &            $ANALOGCOLOR,$ANALOG
+  2246        PARAMETER($MONO       =#0001)     ! Monochrome
+# 2247        PARAMETER($COLOR      =#0002)     ! Color (or Enhanced emulating c
+  2248        PARAMETER($ENHCOLOR   =#0004)     ! Enhanced Color
+  2249        PARAMETER($ANALOGMONO =#0008)     ! Analog Monochrome only
+  2250        PARAMETER($ANALOGCOLOR=#0010)     ! Analog Color only
+# 2251        PARAMETER($ANALOG     =#0018)     ! Analog Color + Analog Monochro
+  2252  
+  2253  !     COORDINATE SYSTEMS
+  2254  
+  2255  !     OUTPUT ROUTINES
+  2256  
+# 2257  !     Control parameters for rectangle(), polygon(), ellipse(), and pie(
+  2258        INTEGER*2 $GBORDER,$GFILLINTERIOR
+  2259        PARAMETER($GBORDER       =2)      ! draw outline only
+  2260        PARAMETER($GFILLINTERIOR =3)      ! fill using current fill mask
+  2261  
+  2262  !     Parameters for clearscreen()
+
+                                                                        PAGE  42
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2263        INTEGER*2 $GCLEARSCREEN,$GVIEWPORT,$GWINDOW
+  2264        PARAMETER($GCLEARSCREEN  =0)
+  2265        PARAMETER($GVIEWPORT     =1)
+  2266        PARAMETER($GWINDOW       =2)
+  2267  
+  2268  ! TEXT
+  2269  
+  2270  !     Parameters for displaycursor()
+  2271        INTEGER*2 $GCURSOROFF,$GCURSORON
+  2272        PARAMETER($GCURSOROFF =0)
+  2273        PARAMETER($GCURSORON  =1)
+  2274  
+  2275  !     Parameters for wrapon()
+  2276        INTEGER*2 $GWRAPOFF,$GWRAPON
+  2277        PARAMETER($GWRAPOFF  =0)
+  2278        PARAMETER($GWRAPON   =1)
+  2279  
+  2280  !     Parameters for scrolltextwindow()
+  2281        INTEGER*2 $GSCROLLUP,$GSCROLLDOWN
+  2282        PARAMETER($GSCROLLUP   =1)
+  2283        PARAMETER($GSCROLLDOWN =-1)
+  2284  
+# 2285  !     Request maximum number of rows in _settextrows() and _setvideomode
+  2286        INTEGER*2 $MAXTEXTROWS
+  2287        PARAMETER($MAXTEXTROWS =-1)
+  2288  
+  2289  !     "Action verbs" for putimage(), setwritemode()
+  2290        INTEGER*2 $GPSET,$GPRESET,$GAND,$GOR,$GXOR
+  2291        PARAMETER($GPSET         =3)
+  2292        PARAMETER($GPRESET       =2)
+  2293        PARAMETER($GAND          =1)
+  2294        PARAMETER($GOR           =0)
+  2295        PARAMETER($GXOR          =4)
+  2296  
+# 2297  !     Color values are used with setbkcolor in graphics modes and also b
+  2298  !     remappalette and remapallpalette.  Also known as palette colors.
+  2299  !     Not to be confused with color indices (aka. color attributes).
+  2300  
+  2301  !     Universal color values (all color modes):
+# 2302        INTEGER*4 $BLACK,$BLUE,$GREEN,$CYAN,$RED,$MAGENTA,$BROWN,         
+# 2303       &            $WHITE,$GRAY,$LIGHTBLUE,$LIGHTGREEN,$LIGHTCYAN,       
+  2304       &            $LIGHTRED,$LIGHTMAGENTA,$YELLOW,$BRIGHTWHITE
+  2305        PARAMETER($BLACK         =#000000)
+  2306        PARAMETER($BLUE          =#200000)
+  2307        PARAMETER($GREEN         =#002000)
+  2308        PARAMETER($CYAN          =#202000)
+  2309        PARAMETER($RED           =#000020)
+  2310        PARAMETER($MAGENTA       =#200020)
+  2311        PARAMETER($BROWN         =#002020)
+  2312        PARAMETER($WHITE         =#303030)
+  2313        PARAMETER($GRAY          =#202020)
+  2314        PARAMETER($LIGHTBLUE     =#3F0000)
+  2315        PARAMETER($LIGHTGREEN    =#003f00)
+  2316        PARAMETER($LIGHTCYAN     =#3f3f00)
+  2317        PARAMETER($LIGHTRED      =#00003f)
+  2318        PARAMETER($LIGHTMAGENTA  =#3f003f)
+  2319        PARAMETER($YELLOW        =#003f3f)
+
+                                                                        PAGE  43
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2320        PARAMETER($BRIGHTWHITE   =#3f3f3f)
+  2321  
+  2322  !     The following is obsolescent and defined only for backwards
+  2323  !     compatibility
+  2324        INTEGER*4 $LIGHTYELLOW
+  2325        PARAMETER($LIGHTYELLOW   =#153f3f)
+  2326  
+  2327  !     Mono mode F ($ERESNOCOLOR) color values:
+# 2328        INTEGER*4 $MODEFOFF,$MODEFOFFTOON,$MODEFOFFTOHI,$MODEFONTOOFF,    
+# 2329       &            $MODEFON,$MODEFONTOHI,$MODEFHITOOFF,$MODEFHITOON,     
+  2330       &            $MODEFHI
+  2331        PARAMETER($MODEFOFF      =0)
+  2332        PARAMETER($MODEFOFFTOON  =1)
+  2333        PARAMETER($MODEFOFFTOHI  =2)
+  2334        PARAMETER($MODEFONTOOFF  =3)
+  2335        PARAMETER($MODEFON       =4)
+  2336        PARAMETER($MODEFONTOHI   =5)
+  2337        PARAMETER($MODEFHITOOFF  =6)
+  2338        PARAMETER($MODEFHITOON   =7)
+  2339        PARAMETER($MODEFHI       =8)
+  2340  
+  2341  !     Mono mode 7 ($TEXTMONO) color values:
+  2342         INTEGER*4 $MODE7OFF,$MODE7ON,$MODE7HI
+  2343        PARAMETER($MODE7OFF      =0)
+  2344        PARAMETER($MODE7ON       =1)
+  2345        PARAMETER($MODE7HI       =2)
+  2346  
+  2347  !     QWIN Message IDS
+  2348       
+# 2349        INTEGER*4 QWIN$MSG_TERM ,QWIN$MSG_EXITQ, QWIN$MSG_FINISHED,       
+# 2350       & QWIN$MSG_PAUSED, QWIN$MSG_RUNNING, QWIN$MSG_FILEOPENDLG,         
+# 2351       & QWIN$MSG_BMPSAVEDLG, QWIN$MSG_INPUTPEND,                         
+# 2352       & QWIN$MSG_PASTEINPUTPEND, QWIN$MSG_MOUSEINPUTPEND,                
+# 2353       & QWIN$MSG_SELECTTEXT, QWIN$MSG_SELECTGRAPHICS,                    
+# 2354       & QWIN$MSG_PRINTABORT, QWIN$MSG_PRINTLOAD, QWIN$MSG_PRINTNODEFAULT,
+# 2355       & QWIN$MSG_PRINTDRIVER, QWIN$MSG_PRINTINGERROR, QWIN$MSG_PRINTING, 
+# 2356       & QWIN$MSG_PRINTCANCEL, QWIN$MSG_PRINTINPROGRESS,                  
+  2357       & QWIN$MSG_HELPNOTAVAIL, QWIN$MSG_TITLETEXT
+  2358  
+  2359        PARAMETER (QWIN$MSG_TERM              =1)
+  2360        PARAMETER (QWIN$MSG_EXITQ =2)
+  2361        PARAMETER (QWIN$MSG_FINISHED=3)
+  2362        PARAMETER (QWIN$MSG_PAUSED =4)
+  2363        PARAMETER (QWIN$MSG_RUNNING =5)
+  2364        PARAMETER (QWIN$MSG_FILEOPENDLG =6)
+  2365        PARAMETER (QWIN$MSG_BMPSAVEDLG =7)
+  2366        PARAMETER (QWIN$MSG_INPUTPEND =8)
+  2367        PARAMETER (QWIN$MSG_PASTEINPUTPEND =9)
+  2368        PARAMETER (QWIN$MSG_MOUSEINPUTPEND =10)
+  2369        PARAMETER (QWIN$MSG_SELECTTEXT =11)
+  2370        PARAMETER (QWIN$MSG_SELECTGRAPHICS =12)
+  2371        PARAMETER (QWIN$MSG_PRINTABORT =13)
+  2372        PARAMETER (QWIN$MSG_PRINTLOAD =14)
+  2373        PARAMETER (QWIN$MSG_PRINTNODEFAULT =15)
+  2374        PARAMETER (QWIN$MSG_PRINTDRIVER =16)
+  2375        PARAMETER (QWIN$MSG_PRINTINGERROR =17)
+  2376        PARAMETER (QWIN$MSG_PRINTING =18)
+
+                                                                        PAGE  44
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2377        PARAMETER (QWIN$MSG_PRINTCANCEL =19)
+  2378        PARAMETER (QWIN$MSG_PRINTINPROGRESS =20)
+  2379        PARAMETER (QWIN$MSG_HELPNOTAVAIL =21)
+  2380        PARAMETER (QWIN$MSG_TITLETEXT =22)
+  2381  
+  2382  !     WINDOW COORDINATE SYSTEM
+  2383  
+  2384  !     Structure for window coordinate pair
+  2385        STRUCTURE/wxycoord/
+  2386          DOUBLE PRECISION wx   ! window x coordinate
+  2387          DOUBLE PRECISION wy   ! window y coordinate
+  2388        END STRUCTURE
+  2389  
+  2390  !     Window coordinate entry points for graphics output routines
+  2391  
+  2392   
+  2393        STRUCTURE/fontinfo/
+  2394          INTEGER*4 type        ! b0 set = vector,clear = bit map
+  2395          INTEGER*4 ascent      ! pix dist from top to baseline
+  2396          INTEGER*4 pixwidth    ! character width in pixels, 0=prop
+  2397          INTEGER*4 pixheight   ! character height in pixels
+  2398          INTEGER*4 avgwidth    ! average character width in pixels
+  2399          CHARACTER*81 filename ! file name including path
+  2400          CHARACTER*32 facename ! font name
+  2401          LOGICAL*1 italic      ! .true. - font  is italic
+  2402          LOGICAL*1 emphasized  ! .true. - font is  emphasized (bold)
+  2403          LOGICAL*1 underline   ! .true. - font is underline
+  2404        END STRUCTURE
+  2405  
+  2406  !     Font parameters
+  2407  
+  2408        INTEGER*2 $NO_SPACE,$FIXED_SPACE,$PROP_SPACE
+  2409        PARAMETER ($NO_SPACE    = 0)
+  2410  
+  2411        PARAMETER ($FIXED_SPACE = 1)
+  2412        PARAMETER ($PROP_SPACE  = 2)
+  2413  
+  2414        INTEGER*2 $NO_FONT_MAP,$VECTOR_MAP,$BIT_MAP
+  2415        PARAMETER ($NO_FONT_MAP = 0)
+  2416        PARAMETER ($VECTOR_MAP  = 1)
+  2417        PARAMETER ($BIT_MAP     = 2)
+  2418  
+  2419  
+  2420  
+# 2421        INTEGER MOUSE$LBUTTONDOWN,MOUSE$MOVE,MOUSE$LBUTTONUP,             
+# 2422       & MOUSE$RBUTTONDOWN,MOUSE$RBUTTONUP,MOUSE$LBUTTONDBLCLK,           
+# 2423       & MOUSE$RBUTTONDBLCLK,MOUSE$KS_LBUTTON,MOUSE$KS_RBUTTON,           
+  2424       & MOUSE$KS_SHIFT,MOUSE$KS_CONTROL,MOUSE$BADUNIT, MOUSE$BADEVENT
+  2425  
+  2426        PARAMETER(MOUSE$LBUTTONDOWN           = #1)
+  2427        PARAMETER(MOUSE$LBUTTONUP             = #2)
+  2428        PARAMETER(MOUSE$LBUTTONDBLCLK         = #4)
+  2429        PARAMETER(MOUSE$RBUTTONDOWN           = #8)
+  2430        PARAMETER(MOUSE$RBUTTONUP             = #10)
+  2431        PARAMETER(MOUSE$RBUTTONDBLCLK         = #20)
+  2432        PARAMETER(MOUSE$MOVE                  = #40)
+  2433  
+
+                                                                        PAGE  45
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2434        PARAMETER(MOUSE$KS_LBUTTON            = #1)
+  2435        PARAMETER(MOUSE$KS_RBUTTON            = #2)
+  2436        PARAMETER(MOUSE$KS_SHIFT              = #4)
+  2437        PARAMETER(MOUSE$KS_CONTROL            = #8)
+  2438  
+  2439        PARAMETER(MOUSE$BADUNIT               = -2)
+  2440        PARAMETER(MOUSE$BADEVENT              = -1)
+  2441  
+  2442  
+  2443  $endif  ! $if .not. defined(__MSFLIB_FLIB_INCLUDE)
+# 2444  !****************************** Module Header **************************
+  2445  !*
+  2446  !* Copyright (c) 1990-1995  Microsoft Corporation
+  2447  !*
+  2448  !* Module Name: FLIB.FD
+  2449  !*
+  2450  !* This module provides parameter and structure type declarations
+  2451  !* needed to communicate with subprograms found in the various Fortran
+  2452  !* libraries.  
+  2453  !*
+  2454  !* The functional areas covered are the following.
+  2455  !*
+  2456  !*    Data Type Codes
+  2457  !*    Math error support
+  2458  !*    Signal support
+  2459  !*    Coprocessor Control
+  2460  !*    Random Numbers
+  2461  !*    Drives and Directories
+  2462  !*    Files
+  2463  !*    Keyboard
+  2464  !*    Errors
+  2465  !*    Sorting and Searching Arrays
+  2466  !*    Configuration
+  2467  !*    QuickWin Support
+  2468  !*
+# 2469  !***********************************************************************
+  2470  
+# 2471  !* NOTE: When modifying this file, you must follow the following rules t
+  2472  !* ensure compatibility with fixed form and free form source:
+  2473  !*   1) All comments must start with '!'
+  2474  !*   2) All code must be within columns 7 to 72
+  2475  !*   3) For continuation, place a '&' in column 73,
+  2476  !*      and a '&' in column 6 of the continuation line
+  2477  
+  2478  $if .not. defined (_MSFORTRAN_)
+  2479  $define _MSFORTRAN_ = 100
+  2480  $endif
+  2481  
+  2482  $if .not. defined($MSFLIB$ProgramUnitNumber)
+  2483  $define $MSFLIB$ProgramUnitNumber = -1
+  2484  $endif
+  2485  $if .not. defined($MSFLIB$FDProgUnitNum) 
+  2486  $define $MSFLIB$FDProgUnitNum = -2
+  2487  $endif
+  2488  
+  2489  $if .not. defined(__MSFLIB_FGRAPH_INCLUDE)
+  2490  
+
+                                                                        PAGE  46
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2491  
+  2492  ! -----------------------------------------------------------------
+  2493  ! Data Type Codes
+  2494  ! -----------------------------------------------------------------
+  2495  
+  2496        INTEGER*4 TY$REAL4
+  2497        INTEGER*4 TY$REAL8
+  2498        INTEGER*4 TY$CMPLX8
+  2499        INTEGER*4 TY$CMPLX16
+  2500  
+  2501        PARAMETER (TY$REAL4           = 1)
+  2502        PARAMETER (TY$REAL8           = 2)
+  2503        PARAMETER (TY$CMPLX8          = 3)
+  2504        PARAMETER (TY$CMPLX16         = 4)
+  2505  
+  2506  ! -----------------------------------------------------------------
+  2507  ! Math Error Support
+  2508  ! -----------------------------------------------------------------
+  2509  ! Codes for function failure.
+  2510        INTEGER*4 MTH$E_DOMAIN              ! Argument domain error
+  2511        INTEGER*4 MTH$E_SINGULARITY         ! Argument Singularity
+  2512        INTEGER*4 MTH$E_OVERFLOW            ! Overflow range error
+  2513        INTEGER*4 MTH$E_UNDERFLOW           ! Underflow range error
+  2514        INTEGER*4 MTH$E_TLOSS               ! Total loss of precision
+  2515        INTEGER*4 MTH$E_PLOSS               ! Partial loss of precision
+  2516  
+  2517        PARAMETER (MTH$E_DOMAIN      = 1)
+  2518        PARAMETER (MTH$E_SINGULARITY = 2)
+  2519        PARAMETER (MTH$E_OVERFLOW    = 3)
+  2520        PARAMETER (MTH$E_UNDERFLOW   = 4)
+  2521        PARAMETER (MTH$E_TLOSS       = 5)
+  2522        PARAMETER (MTH$E_PLOSS       = 6)
+  2523  
+  2524  ! Math error information structure.
+  2525        STRUCTURE /MTH$E_INFO/
+  2526          INTEGER*4 ERRCODE        ! INPUT : One of the MTH$ values above
+  2527          INTEGER*4 FTYPE          ! INPUT : One of the TY$ values above
+  2528          UNION
+  2529          MAP
+  2530              REAL*4 R4ARG1        ! INPUT : FIrst argument
+  2531              REAL*4 R4ARG2        ! INPUT : Second argument (if any)
+  2532              REAL*4 R4RES         ! OUTPUT : Desired result
+  2533          END MAP
+  2534          MAP
+  2535              REAL*8 R8ARG1        ! INPUT : FIrst argument
+  2536              REAL*8 R8ARG2        ! INPUT : Second argument (if any)
+  2537              REAL*8 R8RES         ! OUTPUT : Desired result
+  2538          END MAP
+  2539          MAP
+  2540              COMPLEX*8 C8ARG1     ! INPUT : FIrst argument
+  2541              COMPLEX*8 C8ARG2     ! INPUT : Second argument (if any)
+  2542              COMPLEX*8 C8RES      ! OUTPUT : Desired result
+  2543          END MAP
+  2544          MAP
+  2545              COMPLEX*16 C16ARG1   ! INPUT : FIrst argument
+  2546              COMPLEX*16 C16ARG2   ! INPUT : Second argument (if any)
+  2547              COMPLEX*16 C16RES    ! OUTPUT : Desired result
+
+                                                                        PAGE  47
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2548          END MAP
+  2549          END UNION
+  2550        END STRUCTURE
+  2551  
+  2552  
+  2553  ! -----------------------------------------------------------------
+  2554  ! Signal support
+  2555  ! -----------------------------------------------------------------
+  2556        INTEGER*4 SIG$ERR                   ! SIGNALQQ return value
+  2557        INTEGER*4 SIG$NSIG
+  2558        INTEGER*4 SIG$INT
+  2559        INTEGER*4 SIG$ILL
+  2560        INTEGER*4 SIG$FPE
+  2561        INTEGER*4 SIG$SEGV
+  2562        INTEGER*4 SIG$TERM
+  2563        INTEGER*4 SIG$USR1
+  2564        INTEGER*4 SIG$USR2
+  2565        INTEGER*4 SIG$USR3
+  2566        INTEGER*4 SIG$BREAK
+  2567        INTEGER*4 SIG$ABORT
+  2568  
+  2569        PARAMETER (SIG$ERR   = -1)
+  2570        PARAMETER (SIG$NSIG  = 23)
+  2571        PARAMETER (SIG$INT   =  2)
+  2572        PARAMETER (SIG$ILL   =  4)
+  2573        PARAMETER (SIG$FPE   =  8)
+  2574        PARAMETER (SIG$SEGV  = 11)
+  2575        PARAMETER (SIG$TERM  = 15)
+  2576        PARAMETER (SIG$USR1  = 16)
+  2577        PARAMETER (SIG$USR2  = 17)
+  2578        PARAMETER (SIG$USR3  = 20)
+  2579        PARAMETER (SIG$BREAK = 21)
+  2580        PARAMETER (SIG$ABORT = 22)
+  2581  
+  2582        INTEGER*4 FPE$INVALID
+  2583        INTEGER*4 FPE$DENORMAL
+  2584        INTEGER*4 FPE$ZERODIVIDE
+  2585        INTEGER*4 FPE$OVERFLOW
+  2586        INTEGER*4 FPE$UNDERFLOW
+  2587        INTEGER*4 FPE$INEXACT
+  2588        INTEGER*4 FPE$UNEMULATED
+  2589        INTEGER*4 FPE$SQRTNEG
+  2590        INTEGER*4 FPE$STACKOVERFLOW
+  2591        INTEGER*4 FPE$STACKUNDERFLOW
+  2592        INTEGER*4 FPE$EXPLICITGEN                 ! RAISEQQ( SIGFPE )
+  2593  
+  2594        PARAMETER (FPE$INVALID        = #81)
+  2595        PARAMETER (FPE$DENORMAL       = #82)
+  2596        PARAMETER (FPE$ZERODIVIDE     = #83)
+  2597        PARAMETER (FPE$OVERFLOW       = #84)
+  2598        PARAMETER (FPE$UNDERFLOW      = #85)
+  2599        PARAMETER (FPE$INEXACT        = #86)
+  2600        PARAMETER (FPE$UNEMULATED     = #87)
+  2601        PARAMETER (FPE$SQRTNEG        = #88)
+  2602        PARAMETER (FPE$STACKOVERFLOW  = #8a)
+  2603        PARAMETER (FPE$STACKUNDERFLOW = #8b)
+  2604        PARAMETER (FPE$EXPLICITGEN    = #8c)
+
+                                                                        PAGE  48
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2605  
+  2606  ! -----------------------------------------------------------------
+  2607  ! Coprocessor control
+  2608  ! -----------------------------------------------------------------
+  2609  
+  2610        INTEGER*2 FPCW$MCW_EM
+  2611        INTEGER*2 FPCW$INEXACT
+  2612        INTEGER*2 FPCW$UNDERFLOW
+  2613        INTEGER*2 FPCW$OVERFLOW
+  2614        INTEGER*2 FPCW$ZERODIVIDE
+  2615        INTEGER*2 FPCW$INVALID
+  2616        INTEGER*2 FPCW$DENORMAL
+  2617  
+  2618        INTEGER*2 FPCW$MCW_PC
+  2619        INTEGER*2 FPCW$64
+  2620        INTEGER*2 FPCW$53
+  2621        INTEGER*2 FPCW$24
+  2622  
+  2623        INTEGER*2 FPCW$MCW_IC
+  2624        INTEGER*2 FPCW$AFFINE
+  2625        INTEGER*2 FPCW$PROJECTIVE
+  2626  
+  2627        INTEGER*2 FPCW$MCW_RC
+  2628        INTEGER*2 FPCW$NEAR
+  2629        INTEGER*2 FPCW$DOWN
+  2630        INTEGER*2 FPCW$UP
+  2631        INTEGER*2 FPCW$CHOP
+  2632  
+  2633        INTEGER*2 FPSW$MSW_EM
+  2634        INTEGER*2 FPSW$INVALID
+  2635        INTEGER*2 FPSW$DENORMAL
+  2636        INTEGER*2 FPSW$ZERODIVIDE
+  2637        INTEGER*2 FPSW$OVERFLOW
+  2638        INTEGER*2 FPSW$UNDERFLOW
+  2639        INTEGER*2 FPSW$INEXACT
+  2640  
+  2641        PARAMETER (FPCW$MCW_EM        = #003F)  ! exception mask
+  2642        PARAMETER (FPCW$INVALID       = #0001)  ! invalid
+  2643        PARAMETER (FPCW$DENORMAL      = #0002)  ! denormal
+  2644        PARAMETER (FPCW$ZERODIVIDE    = #0004)  ! zero divide
+  2645        PARAMETER (FPCW$OVERFLOW      = #0008)  ! overflow
+  2646        PARAMETER (FPCW$UNDERFLOW     = #0010)  ! underflow
+  2647        PARAMETER (FPCW$INEXACT       = #0020)  ! inexact (precision)
+  2648  
+  2649        PARAMETER (FPCW$MCW_PC        = #0300)  ! precision control mask
+  2650        PARAMETER (FPCW$64            = #0300)  ! 64 bits
+  2651        PARAMETER (FPCW$53            = #0200)  ! 53 bits
+  2652        PARAMETER (FPCW$24            = #0000)  ! 24 bits
+  2653  
+  2654        PARAMETER (FPCW$MCW_IC        = #1000)  ! infinity control mask
+  2655        PARAMETER (FPCW$AFFINE        = #1000)  ! affine
+  2656        PARAMETER (FPCW$PROJECTIVE    = #0000)  ! projective
+  2657  
+  2658        PARAMETER (FPCW$MCW_RC        = #0C00)  ! rounding control mask
+  2659        PARAMETER (FPCW$CHOP          = #0C00)  ! chop
+  2660        PARAMETER (FPCW$UP            = #0800)  ! up
+  2661        PARAMETER (FPCW$DOWN          = #0400)  ! down
+
+                                                                        PAGE  49
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2662        PARAMETER (FPCW$NEAR          = #0000)  ! near
+  2663  
+  2664        PARAMETER (FPSW$MSW_EM        = #003F)  ! exception mask
+  2665        PARAMETER (FPSW$INVALID       = #0001)  ! invalid
+  2666        PARAMETER (FPSW$DENORMAL      = #0002)  ! denormal
+  2667        PARAMETER (FPSW$ZERODIVIDE    = #0004)  ! zero divide
+  2668        PARAMETER (FPSW$OVERFLOW      = #0008)  ! overflow
+  2669        PARAMETER (FPSW$UNDERFLOW     = #0010)  ! underflow
+  2670        PARAMETER (FPSW$INEXACT       = #0020)  ! inexact (precision)
+  2671  
+  2672  ! -----------------------------------------------------------------
+  2673  ! Random Numbers
+  2674  ! -----------------------------------------------------------------
+  2675        INTEGER*4 RND$TIMESEED
+  2676  
+  2677        PARAMETER (RND$TIMESEED = -1)
+  2678  
+  2679  ! -----------------------------------------------------------------
+  2680  ! Drives and Directories
+  2681  ! -----------------------------------------------------------------
+  2682  
+  2683        CHARACTER*1 FILE$CURDRIVE
+  2684        INTEGER*4   FILE$MAXNAME
+  2685        INTEGER*4   $MAXPATH
+  2686  
+  2687        PARAMETER (FILE$CURDRIVE = ' ')
+  2688        PARAMETER (FILE$MAXNAME = 255)
+  2689        PARAMETER ($MAXPATH = 260)
+  2690  
+  2691  ! -----------------------------------------------------------------
+  2692  ! Files
+  2693  ! -----------------------------------------------------------------
+  2694  
+  2695        STRUCTURE / FILE$INFO /
+  2696          INTEGER*4       CREATION          ! Creation time (-1 on FAT)
+  2697          INTEGER*4       LASTWRITE         ! Last write to file
+  2698          INTEGER*4       LASTACCESS        ! Last access (-1 on FAT)
+  2699          INTEGER*4       LENGTH            ! Length of file
+  2700          INTEGER*2       PERMIT            ! File access mode
+  2701          CHARACTER*255   NAME              ! File name
+  2702        END STRUCTURE
+  2703  
+  2704        INTEGER*4 FILE$NORMAL
+  2705        INTEGER*4 FILE$READONLY
+  2706        INTEGER*4 FILE$HIDDEN
+  2707        INTEGER*4 FILE$SYSTEM
+  2708        INTEGER*4 FILE$VOLUME
+  2709        INTEGER*4 FILE$DIR
+  2710        INTEGER*4 FILE$ARCHIVE
+  2711        INTEGER*4 FILE$FIRST
+  2712        INTEGER*4 FILE$LAST
+  2713        INTEGER*4 FILE$ERROR
+  2714        INTEGER*4 FILE$INVALID
+  2715        INTEGER*4 FILE$CURTIME
+  2716  
+  2717        PARAMETER (FILE$NORMAL      = #0000)
+  2718        PARAMETER (FILE$READONLY    = #0001)
+
+                                                                        PAGE  50
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2719        PARAMETER (FILE$HIDDEN      = #0002)
+  2720        PARAMETER (FILE$SYSTEM      = #0004)
+  2721        PARAMETER (FILE$VOLUME      = #0008)
+  2722        PARAMETER (FILE$DIR         = #0010)
+  2723        PARAMETER (FILE$ARCHIVE     = #0020)
+  2724  
+  2725        PARAMETER (FILE$FIRST       = -1)
+  2726        PARAMETER (FILE$LAST        = -2)
+  2727        PARAMETER (FILE$ERROR       = -3)
+  2728  
+# 2729        PARAMETER (FILE$INVALID     = -1) ! For PACKTIMEQQ and UNPACKTIMEQ
+  2730        PARAMETER (FILE$CURTIME     = -1) ! For SETFILETIMEQQ
+  2731  
+  2732  ! -----------------------------------------------------------------
+  2733  ! Keyboard
+  2734  ! -----------------------------------------------------------------
+  2735  
+  2736  
+  2737  ! -----------------------------------------------------------------
+  2738  ! Errors
+  2739  ! -----------------------------------------------------------------
+  2740  
+  2741        INTEGER*4 ERR$ZERO
+  2742        INTEGER*4 ERR$PERM
+  2743        INTEGER*4 ERR$NOENT
+  2744        INTEGER*4 ERR$SRCH
+  2745        INTEGER*4 ERR$INTR
+  2746        INTEGER*4 ERR$IO
+  2747        INTEGER*4 ERR$NXIO
+  2748        INTEGER*4 ERR$2BIG
+  2749        INTEGER*4 ERR$NOEXEC
+  2750        INTEGER*4 ERR$BADF
+  2751        INTEGER*4 ERR$CHILD
+  2752        INTEGER*4 ERR$AGAIN
+  2753        INTEGER*4 ERR$NOMEM
+  2754        INTEGER*4 ERR$ACCES
+  2755        INTEGER*4 ERR$FAULT
+  2756        INTEGER*4 ERR$NOTBLK
+  2757        INTEGER*4 ERR$BUSY
+  2758        INTEGER*4 ERR$EXIST
+  2759        INTEGER*4 ERR$XDEV
+  2760        INTEGER*4 ERR$NODEV
+  2761        INTEGER*4 ERR$NOTDIR
+  2762        INTEGER*4 ERR$ISDIR
+  2763        INTEGER*4 ERR$INVAL
+  2764        INTEGER*4 ERR$NFILE
+  2765        INTEGER*4 ERR$MFILE
+  2766        INTEGER*4 ERR$NOTTY
+  2767        INTEGER*4 ERR$TXTBSY
+  2768        INTEGER*4 ERR$FBIG
+  2769        INTEGER*4 ERR$NOSPC
+  2770        INTEGER*4 ERR$SPIPE
+  2771        INTEGER*4 ERR$ROFS
+  2772        INTEGER*4 ERR$MLINK
+  2773        INTEGER*4 ERR$PIPE
+  2774        INTEGER*4 ERR$DOM
+  2775        INTEGER*4 ERR$RANGE
+
+                                                                        PAGE  51
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2776        INTEGER*4 ERR$UCLEAN
+  2777        INTEGER*4 ERR$DEADLOCK
+  2778  
+  2779        PARAMETER (ERR$ZERO         =  0)
+  2780        PARAMETER (ERR$PERM         =  1)
+  2781        PARAMETER (ERR$NOENT        =  2)
+  2782        PARAMETER (ERR$SRCH         =  3)
+  2783        PARAMETER (ERR$INTR         =  4)
+  2784        PARAMETER (ERR$IO           =  5)
+  2785        PARAMETER (ERR$NXIO         =  6)
+  2786        PARAMETER (ERR$2BIG         =  7)
+  2787        PARAMETER (ERR$NOEXEC       =  8)
+  2788        PARAMETER (ERR$BADF         =  9)
+  2789        PARAMETER (ERR$CHILD        = 10)
+  2790        PARAMETER (ERR$AGAIN        = 11)
+  2791        PARAMETER (ERR$NOMEM        = 12)
+  2792        PARAMETER (ERR$ACCES        = 13)
+  2793        PARAMETER (ERR$FAULT        = 14)
+  2794        PARAMETER (ERR$NOTBLK       = 15)
+  2795        PARAMETER (ERR$BUSY         = 16)
+  2796        PARAMETER (ERR$EXIST        = 17)
+  2797        PARAMETER (ERR$XDEV         = 18)
+  2798        PARAMETER (ERR$NODEV        = 19)
+  2799        PARAMETER (ERR$NOTDIR       = 20)
+  2800        PARAMETER (ERR$ISDIR        = 21)
+  2801        PARAMETER (ERR$INVAL        = 22)
+  2802        PARAMETER (ERR$NFILE        = 23)
+  2803        PARAMETER (ERR$MFILE        = 24)
+  2804        PARAMETER (ERR$NOTTY        = 25)
+  2805        PARAMETER (ERR$TXTBSY       = 26)
+  2806        PARAMETER (ERR$FBIG         = 27)
+  2807        PARAMETER (ERR$NOSPC        = 28)
+  2808        PARAMETER (ERR$SPIPE        = 29)
+  2809        PARAMETER (ERR$ROFS         = 30)
+  2810        PARAMETER (ERR$MLINK        = 31)
+  2811        PARAMETER (ERR$PIPE         = 32)
+  2812        PARAMETER (ERR$DOM          = 33)
+  2813        PARAMETER (ERR$RANGE        = 34)
+  2814        PARAMETER (ERR$UCLEAN       = 35)
+  2815        PARAMETER (ERR$DEADLOCK     = 36)
+  2816  
+  2817        LOGICAL*4 ERR$HARDPROMPT      ! For SETERRORMODEQQ
+  2818        LOGICAL*4 ERR$HARDFAIL
+  2819  
+  2820        PARAMETER (ERR$HARDPROMPT   = .TRUE.)
+  2821        PARAMETER (ERR$HARDFAIL     = .FALSE.)
+  2822  
+  2823  ! ----------------------------------------------------------------
+  2824  ! Sorting and Searching Arrays
+  2825  ! ----------------------------------------------------------------
+  2826  
+  2827        INTEGER*4 SRT$REAL4
+  2828        INTEGER*4 SRT$REAL8
+  2829        INTEGER*4 SRT$INTEGER1
+  2830        INTEGER*4 SRT$INTEGER2
+  2831        INTEGER*4 SRT$INTEGER4
+  2832  
+
+                                                                        PAGE  52
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2833        PARAMETER (SRT$REAL4          = #00010000)
+  2834        PARAMETER (SRT$REAL8          = #00020000)
+  2835        PARAMETER (SRT$INTEGER1       = #00030000)
+  2836        PARAMETER (SRT$INTEGER2       = #00040000)
+  2837        PARAMETER (SRT$INTEGER4       = #00050000)
+  2838  
+  2839  ! ----------------------------------------------------------------
+  2840  ! Configuration
+  2841  ! ----------------------------------------------------------------
+  2842  
+  2843        INTEGER*4 CFG$WINNT
+  2844        PARAMETER (CFG$WINNT          = #00000001)
+  2845  
+  2846  
+  2847  ! ----------------------------------------------------------------
+  2848  ! QuickWin Support
+  2849  ! ----------------------------------------------------------------
+  2850  $PACK:1
+  2851  ! structure for setwindowconfig/getwindowconfig
+  2852        STRUCTURE /windowconfig/
+  2853          INTEGER*2 numxpixels
+  2854          INTEGER*2 numypixels
+  2855          INTEGER*2 numtextcols
+  2856          INTEGER*2 numtextrows
+  2857          INTEGER*2 numcolors
+  2858          INTEGER*4 fontsize
+  2859          CHARACTER*(80) title
+  2860          INTEGER*2 bitsperpixel
+  2861          INTEGER*2 numvideopages
+  2862          INTEGER*2 mode
+  2863          INTEGER*2 adapter
+  2864          INTEGER*2 monitor
+  2865          INTEGER*2 memory
+  2866          INTEGER*2 environment
+  2867          CHARACTER*(32) extendfontname
+  2868          INTEGER*4 extendfontsize
+  2869          INTEGER*4 extendfontattributes
+  2870        END STRUCTURE
+  2871  $PACK
+  2872  
+  2873  !     Parameters for APPENDMENUQQ, INSERTMENUQQ, MODIFYMENUFLAGSQQ
+  2874        INTEGER*4 $MENUGRAYED, $MENUDISABLED, $MENUENABLED
+  2875        INTEGER*4 $MENUSEPARATOR, $MENUCHECKED, $MENUUNCHECKED
+  2876        PARAMETER($MENUGRAYED=1)
+  2877        PARAMETER($MENUDISABLED=2)
+  2878        PARAMETER($MENUENABLED=4)
+  2879        PARAMETER($MENUSEPARATOR=8)
+  2880        PARAMETER($MENUCHECKED=16)
+  2881        PARAMETER($MENUUNCHECKED=32)
+  2882  
+  2883  ! Clicking on menus.
+  2884        INTEGER*4 QWIN$STATUS
+  2885        INTEGER*4 QWIN$TILE
+  2886        INTEGER*4 QWIN$CASCADE
+  2887        INTEGER*4 QWIN$ARRANGE
+  2888  
+  2889        PARAMETER (QWIN$STATUS  = 1)
+
+                                                                        PAGE  53
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2890        PARAMETER (QWIN$TILE    = 2)
+  2891        PARAMETER (QWIN$CASCADE = 3)
+  2892        PARAMETER (QWIN$ARRANGE = 4)
+  2893  
+  2894  ! Extended font information
+  2895  
+  2896        INTEGER*4 QWIN$EXTENDFONT
+  2897        INTEGER*4 QWIN$EXTENDFONT_NORMAL
+  2898        INTEGER*4 QWIN$EXTENDFONT_UNDERLINE
+  2899        INTEGER*4 QWIN$EXTENDFONT_BOLD
+  2900        INTEGER*4 QWIN$EXTENDFONT_ITALIC
+  2901  
+  2902        PARAMETER (QWIN$EXTENDFONT            =#FFFFFFFE)
+  2903        PARAMETER (QWIN$EXTENDFONT_NORMAL     =#80000000)
+  2904        PARAMETER (QWIN$EXTENDFONT_BOLD       =#00000001)
+  2905        PARAMETER (QWIN$EXTENDFONT_UNDERLINE  =#00000002)
+  2906        PARAMETER (QWIN$EXTENDFONT_ITALIC     =#00000004)
+  2907  
+  2908  ! Size/Move a window
+  2909        STRUCTURE /QWINFO/
+  2910            INTEGER*2 TYPE          ! request type
+  2911            INTEGER*2 X             ! x coordinate for upper left
+  2912            INTEGER*2 Y             ! y coordinate for upper left
+  2913            INTEGER*2 H             ! window height
+  2914            INTEGER*2 W             ! window width
+  2915        END STRUCTURE
+  2916  
+  2917        INTEGER*2 QWIN$MIN
+  2918        INTEGER*2 QWIN$MAX
+  2919        INTEGER*2 QWIN$RESTORE
+  2920        INTEGER*2 QWIN$SET
+  2921  
+  2922        PARAMETER (QWIN$MIN     = 1)
+  2923        PARAMETER (QWIN$MAX     = 2)
+  2924        PARAMETER (QWIN$RESTORE = 3)
+  2925        PARAMETER (QWIN$SET     = 4)
+  2926  
+  2927        INTEGER*4 QWIN$FRAMEWINDOW
+  2928        INTEGER*4 QWIN$NOACTIVEWINDOW
+  2929        PARAMETER (QWIN$FRAMEWINDOW = #80000000) 
+  2930        PARAMETER (QWIN$NOACTIVEWINDOW = #C0000000)
+  2931  
+  2932        INTEGER*4 QWIN$FRAMEMAX
+  2933        INTEGER*4 QWIN$FRAMECURR
+  2934        INTEGER*4 QWIN$CHILDMAX
+  2935        INTEGER*4 QWIN$CHILDCURR
+  2936        INTEGER*4 QWIN$SIZEMAX
+  2937        INTEGER*4 QWIN$SIZECURR
+  2938  
+  2939        PARAMETER (QWIN$FRAMEMAX  = 1)
+  2940        PARAMETER (QWIN$FRAMECURR = 2)
+  2941        PARAMETER (QWIN$CHILDMAX  = 3)
+  2942        PARAMETER (QWIN$CHILDCURR = 4)
+  2943        PARAMETER (QWIN$SIZEMAX   = 3)
+  2944        PARAMETER (QWIN$SIZECURR  = 4)
+  2945  
+  2946  !Get/Set Exit
+
+                                                                        PAGE  54
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  2947        INTEGER*4 QWIN$EXITPROMPT, QWIN$EXITNOPERSIST, QWIN$EXITPERSIST
+  2948  
+  2949        PARAMETER(QWIN$EXITPROMPT= 1)     ! prompt before exiting
+  2950        PARAMETER(QWIN$EXITNOPERSIST= 2)  ! exit immediately
+  2951        PARAMETER(QWIN$EXITPERSIST= 3)    ! do not exit appilcation
+  2952  
+  2953  ! Message Boxes
+  2954        INTEGER*4 MB$ABORTRETRYIGNORE
+  2955        INTEGER*4 MB$DEFBUTTON1
+  2956        INTEGER*4 MB$DEFBUTTON2
+  2957        INTEGER*4 MB$DEFBUTTON3
+  2958        INTEGER*4 MB$ICONASTERISK
+  2959        INTEGER*4 MB$ICONEXCLAMATION
+  2960        INTEGER*4 MB$ICONHAND
+  2961        INTEGER*4 MB$ICONINFORMATION
+  2962        INTEGER*4 MB$ICONQUESTION
+  2963        INTEGER*4 MB$ICONSTOP
+  2964        INTEGER*4 MB$OK
+  2965        INTEGER*4 MB$OKCANCEL
+  2966        INTEGER*4 MB$RETRYCANCEL
+  2967        INTEGER*4 MB$SYSTEMMODAL
+  2968        INTEGER*4 MB$TASKMODAL
+  2969        INTEGER*4 MB$YESNO
+  2970        INTEGER*4 MB$YESNOCANCEL
+  2971  
+  2972        PARAMETER (MB$ABORTRETRYIGNORE = #00000002)
+  2973        PARAMETER (MB$DEFBUTTON1       = #00000000)
+  2974        PARAMETER (MB$DEFBUTTON2       = #00000100)
+  2975        PARAMETER (MB$DEFBUTTON3       = #00000200)
+  2976        PARAMETER (MB$ICONASTERISK     = #00000040)
+  2977        PARAMETER (MB$ICONEXCLAMATION  = #00000030)
+  2978        PARAMETER (MB$ICONHAND         = #00000010)
+  2979        PARAMETER (MB$ICONINFORMATION  = #00000040)
+  2980        PARAMETER (MB$ICONQUESTION     = #00000020)
+  2981        PARAMETER (MB$ICONSTOP         = #00000010)
+  2982        PARAMETER (MB$OK               = #00000000)
+  2983        PARAMETER (MB$OKCANCEL         = #00000001)
+  2984        PARAMETER (MB$RETRYCANCEL      = #00000005)
+  2985        PARAMETER (MB$SYSTEMMODAL      = #00001000)
+  2986        PARAMETER (MB$TASKMODAL        = #00002000)
+  2987        PARAMETER (MB$YESNO            = #00000004)
+  2988        PARAMETER (MB$YESNOCANCEL      = #00000003)
+  2989  
+  2990        INTEGER*4 MB$IDOK
+  2991        INTEGER*4 MB$IDCANCEL
+  2992        INTEGER*4 MB$IDABORT
+  2993        INTEGER*4 MB$IDRETRY
+  2994        INTEGER*4 MB$IDIGNORE
+  2995        INTEGER*4 MB$IDYES
+  2996        INTEGER*4 MB$IDNO
+  2997  
+  2998        PARAMETER (MB$IDOK     = 1)
+  2999        PARAMETER (MB$IDCANCEL = 2)
+  3000        PARAMETER (MB$IDABORT  = 3)
+  3001        PARAMETER (MB$IDRETRY  = 4)
+  3002        PARAMETER (MB$IDIGNORE = 5)
+  3003        PARAMETER (MB$IDYES    = 6)
+
+                                                                        PAGE  55
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+  3004        PARAMETER (MB$IDNO     = 7)
+  3005  
+  3006  ! InitialMenu should not be typed here, so that when InitialMenu is
+# 3007  ! defined by the user it can include FLIB.FD.  Nor should it be external
+  3008  !     LOGICAL*4 INITIALMENU[EXTERN]
+  3009  
+  3010  
+  3011  $endif  ! $if .not. defined(__MSFLIB_FGRAPH_INCLUDE)
+  3012  
+    **** End listing of D:\MSDEV\INCLUDE/msflib.fd
+    57  $undefine __MSFLIB_FLIB_INCLUDE
+    58  
+    59  $else  ! $if _MSFORTRAN_ .GE. 300
+    60  
+    61        LOGICAL*4 SETTIM[EXTERN]
+    62        LOGICAL*4 SETDAT[EXTERN]
+    63        INTEGER*4 NARGS[EXTERN]
+    64        INTEGER*4 GETHANDLEFRAMEQQ[EXTERN]
+    65        INTEGER*4 GETHANDLECLIENTQQ[EXTERN]
+    66        INTEGER*4 GETHANDLECHILDQQ[EXTERN]
+    67        INTEGER*4 MESSAGEBOXQQ[EXTERN]
+    68        INTEGER*4 GETEXITQQ[EXTERN]
+    69        INTEGER*4 SETEXITQQ[EXTERN]
+    70        INTEGER*4 GETWSIZEQQ[EXTERN]
+    71        INTEGER*4 SETWSIZEQQ[EXTERN]
+    72        INTEGER*4 CLICKQQ[EXTERN]
+    73        INTEGER*4 CLICKMENUQQ[EXTERN]
+    74        LOGICAL SETWINDOWCONFIG[EXTERN]
+    75        LOGICAL GETWINDOWCONFIG[EXTERN]
+    76        LOGICAL APPENDMENUQQ[EXTERN]
+    77        LOGICAL INSERTMENUQQ[EXTERN]
+    78        LOGICAL DELETEMENUQQ[EXTERN]
+    79        LOGICAL MODIFYMENUFLAGSQQ[EXTERN]
+    80        LOGICAL MODIFYMENUSTRINGQQ[EXTERN]
+    81        LOGICAL MODIFYMENUROUTINEQQ[EXTERN]
+    82        LOGICAL SETWINDOWMENUQQ[EXTERN]
+    83  
+    84  ! We only include the following code once inside the same program unit.
+    85  ! This code is shared with fgraph.fd.
+#   86  $if _MSFORTRAN_ .lt. 300    ! if using /4fps1, always include the code b
+    87  $undefine $MSFLIB$FDProgUnitNum
+    88  $define $MSFLIB$FDProgUnitNum = -2
+    89  $endif
+    90  $if $MSFLIB$FDProgUnitNum .ne. $MSFLIB$ProgramUnitNumber
+    91  $undefine $MSFLIB$FDProgUnitNum
+    92  $define $MSFLIB$FDProgUnitNum = $MSFLIB$ProgramUnitNumber
+    93        INTEGER*2 INCHARQQ[EXTERN]
+    94        INTEGER*4 WGOPENQQ[EXTERN]
+    95        INTEGER*4 WGCLOSEQQ[EXTERN]
+    96        INTEGER*4 WGSETACTIVEQQ[EXTERN]
+    97        INTEGER*4 WGGETACTIVEQQ[EXTERN]
+    98  $endif
+    99  
+   100        INTEGER*4 SETACTIVEQQ[EXTERN]
+   101        INTEGER*4 GETACTIVEQQ[EXTERN]
+   102        INTEGER*4 FOCUSQQ[EXTERN]
+   103        INTEGER*4 INQFOCUSQQ[EXTERN]
+
+                                                                        PAGE  56
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   104        INTEGER*4 GETHANDLEQQ[EXTERN]
+   105        INTEGER*4 GETUNITQQ[EXTERN]
+   106        INTEGER*4 ABOUTBOXQQ[EXTERN]
+   107        INTEGER*4 GETHWNDQQ[EXTERN]
+   108        INTEGER*4 GETCONFIGQQ[EXTERN]
+   109        INTEGER*4 BSEARCHQQ[EXTERN]
+   110        INTEGER*4 SIGNALQQ[EXTERN]
+   111        INTEGER*4 RAISEQQ[EXTERN]
+   112        INTEGER*4 RUNQQ[EXTERN]
+   113        LOGICAL*4 SYSTEMQQ[EXTERN]
+   114        LOGICAL*4 GETDRIVESIZEQQ[EXTERN]
+   115        CHARACTER*26 GETDRIVESQQ[EXTERN]
+   116        INTEGER*4 GETDRIVEDIRQQ[EXTERN]
+   117        LOGICAL*4 CHANGEDRIVEQQ[EXTERN]
+   118        LOGICAL*4 CHANGEDIRQQ[EXTERN]
+   119        LOGICAL*4 MAKEDIRQQ[EXTERN]
+   120        LOGICAL*4 DELDIRQQ[EXTERN]
+   121        INTEGER*4 FULLPATHQQ[EXTERN]
+   122        INTEGER*4 SPLITPATHQQ[EXTERN]
+   123        INTEGER*4 GETFILEINFOQQ[EXTERN]
+   124        LOGICAL*4 SETFILETIMEQQ[EXTERN]
+   125        LOGICAL*4 SETFILEACCESSQQ[EXTERN]
+   126        LOGICAL*4 RENAMEFILEQQ[EXTERN]
+   127        INTEGER*4 DELFILESQQ[EXTERN]
+   128        INTEGER*4 FINDFILEQQ[EXTERN]
+   129        LOGICAL*4 COMMITQQ[EXTERN]
+   130        CHARACTER*1 GETCHARQQ[EXTERN]
+   131        LOGICAL*4 PEEKCHARQQ[EXTERN]
+   132        INTEGER*4 GETSTRQQ[EXTERN]
+   133        INTEGER*4 GETLASTERRORQQ[EXTERN]
+   134        EXTERNAL  SETERRORMODEQQ
+   135        INTEGER*4 GETENVQQ[EXTERN]
+   136        LOGICAL*4 SETENVQQ[EXTERN]
+   137        EXTERNAL LCWRQQ
+   138        EXTERNAL SCWRQQ
+   139        EXTERNAL SSWRQQ
+   140        EXTERNAL SETCONTROLFPQQ
+   141        EXTERNAL GETCONTROLFPQQ
+   142        EXTERNAL GETSTATUSFPQQ
+   143        EXTERNAL GETTIM
+   144        EXTERNAL GETDAT
+   145        EXTERNAL RANDOM
+   146        EXTERNAL SEED
+   147        EXTERNAL GETARG
+   148        EXTERNAL EXIT
+   149        EXTERNAL PACKTIME
+   150        EXTERNAL UNPACKTIME
+   151        EXTERNAL SLEEPQQ
+   152        EXTERNAL BEEPQQ
+   153        EXTERNAL SORTQQ
+   154        EXTERNAL YIELDQQ
+   155        EXTERNAL WINPRINT
+   156        EXTERNAL WINSAVE
+   157        EXTERNAL WINEXIT
+   158        EXTERNAL WINCOPY
+   159        EXTERNAL WINPASTE
+   160        EXTERNAL WINSIZETOFIT
+
+                                                                        PAGE  57
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   161        EXTERNAL WINFULLSCREEN
+   162        EXTERNAL WINSTATE
+   163        EXTERNAL WINCASCADE
+   164        EXTERNAL WINTILE
+   165        EXTERNAL WINARRANGE
+   166        EXTERNAL WININPUT
+   167        EXTERNAL WINCLEARPASTE
+   168        EXTERNAL WINSTATUS
+   169        EXTERNAL WININDEX
+   170        EXTERNAL WINUSING
+   171        EXTERNAL WINABOUT
+   172        EXTERNAL WINSELECTTEXT
+   173        EXTERNAL WINSELECTGRAPHICS
+   174        EXTERNAL WINSELECTALL
+   175        EXTERNAL WINWINDOWS
+   176        EXTERNAL NUL
+   177        EXTERNAL MATHERRQQ
+   178  !fi2mod:on
+   179  
+   180  ! -----------------------------------------------------------------
+   181  ! Data Type Codes
+   182  ! -----------------------------------------------------------------
+   183  
+   184        INTEGER*4 TY$REAL4
+   185        INTEGER*4 TY$REAL8
+   186        INTEGER*4 TY$CMPLX8
+   187        INTEGER*4 TY$CMPLX16
+   188  
+   189        PARAMETER (TY$REAL4           = 1)
+   190        PARAMETER (TY$REAL8           = 2)
+   191        PARAMETER (TY$CMPLX8          = 3)
+   192        PARAMETER (TY$CMPLX16         = 4)
+   193  
+   194  ! -----------------------------------------------------------------
+   195  ! Math Error Support
+   196  ! -----------------------------------------------------------------
+   197  ! Codes for function failure.
+   198        INTEGER*4 MTH$E_DOMAIN              ! Argument domain error
+   199        INTEGER*4 MTH$E_SINGULARITY         ! Argument Singularity
+   200        INTEGER*4 MTH$E_OVERFLOW            ! Overflow range error
+   201        INTEGER*4 MTH$E_UNDERFLOW           ! Underflow range error
+   202        INTEGER*4 MTH$E_TLOSS               ! Total loss of precision
+   203        INTEGER*4 MTH$E_PLOSS               ! Partial loss of precision
+   204  
+   205        PARAMETER (MTH$E_DOMAIN      = 1)
+   206        PARAMETER (MTH$E_SINGULARITY = 2)
+   207        PARAMETER (MTH$E_OVERFLOW    = 3)
+   208        PARAMETER (MTH$E_UNDERFLOW   = 4)
+   209        PARAMETER (MTH$E_TLOSS       = 5)
+   210        PARAMETER (MTH$E_PLOSS       = 6)
+   211  
+   212  ! Math error information structure.
+   213        STRUCTURE /MTH$E_INFO/
+   214          INTEGER*4 ERRCODE        ! INPUT : One of the MTH$ values above
+   215          INTEGER*4 FTYPE          ! INPUT : One of the TY$ values above
+   216          UNION
+   217          MAP
+
+                                                                        PAGE  58
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   218              REAL*4 R4ARG1        ! INPUT : FIrst argument
+   219              REAL*4 R4ARG2        ! INPUT : Second argument (if any)
+   220              REAL*4 R4RES         ! OUTPUT : Desired result
+   221          END MAP
+   222          MAP
+   223              REAL*8 R8ARG1        ! INPUT : FIrst argument
+   224              REAL*8 R8ARG2        ! INPUT : Second argument (if any)
+   225              REAL*8 R8RES         ! OUTPUT : Desired result
+   226          END MAP
+   227          MAP
+   228              COMPLEX*8 C8ARG1     ! INPUT : FIrst argument
+   229              COMPLEX*8 C8ARG2     ! INPUT : Second argument (if any)
+   230              COMPLEX*8 C8RES      ! OUTPUT : Desired result
+   231          END MAP
+   232          MAP
+   233              COMPLEX*16 C16ARG1   ! INPUT : FIrst argument
+   234              COMPLEX*16 C16ARG2   ! INPUT : Second argument (if any)
+   235              COMPLEX*16 C16RES    ! OUTPUT : Desired result
+   236          END MAP
+   237          END UNION
+   238        END STRUCTURE
+   239  
+   240  
+   241  ! -----------------------------------------------------------------
+   242  ! Signal support
+   243  ! -----------------------------------------------------------------
+   244        INTEGER*4 SIG$ERR                   ! SIGNALQQ return value
+   245        INTEGER*4 SIG$NSIG
+   246        INTEGER*4 SIG$INT
+   247        INTEGER*4 SIG$ILL
+   248        INTEGER*4 SIG$FPE
+   249        INTEGER*4 SIG$SEGV
+   250        INTEGER*4 SIG$TERM
+   251        INTEGER*4 SIG$USR1
+   252        INTEGER*4 SIG$USR2
+   253        INTEGER*4 SIG$USR3
+   254        INTEGER*4 SIG$BREAK
+   255        INTEGER*4 SIG$ABORT
+   256  
+   257        PARAMETER (SIG$ERR   = -1)
+   258        PARAMETER (SIG$NSIG  = 23)
+   259        PARAMETER (SIG$INT   =  2)
+   260        PARAMETER (SIG$ILL   =  4)
+   261        PARAMETER (SIG$FPE   =  8)
+   262        PARAMETER (SIG$SEGV  = 11)
+   263        PARAMETER (SIG$TERM  = 15)
+   264        PARAMETER (SIG$USR1  = 16)
+   265        PARAMETER (SIG$USR2  = 17)
+   266        PARAMETER (SIG$USR3  = 20)
+   267        PARAMETER (SIG$BREAK = 21)
+   268        PARAMETER (SIG$ABORT = 22)
+   269  
+   270        INTEGER*4 FPE$INVALID
+   271        INTEGER*4 FPE$DENORMAL
+   272        INTEGER*4 FPE$ZERODIVIDE
+   273        INTEGER*4 FPE$OVERFLOW
+   274        INTEGER*4 FPE$UNDERFLOW
+
+                                                                        PAGE  59
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   275        INTEGER*4 FPE$INEXACT
+   276        INTEGER*4 FPE$UNEMULATED
+   277        INTEGER*4 FPE$SQRTNEG
+   278        INTEGER*4 FPE$STACKOVERFLOW
+   279        INTEGER*4 FPE$STACKUNDERFLOW
+   280        INTEGER*4 FPE$EXPLICITGEN                 ! RAISEQQ( SIGFPE )
+   281  
+   282        PARAMETER (FPE$INVALID        = #81)
+   283        PARAMETER (FPE$DENORMAL       = #82)
+   284        PARAMETER (FPE$ZERODIVIDE     = #83)
+   285        PARAMETER (FPE$OVERFLOW       = #84)
+   286        PARAMETER (FPE$UNDERFLOW      = #85)
+   287        PARAMETER (FPE$INEXACT        = #86)
+   288        PARAMETER (FPE$UNEMULATED     = #87)
+   289        PARAMETER (FPE$SQRTNEG        = #88)
+   290        PARAMETER (FPE$STACKOVERFLOW  = #8a)
+   291        PARAMETER (FPE$STACKUNDERFLOW = #8b)
+   292        PARAMETER (FPE$EXPLICITGEN    = #8c)
+   293  
+   294  ! -----------------------------------------------------------------
+   295  ! Coprocessor control
+   296  ! -----------------------------------------------------------------
+   297  
+   298        INTEGER*2 FPCW$MCW_EM
+   299        INTEGER*2 FPCW$INEXACT
+   300        INTEGER*2 FPCW$UNDERFLOW
+   301        INTEGER*2 FPCW$OVERFLOW
+   302        INTEGER*2 FPCW$ZERODIVIDE
+   303        INTEGER*2 FPCW$INVALID
+   304        INTEGER*2 FPCW$DENORMAL
+   305  
+   306        INTEGER*2 FPCW$MCW_PC
+   307        INTEGER*2 FPCW$64
+   308        INTEGER*2 FPCW$53
+   309        INTEGER*2 FPCW$24
+   310  
+   311        INTEGER*2 FPCW$MCW_IC
+   312        INTEGER*2 FPCW$AFFINE
+   313        INTEGER*2 FPCW$PROJECTIVE
+   314  
+   315        INTEGER*2 FPCW$MCW_RC
+   316        INTEGER*2 FPCW$NEAR
+   317        INTEGER*2 FPCW$DOWN
+   318        INTEGER*2 FPCW$UP
+   319        INTEGER*2 FPCW$CHOP
+   320  
+   321        INTEGER*2 FPSW$MSW_EM
+   322        INTEGER*2 FPSW$INVALID
+   323        INTEGER*2 FPSW$DENORMAL
+   324        INTEGER*2 FPSW$ZERODIVIDE
+   325        INTEGER*2 FPSW$OVERFLOW
+   326        INTEGER*2 FPSW$UNDERFLOW
+   327        INTEGER*2 FPSW$INEXACT
+   328  
+   329        PARAMETER (FPCW$MCW_EM        = #003F)  ! exception mask
+   330        PARAMETER (FPCW$INVALID       = #0001)  ! invalid
+   331        PARAMETER (FPCW$DENORMAL      = #0002)  ! denormal
+
+                                                                        PAGE  60
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   332        PARAMETER (FPCW$ZERODIVIDE    = #0004)  ! zero divide
+   333        PARAMETER (FPCW$OVERFLOW      = #0008)  ! overflow
+   334        PARAMETER (FPCW$UNDERFLOW     = #0010)  ! underflow
+   335        PARAMETER (FPCW$INEXACT       = #0020)  ! inexact (precision)
+   336  
+   337        PARAMETER (FPCW$MCW_PC        = #0300)  ! precision control mask
+   338        PARAMETER (FPCW$64            = #0300)  ! 64 bits
+   339        PARAMETER (FPCW$53            = #0200)  ! 53 bits
+   340        PARAMETER (FPCW$24            = #0000)  ! 24 bits
+   341  
+   342        PARAMETER (FPCW$MCW_IC        = #1000)  ! infinity control mask
+   343        PARAMETER (FPCW$AFFINE        = #1000)  ! affine
+   344        PARAMETER (FPCW$PROJECTIVE    = #0000)  ! projective
+   345  
+   346        PARAMETER (FPCW$MCW_RC        = #0C00)  ! rounding control mask
+   347        PARAMETER (FPCW$CHOP          = #0C00)  ! chop
+   348        PARAMETER (FPCW$UP            = #0800)  ! up
+   349        PARAMETER (FPCW$DOWN          = #0400)  ! down
+   350        PARAMETER (FPCW$NEAR          = #0000)  ! near
+   351  
+   352        PARAMETER (FPSW$MSW_EM        = #003F)  ! exception mask
+   353        PARAMETER (FPSW$INVALID       = #0001)  ! invalid
+   354        PARAMETER (FPSW$DENORMAL      = #0002)  ! denormal
+   355        PARAMETER (FPSW$ZERODIVIDE    = #0004)  ! zero divide
+   356        PARAMETER (FPSW$OVERFLOW      = #0008)  ! overflow
+   357        PARAMETER (FPSW$UNDERFLOW     = #0010)  ! underflow
+   358        PARAMETER (FPSW$INEXACT       = #0020)  ! inexact (precision)
+   359  
+   360  ! -----------------------------------------------------------------
+   361  ! Random Numbers
+   362  ! -----------------------------------------------------------------
+   363        INTEGER*4 RND$TIMESEED
+   364  
+   365        PARAMETER (RND$TIMESEED = -1)
+   366  
+   367  ! -----------------------------------------------------------------
+   368  ! Drives and Directories
+   369  ! -----------------------------------------------------------------
+   370  
+   371        CHARACTER*1 FILE$CURDRIVE
+   372        INTEGER*4   FILE$MAXNAME
+   373        INTEGER*4   $MAXPATH
+   374  
+   375        PARAMETER (FILE$CURDRIVE = ' ')
+   376        PARAMETER (FILE$MAXNAME = 255)
+   377        PARAMETER ($MAXPATH = 260)
+   378  
+   379  ! -----------------------------------------------------------------
+   380  ! Files
+   381  ! -----------------------------------------------------------------
+   382  
+   383        STRUCTURE / FILE$INFO /
+   384          INTEGER*4       CREATION          ! Creation time (-1 on FAT)
+   385          INTEGER*4       LASTWRITE         ! Last write to file
+   386          INTEGER*4       LASTACCESS        ! Last access (-1 on FAT)
+   387          INTEGER*4       LENGTH            ! Length of file
+   388          INTEGER*2       PERMIT            ! File access mode
+
+                                                                        PAGE  61
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   389          CHARACTER*255   NAME              ! File name
+   390        END STRUCTURE
+   391  
+   392        INTEGER*4 FILE$NORMAL
+   393        INTEGER*4 FILE$READONLY
+   394        INTEGER*4 FILE$HIDDEN
+   395        INTEGER*4 FILE$SYSTEM
+   396        INTEGER*4 FILE$VOLUME
+   397        INTEGER*4 FILE$DIR
+   398        INTEGER*4 FILE$ARCHIVE
+   399        INTEGER*4 FILE$FIRST
+   400        INTEGER*4 FILE$LAST
+   401        INTEGER*4 FILE$ERROR
+   402        INTEGER*4 FILE$INVALID
+   403        INTEGER*4 FILE$CURTIME
+   404  
+   405        PARAMETER (FILE$NORMAL      = #0000)
+   406        PARAMETER (FILE$READONLY    = #0001)
+   407        PARAMETER (FILE$HIDDEN      = #0002)
+   408        PARAMETER (FILE$SYSTEM      = #0004)
+   409        PARAMETER (FILE$VOLUME      = #0008)
+   410        PARAMETER (FILE$DIR         = #0010)
+   411        PARAMETER (FILE$ARCHIVE     = #0020)
+   412  
+   413        PARAMETER (FILE$FIRST       = -1)
+   414        PARAMETER (FILE$LAST        = -2)
+   415        PARAMETER (FILE$ERROR       = -3)
+   416  
+#  417        PARAMETER (FILE$INVALID     = -1) ! For PACKTIMEQQ and UNPACKTIMEQ
+   418        PARAMETER (FILE$CURTIME     = -1) ! For SETFILETIMEQQ
+   419  
+   420  ! -----------------------------------------------------------------
+   421  ! Keyboard
+   422  ! -----------------------------------------------------------------
+   423  
+   424  
+   425  ! -----------------------------------------------------------------
+   426  ! Errors
+   427  ! -----------------------------------------------------------------
+   428  
+   429        INTEGER*4 ERR$ZERO
+   430        INTEGER*4 ERR$PERM
+   431        INTEGER*4 ERR$NOENT
+   432        INTEGER*4 ERR$SRCH
+   433        INTEGER*4 ERR$INTR
+   434        INTEGER*4 ERR$IO
+   435        INTEGER*4 ERR$NXIO
+   436        INTEGER*4 ERR$2BIG
+   437        INTEGER*4 ERR$NOEXEC
+   438        INTEGER*4 ERR$BADF
+   439        INTEGER*4 ERR$CHILD
+   440        INTEGER*4 ERR$AGAIN
+   441        INTEGER*4 ERR$NOMEM
+   442        INTEGER*4 ERR$ACCES
+   443        INTEGER*4 ERR$FAULT
+   444        INTEGER*4 ERR$NOTBLK
+   445        INTEGER*4 ERR$BUSY
+
+                                                                        PAGE  62
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   446        INTEGER*4 ERR$EXIST
+   447        INTEGER*4 ERR$XDEV
+   448        INTEGER*4 ERR$NODEV
+   449        INTEGER*4 ERR$NOTDIR
+   450        INTEGER*4 ERR$ISDIR
+   451        INTEGER*4 ERR$INVAL
+   452        INTEGER*4 ERR$NFILE
+   453        INTEGER*4 ERR$MFILE
+   454        INTEGER*4 ERR$NOTTY
+   455        INTEGER*4 ERR$TXTBSY
+   456        INTEGER*4 ERR$FBIG
+   457        INTEGER*4 ERR$NOSPC
+   458        INTEGER*4 ERR$SPIPE
+   459        INTEGER*4 ERR$ROFS
+   460        INTEGER*4 ERR$MLINK
+   461        INTEGER*4 ERR$PIPE
+   462        INTEGER*4 ERR$DOM
+   463        INTEGER*4 ERR$RANGE
+   464        INTEGER*4 ERR$UCLEAN
+   465        INTEGER*4 ERR$DEADLOCK
+   466  
+   467        PARAMETER (ERR$ZERO         =  0)
+   468        PARAMETER (ERR$PERM         =  1)
+   469        PARAMETER (ERR$NOENT        =  2)
+   470        PARAMETER (ERR$SRCH         =  3)
+   471        PARAMETER (ERR$INTR         =  4)
+   472        PARAMETER (ERR$IO           =  5)
+   473        PARAMETER (ERR$NXIO         =  6)
+   474        PARAMETER (ERR$2BIG         =  7)
+   475        PARAMETER (ERR$NOEXEC       =  8)
+   476        PARAMETER (ERR$BADF         =  9)
+   477        PARAMETER (ERR$CHILD        = 10)
+   478        PARAMETER (ERR$AGAIN        = 11)
+   479        PARAMETER (ERR$NOMEM        = 12)
+   480        PARAMETER (ERR$ACCES        = 13)
+   481        PARAMETER (ERR$FAULT        = 14)
+   482        PARAMETER (ERR$NOTBLK       = 15)
+   483        PARAMETER (ERR$BUSY         = 16)
+   484        PARAMETER (ERR$EXIST        = 17)
+   485        PARAMETER (ERR$XDEV         = 18)
+   486        PARAMETER (ERR$NODEV        = 19)
+   487        PARAMETER (ERR$NOTDIR       = 20)
+   488        PARAMETER (ERR$ISDIR        = 21)
+   489        PARAMETER (ERR$INVAL        = 22)
+   490        PARAMETER (ERR$NFILE        = 23)
+   491        PARAMETER (ERR$MFILE        = 24)
+   492        PARAMETER (ERR$NOTTY        = 25)
+   493        PARAMETER (ERR$TXTBSY       = 26)
+   494        PARAMETER (ERR$FBIG         = 27)
+   495        PARAMETER (ERR$NOSPC        = 28)
+   496        PARAMETER (ERR$SPIPE        = 29)
+   497        PARAMETER (ERR$ROFS         = 30)
+   498        PARAMETER (ERR$MLINK        = 31)
+   499        PARAMETER (ERR$PIPE         = 32)
+   500        PARAMETER (ERR$DOM          = 33)
+   501        PARAMETER (ERR$RANGE        = 34)
+   502        PARAMETER (ERR$UCLEAN       = 35)
+
+                                                                        PAGE  63
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   503        PARAMETER (ERR$DEADLOCK     = 36)
+   504  
+   505        LOGICAL*4 ERR$HARDPROMPT      ! For SETERRORMODEQQ
+   506        LOGICAL*4 ERR$HARDFAIL
+   507  
+   508        PARAMETER (ERR$HARDPROMPT   = .TRUE.)
+   509        PARAMETER (ERR$HARDFAIL     = .FALSE.)
+   510  
+   511  ! ----------------------------------------------------------------
+   512  ! Sorting and Searching Arrays
+   513  ! ----------------------------------------------------------------
+   514  
+   515        INTEGER*4 SRT$REAL4
+   516        INTEGER*4 SRT$REAL8
+   517        INTEGER*4 SRT$INTEGER1
+   518        INTEGER*4 SRT$INTEGER2
+   519        INTEGER*4 SRT$INTEGER4
+   520  
+   521        PARAMETER (SRT$REAL4          = #00010000)
+   522        PARAMETER (SRT$REAL8          = #00020000)
+   523        PARAMETER (SRT$INTEGER1       = #00030000)
+   524        PARAMETER (SRT$INTEGER2       = #00040000)
+   525        PARAMETER (SRT$INTEGER4       = #00050000)
+   526  
+   527  ! ----------------------------------------------------------------
+   528  ! Configuration
+   529  ! ----------------------------------------------------------------
+   530  
+   531        INTEGER*4 CFG$WINNT
+   532        PARAMETER (CFG$WINNT          = #00000001)
+   533  
+   534  
+   535  ! ----------------------------------------------------------------
+   536  ! QuickWin Support
+   537  ! ----------------------------------------------------------------
+   538  $PACK:1
+   539  ! structure for setwindowconfig/getwindowconfig
+   540        STRUCTURE /windowconfig/
+   541          INTEGER*2 numxpixels
+   542          INTEGER*2 numypixels
+   543          INTEGER*2 numtextcols
+   544          INTEGER*2 numtextrows
+   545          INTEGER*2 numcolors
+   546          INTEGER*4 fontsize
+   547          CHARACTER*(80) title
+   548          INTEGER*2 bitsperpixel
+   549          INTEGER*2 numvideopages
+   550          INTEGER*2 mode
+   551          INTEGER*2 adapter
+   552          INTEGER*2 monitor
+   553          INTEGER*2 memory
+   554          INTEGER*2 environment
+   555          CHARACTER*(32) extendfontname
+   556          INTEGER*4 extendfontsize
+   557          INTEGER*4 extendfontattributes
+   558        END STRUCTURE
+   559  $PACK
+
+                                                                        PAGE  64
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   560  
+   561  !     Parameters for APPENDMENUQQ, INSERTMENUQQ, MODIFYMENUFLAGSQQ
+   562        INTEGER*4 $MENUGRAYED, $MENUDISABLED, $MENUENABLED
+   563        INTEGER*4 $MENUSEPARATOR, $MENUCHECKED, $MENUUNCHECKED
+   564        PARAMETER($MENUGRAYED=1)
+   565        PARAMETER($MENUDISABLED=2)
+   566        PARAMETER($MENUENABLED=4)
+   567        PARAMETER($MENUSEPARATOR=8)
+   568        PARAMETER($MENUCHECKED=16)
+   569        PARAMETER($MENUUNCHECKED=32)
+   570  
+   571  ! Clicking on menus.
+   572        INTEGER*4 QWIN$STATUS
+   573        INTEGER*4 QWIN$TILE
+   574        INTEGER*4 QWIN$CASCADE
+   575        INTEGER*4 QWIN$ARRANGE
+   576  
+   577        PARAMETER (QWIN$STATUS  = 1)
+   578        PARAMETER (QWIN$TILE    = 2)
+   579        PARAMETER (QWIN$CASCADE = 3)
+   580        PARAMETER (QWIN$ARRANGE = 4)
+   581  
+   582  ! Extended font information
+   583  
+   584        INTEGER*4 QWIN$EXTENDFONT
+   585        INTEGER*4 QWIN$EXTENDFONT_NORMAL
+   586        INTEGER*4 QWIN$EXTENDFONT_UNDERLINE
+   587        INTEGER*4 QWIN$EXTENDFONT_BOLD
+   588        INTEGER*4 QWIN$EXTENDFONT_ITALIC
+   589  
+   590        PARAMETER (QWIN$EXTENDFONT            =#FFFFFFFE)
+   591        PARAMETER (QWIN$EXTENDFONT_NORMAL     =#80000000)
+   592        PARAMETER (QWIN$EXTENDFONT_BOLD       =#00000001)
+   593        PARAMETER (QWIN$EXTENDFONT_UNDERLINE  =#00000002)
+   594        PARAMETER (QWIN$EXTENDFONT_ITALIC     =#00000004)
+   595  
+   596  ! Size/Move a window
+   597        STRUCTURE /QWINFO/
+   598            INTEGER*2 TYPE          ! request type
+   599            INTEGER*2 X             ! x coordinate for upper left
+   600            INTEGER*2 Y             ! y coordinate for upper left
+   601            INTEGER*2 H             ! window height
+   602            INTEGER*2 W             ! window width
+   603        END STRUCTURE
+   604  
+   605        INTEGER*2 QWIN$MIN
+   606        INTEGER*2 QWIN$MAX
+   607        INTEGER*2 QWIN$RESTORE
+   608        INTEGER*2 QWIN$SET
+   609  
+   610        PARAMETER (QWIN$MIN     = 1)
+   611        PARAMETER (QWIN$MAX     = 2)
+   612        PARAMETER (QWIN$RESTORE = 3)
+   613        PARAMETER (QWIN$SET     = 4)
+   614  
+   615        INTEGER*4 QWIN$FRAMEWINDOW
+   616        INTEGER*4 QWIN$NOACTIVEWINDOW
+
+                                                                        PAGE  65
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   617        PARAMETER (QWIN$FRAMEWINDOW = #80000000) 
+   618        PARAMETER (QWIN$NOACTIVEWINDOW = #C0000000)
+   619  
+   620        INTEGER*4 QWIN$FRAMEMAX
+   621        INTEGER*4 QWIN$FRAMECURR
+   622        INTEGER*4 QWIN$CHILDMAX
+   623        INTEGER*4 QWIN$CHILDCURR
+   624        INTEGER*4 QWIN$SIZEMAX
+   625        INTEGER*4 QWIN$SIZECURR
+   626  
+   627        PARAMETER (QWIN$FRAMEMAX  = 1)
+   628        PARAMETER (QWIN$FRAMECURR = 2)
+   629        PARAMETER (QWIN$CHILDMAX  = 3)
+   630        PARAMETER (QWIN$CHILDCURR = 4)
+   631        PARAMETER (QWIN$SIZEMAX   = 3)
+   632        PARAMETER (QWIN$SIZECURR  = 4)
+   633  
+   634  !Get/Set Exit
+   635        INTEGER*4 QWIN$EXITPROMPT, QWIN$EXITNOPERSIST, QWIN$EXITPERSIST
+   636  
+   637        PARAMETER(QWIN$EXITPROMPT= 1)     ! prompt before exiting
+   638        PARAMETER(QWIN$EXITNOPERSIST= 2)  ! exit immediately
+   639        PARAMETER(QWIN$EXITPERSIST= 3)    ! do not exit appilcation
+   640  
+   641  ! Message Boxes
+   642        INTEGER*4 MB$ABORTRETRYIGNORE
+   643        INTEGER*4 MB$DEFBUTTON1
+   644        INTEGER*4 MB$DEFBUTTON2
+   645        INTEGER*4 MB$DEFBUTTON3
+   646        INTEGER*4 MB$ICONASTERISK
+   647        INTEGER*4 MB$ICONEXCLAMATION
+   648        INTEGER*4 MB$ICONHAND
+   649        INTEGER*4 MB$ICONINFORMATION
+   650        INTEGER*4 MB$ICONQUESTION
+   651        INTEGER*4 MB$ICONSTOP
+   652        INTEGER*4 MB$OK
+   653        INTEGER*4 MB$OKCANCEL
+   654        INTEGER*4 MB$RETRYCANCEL
+   655        INTEGER*4 MB$SYSTEMMODAL
+   656        INTEGER*4 MB$TASKMODAL
+   657        INTEGER*4 MB$YESNO
+   658        INTEGER*4 MB$YESNOCANCEL
+   659  
+   660        PARAMETER (MB$ABORTRETRYIGNORE = #00000002)
+   661        PARAMETER (MB$DEFBUTTON1       = #00000000)
+   662        PARAMETER (MB$DEFBUTTON2       = #00000100)
+   663        PARAMETER (MB$DEFBUTTON3       = #00000200)
+   664        PARAMETER (MB$ICONASTERISK     = #00000040)
+   665        PARAMETER (MB$ICONEXCLAMATION  = #00000030)
+   666        PARAMETER (MB$ICONHAND         = #00000010)
+   667        PARAMETER (MB$ICONINFORMATION  = #00000040)
+   668        PARAMETER (MB$ICONQUESTION     = #00000020)
+   669        PARAMETER (MB$ICONSTOP         = #00000010)
+   670        PARAMETER (MB$OK               = #00000000)
+   671        PARAMETER (MB$OKCANCEL         = #00000001)
+   672        PARAMETER (MB$RETRYCANCEL      = #00000005)
+   673        PARAMETER (MB$SYSTEMMODAL      = #00001000)
+
+                                                                        PAGE  66
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   674        PARAMETER (MB$TASKMODAL        = #00002000)
+   675        PARAMETER (MB$YESNO            = #00000004)
+   676        PARAMETER (MB$YESNOCANCEL      = #00000003)
+   677  
+   678        INTEGER*4 MB$IDOK
+   679        INTEGER*4 MB$IDCANCEL
+   680        INTEGER*4 MB$IDABORT
+   681        INTEGER*4 MB$IDRETRY
+   682        INTEGER*4 MB$IDIGNORE
+   683        INTEGER*4 MB$IDYES
+   684        INTEGER*4 MB$IDNO
+   685  
+   686        PARAMETER (MB$IDOK     = 1)
+   687        PARAMETER (MB$IDCANCEL = 2)
+   688        PARAMETER (MB$IDABORT  = 3)
+   689        PARAMETER (MB$IDRETRY  = 4)
+   690        PARAMETER (MB$IDIGNORE = 5)
+   691        PARAMETER (MB$IDYES    = 6)
+   692        PARAMETER (MB$IDNO     = 7)
+   693  
+   694  ! InitialMenu should not be typed here, so that when InitialMenu is
+#  695  ! defined by the user it can include FLIB.FD.  Nor should it be external
+   696  !     LOGICAL*4 INITIALMENU[EXTERN]
+   697  
+   698  !fi2mod:off
+   699  $endif  ! $if _MSFORTRAN_ .GE. 300
+   700  !fi2mod:on
+   701  
+   702  $endif  ! $if .not. defined(__MSFLIB_FGRAPH_INCLUDE)
+   703  
+    **** End listing of D:\MSDEV\INCLUDE/FLIB.FD
+    18  C     -----------------------------------------------------
+    19  C     General Form of WaveFunction:
+    20  C
+    21  C     psi=Exp(A1*|rA1|**2)Exp(A2*|rB2|**2)Exp(B12*|r12|**2)
+    22  C     -----------------------------------------------------
+    23  C     =============================================
+    24  C     READ FROM 'h2.in':
+    25  C     =============================================
+    26  C      CALL BIOUT('READING (h2.in) Gaussian Geminal Data...')
+    27  C      CALL BIOUT(' ')
+    28  C      CALL BIOUT('     AA1               AA2               B12'
+    29  C     1)
+#   30  C      CALL BIOUT('     ------------------------------------------------
+    31  C     1-----')
+    32  C      CALL BIOUT(' ')
+    33  C      OPEN(5, FILE='h2.in')
+    34  C      I=1
+    35  C 5207  IF (I .LE. M) THEN
+    36  C            READ(5,*) TEMP1
+    37  C            RX1(I)=TEMP1
+    38  C            READ(5,*) TEMP1
+    39  C            RY1(I)=TEMP1
+    40  C            READ(5,*) TEMP1
+    41  C            RZ1(I)=TEMP1
+    42  CC
+    43  C            READ(5,*) TEMP1
+
+                                                                        PAGE  67
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    44  C            RX2(I)=TEMP1
+    45  C            READ(5,*) TEMP1
+    46  C            RY2(I)=TEMP1
+    47  C            READ(5,*) TEMP1
+    48  C            RZ2(I)=TEMP1
+    49  CC
+    50  C            READ(5,*) TEMP1
+    51  C            READ(5,*) TEMP2
+    52  C            A1(I)=TEMP1
+    53  C            A2(I)=TEMP1
+    54  C            B12(I)=TEMP2
+    55  C          WRITE(7,709) A1(I),A2(I),B12(I)
+    56  C          WRITE(6,709) A1(I),A2(I),B12(I)
+    57  C          I=I+1
+    58  C      GOTO 5207
+    59  C      END IF
+    60  C      CALL BIOUT(' ')
+    61  C
+    62  C
+    63  C
+    64  C     =============================================
+    65  C     RANDOMLY GENERATED PARAMETERS:
+    66  C     =============================================
+    67  	IF (METHOD.EQ.1) THEN
+    68       		CALL BIOUT('GENERATING RANDOM GAUSSIAN GEMINAL DATA...')
+    69  		CALL BIOUT(' ')
+    70  		I=1
+    71  		CALL SEED(RND$TIMESEED)
+    72  	CALL BIOUT('      T1                T2               T12
+    73  	-    LinCoeff.')
+    74        CALL BIOUT('     -------------------------------------------------
+    75       --------------------------')
+    76  C
+    77  	POINT=1.00D-12
+    78        DO I=1,M
+    79  	    CALL RANDOM(TEMP)
+    80  			TEMP1=DBLE(TEMP)*1.0D-01
+    81            CALL RANDOM(TEMP)
+    82  			TEMP2=DBLE(TEMP)*1.0D-01
+    83            CALL RANDOM(TEMP)
+    84  			TEMP3=DBLE(TEMP)*1.0D-12
+    85  c	A1(I)=TEMP1*10**((8.089714D+00*EXP(-POINT**2 /2/(2.3/3)**2)-
+    86  c	-3.089714)/3)
+    87  c	A2(I)=TEMP2*10**((8.089714D+00*EXP(-POINT**2 /2/(2.3/3)**2)-
+    88  c	-3.089714)/3)
+    89  	A1=TEMP1
+    90  	A2=TEMP2
+    91  C				B12(I)=1.00D-8
+    92  				B12(I)=TEMP3
+    93  C          CALL RANDOM(TEMP)
+    94  C			TEMP1=DBLE(TEMP)*1.0D-02
+    95  C				A2(I)=I+(TEMP1/I)
+    96  		RZ1(I)=0.700D+00
+    97  		RZ2(I)=-0.700D+00
+    98  		POINT=POINT+1.00D+00/M
+    99  				RX1(I)=0.0D+00
+   100  				RX2(I)=0.0D+00
+
+                                                                        PAGE  68
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   101  				RY1(I)=0.0D+00
+   102  				RY2(I)=0.0D+00
+   103  		CALL RANDOM(TEMP)
+   104  			EVEC(I)=DBLE(TEMP)*1.0D-02
+   105  				WRITE(6,709)A1(I),A2(I),B12(I),EVEC(I),RZ1(I),RZ2(I)
+   106  				WRITE(7,709)A1(I),A2(I),B12(I),EVEC(I),RZ1(I),RZ2(I)
+   107        END DO
+   108  	CALL BIOUT(' ')
+   109  	END IF
+   110  C     =============================================
+   111  C     HARD-CODED PARAMETERS:
+   112  C     =============================================
+   113  C      A1(1)=.160235037618
+   114  C      RX1(1)=0.0D+00
+   115  C      RY1(1)=0.0D+00
+   116  C      RZ1(1)=1.011036314027
+   117  C      A2(1)=.350880170955
+   118  C      RX2(1)=0.0D+00
+   119  C      RY2(1)=0.0D+00
+   120  C      RZ2(1)=-.063892060873
+   121  C      B12(1)=-.018048129548
+   122  C
+   123  CC
+   124  C      A1(2)=.296378877724
+   125  C      RX1(2)=0.0D+00 
+   126  C      RY1(2)=0.0D+00
+   127  C      RZ1(2)=.051541492960
+   128  C      A2(2)=1.151304709732
+   129  C      RX2(2)=0.0D+00 
+   130  C      RY2(2)=0.0D+00
+   131  C      RZ2(2)=-.598756422434
+   132  C      B12(2)= -.056849064138
+   133  C
+   134  CC
+   135  C      A1(3)=.929110466028
+   136  C      RX1(3)=0.0D+00 
+   137  C      RY1(3)=0.0D+00
+   138  C      RZ1(3)=.661673616984
+   139  C      A2(3)=3.457894696749
+   140  C      RX2(3)=0.0D+00
+   141  C      RY2(3)=0.0D+00
+   142  C      RZ2(3)=-.698358442171
+   143  C      B12(3)=-.032480513174
+   144  C
+   145  C	EVEC(1)=0.1234D+00
+   146  C	EVEC(2)=0.2345D+00
+   147  C	EVEC(3)=0.3456D+00
+   148  CC
+   149  C      A1(4)=.089838780145
+   150  C      RX1(4)=0.0D+00
+   151  C      RY1(4)=0.0D+00
+   152  C      RZ1(4)=.904358319677
+   153  C      A2(4)=8.592120547377
+   154  C      RX2(4)=0.0D+00 
+   155  C      RY2(4)=0.0D+00
+   156  C      RZ2(4)=-.687430054083
+   157  C      B12(4)=.088393827404
+
+                                                                        PAGE  69
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   158  CC
+   159  C      A1(5)=-.160198996335
+   160  C      RX1(5)=0.0D+00
+   161  C      RY1(5)=0.0D+00
+   162  C      RZ1(5)=-.105970239485
+   163  C      A2(5)=131.528440491213
+   164  C      RX2(5)=0.0D+00
+   165  C      RY2(5)=0.0D+00
+   166  C      RZ2(5)=-.684271209383
+   167  C      B12(5)=.611556470151
+   168  CC
+   169  C      A1(6)=.21187121D+00
+   170  C      RX1(6)=0.0D+00
+   171  C      RY1(6)=0.0D+00
+   172  C      RZ1(6)=0.7D+00
+   173  C      A2(6)=.21187121D+00
+   174  C      RX2(6)=0.0D+00
+   175  C      RY2(6)=0.0D+00
+   176  C      RZ2(6)=-0.7D+00
+   177  C      B12(6)=.14772309D+00
+   178  CC
+   179  C      A1(7)=0.01D+00
+   180  C      RX1(7)=0.0 D+00
+   181  C      RY1(7)=0.0D+00
+   182  C      RZ1(7)=0.7D+00
+   183  C      A2(7)=0.01D+00
+   184  C      RX2(7)=0.0D+00
+   185  C      RY2(7)=0.0D+00
+   186  C      RZ2(7)=-0.7D+00
+   187  C      B12(7)=0.0008D+00
+   188  CC
+   189  C      A1(8)=27.0D+00
+   190  C      RX1(8)=0.0 D+00
+   191  C      RY1(8)=0.0D+00
+   192  C      RZ1(8)=0.7D+00
+   193  C      A2(8)=27.0D+00
+   194  C      RX2(8)=0.0D+00
+   195  C      RY2(8)=0.0D+00
+   196  C      RZ2(8)=-0.7D+00
+   197  C      B12(8)=0.2777D+00
+   198  CC
+   199  C      A1(9)=3.0D+00
+   200  C      RX1(9)=0.0 D+00
+   201  C      RY1(9)=0.0D+00
+   202  C      RZ1(9)=0.7D+00
+   203  C      A2(9)=3.0D+00
+   204  C      RX2(9)=0.0D+00
+   205  C      RY2(9)=0.0D+00
+   206  C      RZ2(9)=-0.7D+00
+   207  C      B12(9)=0.0003D+00
+   208  CC
+   209  C      A1(10)=4000.0D+00
+   210  C      RX1(10)=0.0 D+00
+   211  C      RY1(10)=0.0D+00
+   212  C      RZ1(10)=0.7D+00
+   213  C      A2(10)=4000.0D+00
+   214  C      RX2(10)=0.0D+00
+
+                                                                        PAGE  70
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   215  C      RY2(10)=0.0D+00
+   216  C      RZ2(10)=-0.7D+00
+   217  C      B12(10)=12.47D+00
+   218  C     =============================================
+   219  C
+   220  C     -----------------------------------------------------
+   221  C     FORMAT(s):
+   222  C     -----------------------------------------------------
+   223   709  FORMAT(6E18.8)
+   224  C
+   225        RETURN
+   226        END
+GUESS@48  Local symbols
+Name                      Class              Type           Size
+
+
+$MAXPATH. . . . . . . . . const              INTEGER*4         4
+$MENUCHECKED. . . . . . . const              INTEGER*4         4
+$MENUDISABLED . . . . . . const              INTEGER*4         4
+$MENUENABLED. . . . . . . const              INTEGER*4         4
+$MENUGRAYED . . . . . . . const              INTEGER*4         4
+$MENUSEPARATOR. . . . . . const              INTEGER*4         4
+$MENUUNCHECKED. . . . . . const              INTEGER*4         4
+A1. . . . . . . . . . . . param                                4
+A2. . . . . . . . . . . . param                                4
+B12 . . . . . . . . . . . param                                4
+BD. . . . . . . . . . . . const              REAL*8            8
+CFG$WINNT . . . . . . . . const              INTEGER*4         4
+ERR$2BIG. . . . . . . . . const              INTEGER*4         4
+ERR$ACCES . . . . . . . . const              INTEGER*4         4
+ERR$AGAIN . . . . . . . . const              INTEGER*4         4
+ERR$BADF. . . . . . . . . const              INTEGER*4         4
+ERR$BUSY. . . . . . . . . const              INTEGER*4         4
+ERR$CHILD . . . . . . . . const              INTEGER*4         4
+ERR$DEADLOCK. . . . . . . const              INTEGER*4         4
+ERR$DOM . . . . . . . . . const              INTEGER*4         4
+ERR$EXIST . . . . . . . . const              INTEGER*4         4
+ERR$FAULT . . . . . . . . const              INTEGER*4         4
+ERR$FBIG. . . . . . . . . const              INTEGER*4         4
+ERR$HARDFAIL. . . . . . . const              INTEGER*4         4
+ERR$HARDPROMPT. . . . . . const              INTEGER*4         4
+ERR$INTR. . . . . . . . . const              INTEGER*4         4
+ERR$INVAL . . . . . . . . const              INTEGER*4         4
+ERR$IO. . . . . . . . . . const              INTEGER*4         4
+ERR$ISDIR . . . . . . . . const              INTEGER*4         4
+ERR$MFILE . . . . . . . . const              INTEGER*4         4
+ERR$MLINK . . . . . . . . const              INTEGER*4         4
+ERR$NFILE . . . . . . . . const              INTEGER*4         4
+ERR$NODEV . . . . . . . . const              INTEGER*4         4
+ERR$NOENT . . . . . . . . const              INTEGER*4         4
+ERR$NOEXEC. . . . . . . . const              INTEGER*4         4
+ERR$NOMEM . . . . . . . . const              INTEGER*4         4
+ERR$NOSPC . . . . . . . . const              INTEGER*4         4
+ERR$NOTBLK. . . . . . . . const              INTEGER*4         4
+ERR$NOTDIR. . . . . . . . const              INTEGER*4         4
+ERR$NOTTY . . . . . . . . const              INTEGER*4         4
+ERR$NXIO. . . . . . . . . const              INTEGER*4         4
+
+                                                                        PAGE  71
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GUESS@48  Local symbols
+Name                      Class              Type           Size
+
+
+ERR$PERM. . . . . . . . . const              INTEGER*4         4
+ERR$PIPE. . . . . . . . . const              INTEGER*4         4
+ERR$RANGE . . . . . . . . const              INTEGER*4         4
+ERR$ROFS. . . . . . . . . const              INTEGER*4         4
+ERR$SPIPE . . . . . . . . const              INTEGER*4         4
+ERR$SRCH. . . . . . . . . const              INTEGER*4         4
+ERR$TXTBSY. . . . . . . . const              INTEGER*4         4
+ERR$UCLEAN. . . . . . . . const              INTEGER*4         4
+ERR$XDEV. . . . . . . . . const              INTEGER*4         4
+ERR$ZERO. . . . . . . . . const              INTEGER*4         4
+EVEC. . . . . . . . . . . param                                4
+FILE$ARCHIVE. . . . . . . const              INTEGER*4         4
+FILE$CURDRIVE . . . . . . const              MULTI*1           1
+FILE$CURTIME. . . . . . . const              INTEGER*4         4
+FILE$DIR. . . . . . . . . const              INTEGER*4         4
+FILE$ERROR. . . . . . . . const              INTEGER*4         4
+FILE$FIRST. . . . . . . . const              INTEGER*4         4
+FILE$HIDDEN . . . . . . . const              INTEGER*4         4
+FILE$INVALID. . . . . . . const              INTEGER*4         4
+FILE$LAST . . . . . . . . const              INTEGER*4         4
+FILE$MAXNAME. . . . . . . const              INTEGER*4         4
+FILE$NORMAL . . . . . . . const              INTEGER*4         4
+FILE$READONLY . . . . . . const              INTEGER*4         4
+FILE$SYSTEM . . . . . . . const              INTEGER*4         4
+FILE$VOLUME . . . . . . . const              INTEGER*4         4
+FPE$DENORMAL. . . . . . . const              INTEGER*4         4
+FPE$EXPLICITGEN . . . . . const              INTEGER*4         4
+FPE$INEXACT . . . . . . . const              INTEGER*4         4
+FPE$INVALID . . . . . . . const              INTEGER*4         4
+FPE$OVERFLOW. . . . . . . const              INTEGER*4         4
+FPE$SQRTNEG . . . . . . . const              INTEGER*4         4
+FPE$STACKOVERFLOW . . . . const              INTEGER*4         4
+FPE$STACKUNDERFLOW. . . . const              INTEGER*4         4
+FPE$UNDERFLOW . . . . . . const              INTEGER*4         4
+FPE$UNEMULATED. . . . . . const              INTEGER*4         4
+FPE$ZERODIVIDE. . . . . . const              INTEGER*4         4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MB$ABORTRETRYIGNORE . . . const              INTEGER*4         4
+MB$DEFBUTTON1 . . . . . . const              INTEGER*4         4
+MB$DEFBUTTON2 . . . . . . const              INTEGER*4         4
+MB$DEFBUTTON3 . . . . . . const              INTEGER*4         4
+MB$ICONASTERISK . . . . . const              INTEGER*4         4
+MB$ICONEXCLAMATION. . . . const              INTEGER*4         4
+MB$ICONHAND . . . . . . . const              INTEGER*4         4
+MB$ICONINFORMATION. . . . const              INTEGER*4         4
+MB$ICONQUESTION . . . . . const              INTEGER*4         4
+MB$ICONSTOP . . . . . . . const              INTEGER*4         4
+MB$IDABORT. . . . . . . . const              INTEGER*4         4
+MB$IDCANCEL . . . . . . . const              INTEGER*4         4
+MB$IDIGNORE . . . . . . . const              INTEGER*4         4
+MB$IDNO . . . . . . . . . const              INTEGER*4         4
+
+                                                                        PAGE  72
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GUESS@48  Local symbols
+Name                      Class              Type           Size
+
+
+MB$IDOK . . . . . . . . . const              INTEGER*4         4
+MB$IDRETRY. . . . . . . . const              INTEGER*4         4
+MB$IDYES. . . . . . . . . const              INTEGER*4         4
+MB$OK . . . . . . . . . . const              INTEGER*4         4
+MB$OKCANCEL . . . . . . . const              INTEGER*4         4
+MB$RETRYCANCEL. . . . . . const              INTEGER*4         4
+MB$SYSTEMMODAL. . . . . . const              INTEGER*4         4
+MB$TASKMODAL. . . . . . . const              INTEGER*4         4
+MB$YESNO. . . . . . . . . const              INTEGER*4         4
+MB$YESNOCANCEL. . . . . . const              INTEGER*4         4
+METHOD. . . . . . . . . . param                                4
+MTH$E_DOMAIN. . . . . . . const              INTEGER*4         4
+MTH$E_OVERFLOW. . . . . . const              INTEGER*4         4
+MTH$E_PLOSS . . . . . . . const              INTEGER*4         4
+MTH$E_SINGULARITY . . . . const              INTEGER*4         4
+MTH$E_TLOSS . . . . . . . const              INTEGER*4         4
+MTH$E_UNDERFLOW . . . . . const              INTEGER*4         4
+POINT . . . . . . . . . . local              REAL*8            8
+QWIN$ARRANGE. . . . . . . const              INTEGER*4         4
+QWIN$CASCADE. . . . . . . const              INTEGER*4         4
+QWIN$CHILDCURR. . . . . . const              INTEGER*4         4
+QWIN$CHILDMAX . . . . . . const              INTEGER*4         4
+QWIN$EXITNOPERSIST. . . . const              INTEGER*4         4
+QWIN$EXITPERSIST. . . . . const              INTEGER*4         4
+QWIN$EXITPROMPT . . . . . const              INTEGER*4         4
+QWIN$EXTENDFONT . . . . . const              INTEGER*4         4
+QWIN$EXTENDFONT_BOLD. . . const              INTEGER*4         4
+QWIN$EXTENDFONT_ITALIC. . const              INTEGER*4         4
+QWIN$EXTENDFONT_NORMAL. . const              INTEGER*4         4
+QWIN$EXTENDFONT_UNDERLINE const              INTEGER*4         4
+QWIN$FRAMECURR. . . . . . const              INTEGER*4         4
+QWIN$FRAMEMAX . . . . . . const              INTEGER*4         4
+QWIN$FRAMEWINDOW. . . . . const              INTEGER*4         4
+QWIN$NOACTIVEWINDOW . . . const              INTEGER*4         4
+QWIN$SIZECURR . . . . . . const              INTEGER*4         4
+QWIN$SIZEMAX. . . . . . . const              INTEGER*4         4
+QWIN$STATUS . . . . . . . const              INTEGER*4         4
+QWIN$TILE . . . . . . . . const              INTEGER*4         4
+RND$TIMESEED. . . . . . . const              INTEGER*4         4
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+SIG$ABORT . . . . . . . . const              INTEGER*4         4
+SIG$BREAK . . . . . . . . const              INTEGER*4         4
+SIG$ERR . . . . . . . . . const              INTEGER*4         4
+SIG$FPE . . . . . . . . . const              INTEGER*4         4
+SIG$ILL . . . . . . . . . const              INTEGER*4         4
+SIG$INT . . . . . . . . . const              INTEGER*4         4
+SIG$NSIG. . . . . . . . . const              INTEGER*4         4
+
+                                                                        PAGE  73
+                                                                        04-26-96
+                                                                        21:54:35
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GUESS@48  Local symbols
+Name                      Class              Type           Size
+
+
+SIG$SEGV. . . . . . . . . const              INTEGER*4         4
+SIG$TERM. . . . . . . . . const              INTEGER*4         4
+SIG$USR1. . . . . . . . . const              INTEGER*4         4
+SIG$USR2. . . . . . . . . const              INTEGER*4         4
+SIG$USR3. . . . . . . . . const              INTEGER*4         4
+SRT$INTEGER1. . . . . . . const              INTEGER*4         4
+SRT$INTEGER2. . . . . . . const              INTEGER*4         4
+SRT$INTEGER4. . . . . . . const              INTEGER*4         4
+SRT$REAL4 . . . . . . . . const              INTEGER*4         4
+SRT$REAL8 . . . . . . . . const              INTEGER*4         4
+TEMP. . . . . . . . . . . local              REAL*4            4
+TEMP1 . . . . . . . . . . local              REAL*8            8
+TEMP2 . . . . . . . . . . local              REAL*8            8
+TEMP3 . . . . . . . . . . local              REAL*8            8
+TY$CMPLX16. . . . . . . . const              INTEGER*4         4
+TY$CMPLX8 . . . . . . . . const              INTEGER*4         4
+TY$REAL4. . . . . . . . . const              INTEGER*4         4
+TY$REAL8. . . . . . . . . const              INTEGER*4         4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+$$MSFLIB$RANDOM@4 . . . . extern             ***             ***
+BIOUT@8 . . . . . . . . . extern             ***             ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GUESS@48. . . . . . . . . FUNCT              ***             ***
+MAKE_INFO . . . . . . . . extern             ***             ***
+SEED@4. . . . . . . . . . extern             ***             ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

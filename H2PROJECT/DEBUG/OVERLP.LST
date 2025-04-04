@@ -1,0 +1,202 @@
+
+                                                                        PAGE   1
+                                                                        05-02-96
+                                                                        15:17:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     2  C     -----------------------------------------------------
+     3        SUBROUTINE OVERLP(M,DFLAG,AX,AY,AZ,A1,BX,BY,BZ,A2,                
+     4       1                  CX,CY,CZ,A3,DX,DY,DZ,A4,
+     5       2                  A5,A6,OV,KLM) 
+     6  C     ----------------------------------------------------- 
+     7        IMPLICIT REAL*8 (A-H,O-Z)
+     8  	REAL*8 DETSL,DETSK,CCL,CCK
+     9  	INTEGER M,DFLAG
+    10  	COMMON /DOV/ DOVDA1,DOVDA2,DOVDA5,DOVDAZ,DOVDBZ
+    11  
+    12  C     -----------------------------------------------------
+    13        DATA ONE,TWO,THREE,FOUR,FIVE,SIX,EIGHT/1.,2.,3.,4.,5.,6.,8./
+    14  	DATA HALF/0.5/
+    15  C     -----------------------------------------------------
+    16  		ALK1=2.0D+00*A1
+    17  		ALK2=2.0D+00*A3                                                       
+    18  		BLK12=2.0D+00*A5  
+    19  		DETSL=(ALK1*ALK2)+((ALK1+ALK2)*BLK12)
+    20  	    CCL=8*A1*A3*A5*((AZ-CZ)**2)/DETSL
+    21  C
+    22  		ALK1=2.0D+00*A2
+    23  		ALK2=2.0D+00*A4                                                       
+    24  		BLK12=2.0D+00*A6 
+    25  		DETSK=(ALK1*ALK2)+((ALK1+ALK2)*BLK12)
+    26  	    CCK=8*A2*A4*A6*((BZ-DZ)**2)/DETSK
+    27  C     -----------------------------------------------------
+    28        ALK1=A1+A2
+    29        ALK2=A3+A4                                                       
+    30        BLK12=A5+A6  
+    31        DETAB=ALK1*ALK2+(ALK1+ALK2)*BLK12
+    32  C
+    33        IF(DETAB.LE.ZERO) GOTO 300
+    34  C     -----------------------------------------------------
+    35  	OV=(DABS(DSQRT(DABS(DSQRT(DETSL**3.0D+00)))) *
+    36  	-	DABS(DSQRT(DABS(DSQRT(DETSK**3.0D+00))))) /
+    37  	-	(DETAB*DSQRT(DETAB))
+    38  C     -----------------------------------------------------
+    39  	AB2=(AX-BX)**2 + (AY-BY)**2 + (AZ-BZ)**2
+    40  	CD2=(CX-DX)**2 + (CY-DY)**2 + (CZ-DZ)**2
+    41        RX1=(A1*AX+A2*BX)/ALK1
+    42        RX2=(A3*CX+A4*DX)/ALK2
+    43        RY1=(A1*AY+A2*BY)/ALK1
+    44        RY2=(A3*CY+A4*DY)/ALK2
+    45        RZ1=(A1*AZ+A2*BZ)/ALK1
+    46        RZ2=(A3*CZ+A4*DZ)/ALK2
+    47  C
+    48        DD=((RX1-RX2)**2)+((RY1-RY2)**2)+((RZ1-RZ2)**2)
+    49  C
+    50  	CKL=(((A1*A2)/ALK1)*((AX-BX)**2+(AY-BY)**2+(AZ-BZ)**2)+((A3*A4
+    51  	-)/ALK2)*((CX-DX)**2+(CY-DY)**2+(CZ-DZ)**2)+((ALK1*ALK2*BLK12)*DD/D
+    52       -ETAB))
+    53  C
+    54  	XK=EXP(-CKL+((CCK+CCL)/2.0D+00))
+    55  C     -----------------------------------------------------
+    56        OV=OV*XK
+    57  C     -----------------------------------------------------
+
+                                                                        PAGE   2
+                                                                        05-02-96
+                                                                        15:17:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58  C	 DERIVATIVES OF THE OVERLAP:
+    59  C     -----------------------------------------------------
+    60  	IF (DFLAG .EQ. 1) THEN
+    61  C
+    62        DOVDA1=OV*(-(AB2*A2/ALK1)+AB2*A1*A2/ALK1**2.0D+00+ALK1*ALK2*BLK12*
+    63  	-(ALK2+BLK12)*DD/DETAB**2.0D+00-ALK2*BLK12*DD/DETAB+(-8.0D+00*A1*A3
+    64       -*A5*(4.0D+00*A3+4.0D+00*A5)*(AZ-CZ)**2.0D+00/DETSL**2.0D+00+8.0D
+    65       -+00*A3*A5*(AZ-CZ)**2.0D+00/DETSL)/2.0D+00-ALK1*ALK2*BLK12*(2.0D+
+    66       -00*(AX/ALK1-(AX*A1+A2*BX)/ALK1**2.0D+00)*(RX1-RX2)+2.0D+00*(AY/ALK
+    67       -1-(AY*A1+A2*BY)/ALK1**2.0D+00)*(RY1-RY2)+2.0D+00*(AZ/ALK1-(AZ*A1+A
+    68       -2*BZ)/ALK1**2.0D+00)*(RZ1-RZ2))/DETAB)+3.0D+00*(4.0D+00*A3+4.0D+00
+    69       -*A5)*DETSK**(3.0D+00/4.0D+00)*XK/(4.0D+00*DETAB**(3.0D+00/2.0D+0
+    70       -0)*DETSL**(1.0D+00/4.0D+00))-3.0D+00*(ALK2+BLK12)*DETSK**(3.0D
+    71       -+00/4.0D+00)*DETSL**(3.0D+00/4.0D+00)*XK/(2.0D+00*DETAB**(5.0D+0
+    72       -0/2.0D+00))
+    73  C
+    74  	DOVDA2=OV*(-(A4*CD2/ALK2)+A3*A4*CD2/ALK2**2.0D+00+ALK1*ALK2*BLK12*
+    75  	-(ALK1+BLK12)*DD/DETAB**2.0D+00-ALK1*BLK12*DD/DETAB+(-8.0D+00*A1*A3
+    76       -*A5*(4.0D+00*A1+4.0D+00*A5)*(AZ-CZ)**2.0D+00/DETSL**2.0D+00+8.0D
+    77       -+00*A1*A5*(AZ-CZ)**2.0D+00/DETSL)/2.0D+00-ALK1*ALK2*BLK12*(2.0D+
+    78       -00*(-(CX/ALK2)+(A3*CX+A4*DX)/ALK2**2.0D+00)*(RX1-RX2)+2.0D+00*(-(C
+    79       -Y/ALK2)+(A3*CY+A4*DY)/ALK2**2.0D+00)*(RY1-RY2)+2.0D+00*(-(CZ/ALK2)
+    80       -+(A3*CZ+A4*DZ)/ALK2**2.0D+00)*(RZ1-RZ2))/DETAB)+3.0D+00*(4.0D+00*A
+    81       -1+4.0D+00*A5)*DETSK**(3.0D+00/4.0D+00)*XK/(4.0D+00*DETAB**(3.0D+
+    82       -00/2.0D+00)*DETSL**(1.0D+00/4.0D+00))-3.0D+00*(ALK1+BLK12)*DETSK
+    83       -**(3.0D+00/4.0D+00)*DETSL**(3.0D+00/4.0D+00)*XK/(2.0D+00*DETAB
+    84       -**(5.0D+00/2.0D+00))
+    85  C
+    86  	DOVDA5=(ALK1*ALK2*(ALK1+ALK2)*BLK12*DD/DETAB**2.0D+00-ALK1*ALK2*DD
+    87  	-/DETAB+(-16.0D+00*A1*A3*(2.0D+00*A1+2.0D+00*A3)*A5*(AZ-CZ)**2.0D+0
+    88       -0/DETSL**2.0D+00+8.0D+00*A1*A3*(AZ-CZ)**2.0D+00/DETSL)/2.0D+00
+    89       -)*OV+3.0D+00*(2.0D+00*A1+2.0D+00*A3)*DETSK**(3.0D+00/4.0D+00)*XK
+    90       -/(2.0D+00*DETAB**(3.0D+00/2.0D+00)*DETSL**(1.0D+00/4.0D+00))-3.0
+    91       -D+00*(ALK1+ALK2)*DETSK**(3.0D+00/4.0D+00)*DETSL**(3.0D+00/4.0D
+    92       -+00)*XK/(2.0D+00*DETAB**(5.0D+00/2.0D+00))
+    93  C
+    94  	DOVDAZ=OV*(-2.0D+00*A1*A2*(AZ-BZ)/ALK1+8.0D+00*A1*A3*A5*(AZ-CZ)/DE
+    95  	-TSL-2.0D+00*ALK2*A1*BLK12*(RZ1-RZ2)/DETAB)
+    96  C
+    97  	DOVDBZ=OV*(-8.0D+00*A1*A3*A5*(AZ-CZ)/DETSL-2.0D+00*A3*A4*(CZ-DZ)
+    98  	-/ALK2+2.0D+00*ALK1*A3*BLK12*(RZ1-RZ2)/DETAB)
+    99  C     -----------------------------------------------------
+   100        GOTO 1500
+   101  C     -----------------------------------------------------
+   102  300   KLM=5
+   103  C     -----------------------------------------------------
+   104  1500  END IF
+   105  
+   106  
+   107  c	WRITE(6,*) OV
+   108  
+   109  	RETURN                                                            
+   110        END
+                                                                        PAGE   3
+                                                                        05-02-96
+                                                                        15:17:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+OVERLP@88  Local symbols
+Name                      Class              Type           Size
+
+
+/DOV/ . . . . . . . . . . DOV(0)             MULTI*40         40
+A1. . . . . . . . . . . . param                                4
+A2. . . . . . . . . . . . param                                4
+A3. . . . . . . . . . . . param                                4
+A4. . . . . . . . . . . . param                                4
+A5. . . . . . . . . . . . param                                4
+A6. . . . . . . . . . . . param                                4
+AB2 . . . . . . . . . . . local              REAL*8            8
+ALK1. . . . . . . . . . . local              REAL*8            8
+ALK2. . . . . . . . . . . local              REAL*8            8
+AX. . . . . . . . . . . . param                                4
+AY. . . . . . . . . . . . param                                4
+AZ. . . . . . . . . . . . param                                4
+BLK12 . . . . . . . . . . local              REAL*8            8
+BX. . . . . . . . . . . . param                                4
+BY. . . . . . . . . . . . param                                4
+BZ. . . . . . . . . . . . param                                4
+CCK . . . . . . . . . . . local              REAL*8            8
+CCL . . . . . . . . . . . local              REAL*8            8
+CD2 . . . . . . . . . . . local              REAL*8            8
+CKL . . . . . . . . . . . local              REAL*8            8
+CX. . . . . . . . . . . . param                                4
+CY. . . . . . . . . . . . param                                4
+CZ. . . . . . . . . . . . param                                4
+DD. . . . . . . . . . . . local              REAL*8            8
+DETAB . . . . . . . . . . local              REAL*8            8
+DETSK . . . . . . . . . . local              REAL*8            8
+DETSL . . . . . . . . . . local              REAL*8            8
+DFLAG . . . . . . . . . . param                                4
+DOVDA1. . . . . . . . . . DOV(0)             REAL*8            8
+DOVDA2. . . . . . . . . . DOV(8)             REAL*8            8
+DOVDA5. . . . . . . . . . DOV(16)            REAL*8            8
+DOVDAZ. . . . . . . . . . DOV(24)            REAL*8            8
+DOVDBZ. . . . . . . . . . DOV(32)            REAL*8            8
+DX. . . . . . . . . . . . param                                4
+DY. . . . . . . . . . . . param                                4
+DZ. . . . . . . . . . . . param                                4
+KLM . . . . . . . . . . . param                                4
+M . . . . . . . . . . . . param                                4
+OV. . . . . . . . . . . . param                                4
+RX1 . . . . . . . . . . . local              REAL*8            8
+RX2 . . . . . . . . . . . local              REAL*8            8
+RY1 . . . . . . . . . . . local              REAL*8            8
+RY2 . . . . . . . . . . . local              REAL*8            8
+RZ1 . . . . . . . . . . . local              REAL*8            8
+RZ2 . . . . . . . . . . . local              REAL*8            8
+XK. . . . . . . . . . . . local              REAL*8            8
+ZERO. . . . . . . . . . . local              REAL*8            8
+
+
+
+                                                                        PAGE   4
+                                                                        05-02-96
+                                                                        15:17:05
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+DOV . . . . . . . . . . . common             ***              40
+OVERLP@88 . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

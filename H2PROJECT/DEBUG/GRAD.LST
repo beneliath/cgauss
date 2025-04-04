@@ -1,0 +1,419 @@
+
+                                                                        PAGE   1
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE GRAD(M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,
+     2       1                RZ2,B12,S,H,CO,G)	
+     3        IMPLICIT REAL*8 (A-H,O-Z)
+     4        PARAMETER(MMAX=50)
+     5        DIMENSION 
+     6       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+     7       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+     8       3         B12(MMAX)
+     9        DIMENSION S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX) 
+    10  C ---  FOR grdient
+    11        DIMENSION GSA1(MMAX,MMAX),GSA2(MMAX,MMAX),GSB(MMAX,MMAX),
+    12       1          GSR1(MMAX,MMAX),GSR2(MMAX,MMAX),DELTA(100,100),
+    13       2          GHA1(MMAX,MMAX),GHA2(MMAX,MMAX),GHB(MMAX,MMAX),
+    14       1          GHR1(MMAX,MMAX),GHR2(MMAX,MMAX),G(5*MMAX)
+    15        COMMON /NORM/ SNORM(Mmax,Mmax)
+    16        COMMON /VALUE/ EMIN
+    17  C
+    18  C  -- MMAX - MAX. LENGTH OF EXPANSION --
+    19  C
+    20        DATA ONE,TWO,FOUR,SIX,EIGHT,HALF/1.,2.,4.,6.,8.,.5/               
+    21  C --- DATA ---
+    22        DO 20 IL=1,100
+    23        DO 20 IK=1,100
+    24        DELTA(IL,IK)=0.0
+    25  20    CONTINUE
+    26        DO 11 II=1,100
+    27        DELTA(II,II)=1.0 
+    28  11    CONTINUE
+    29  C
+    30  C      DO 10 L=1,M
+    31  C      CALL GEMPRT(L,
+    32  C     1            AA1(L),RX1(L),RY1(L),RZ1(L),
+    33  C     2            AA2(L),RX2(L),RY2(L),RZ2(L),
+    34  C     3                                       B12(L))
+    35  C10    CONTINUE
+    36        CALL GEOM(EX1,EY1,EZ1,EX2,EY2,EZ2)
+    37  C ----------------------------------------------------
+    38        DO 100 L=1,M
+    39        DO 200 K=1,M
+    40  C
+    41  C---- OVERLAP INEGRAL
+    42  C
+    43        CALL OVERLP(RX1(L),RY1(L),RZ1(L),AA1(L),
+    44       1            RX1(K),RY1(K),RZ1(K),AA1(K),                      
+    45       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+    46       3            RX2(K),RY2(K),RZ2(K),AA2(K),
+    47       4            B12(L),B12(K),OV1,KLM)  
+    48        CALL GROVER(L,K,RZ1(L),AA1(L),RZ1(K),AA1(K),                      
+    49       1              RZ2(L),AA2(L),RZ2(K),AA2(K),B12(L),B12(K),
+    50       2              DS1A1,DS1A2,DS1B,DS1R1,DS1R2) 
+    51        CALL OVERLP(RX1(L),RY1(L),RZ1(L),AA1(L),
+    52       1            RX2(K),RY2(K),RZ2(K),AA2(K),                      
+    53       2            RX2(L),RY2(L),RZ2(L),AA2(L),
+    54       3            RX1(K),RY1(K),RZ1(K),AA1(K),
+    55       4            B12(L),B12(K),OV2,KLM)  
+    56        CALL GROVER(L,K,RZ1(L),AA1(L),RZ2(K),AA2(K),                      
+    57       1              RZ2(L),AA2(L),RZ1(K),AA1(K),B12(L),B12(K),
+
+                                                                        PAGE   2
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58       2              DS2A1,DS2A2,DS2B,DS2R1,DS2R2) 
+    59        S(L,K)=OV1+OV2
+    60        GSA1(L,K)=DS1A1+DS2A1
+    61        GSA2(L,K)=DS1A2+DS2A2
+    62        GSB(L,K) =DS1B +DS2B
+    63        GSR1(L,K)=DS1R1+DS2R1
+    64        GSR2(L,K)=DS1R2+DS2R2
+    65  C
+    66  C-----KINETIC ENERGY OF ELECTRON 1
+    67  C
+    68        CALL GRKIN(OV1,L,K,
+    69       1            RZ1(L),AA1(L),RZ1(K),AA1(K),                      
+    70       2            RZ2(L),AA2(L),RZ2(K),AA2(K),
+    71       3            B12(L),B12(K),DT1A1,DT1A2,DT1B,DT1R1,DT1R2)  
+    72        CALL GRKIN(OV2,L,K, 
+    73       1            RZ1(L),AA1(L),RZ2(K),AA2(K),                      
+    74       2            RZ2(L),AA2(L),RZ1(K),AA1(K),
+    75       3            B12(L),B12(K),DT2A1,DT2A2,DT2B,DT2R1,DT2R2)  
+    76  C
+    77  C----KINETIC ENERGY OF ELECTRON 2
+    78  C
+    79        CALL GRKIN(OV1,L,K,
+    80       1            RZ2(L),AA2(L),RZ2(K),AA2(K),                      
+    81       2	          RZ1(L),AA1(L),RZ1(K),AA1(K),
+    82       3            B12(L),B12(K),DT3A1,DT3A2,DT3B,DT3R1,DT3R2)  
+    83        CALL GRKIN(OV2,L,K,
+    84       1            RZ2(L),AA2(L),RZ1(K),AA1(K),                      
+    85       2            RZ1(L),AA1(L),RZ2(K),AA2(K),
+    86       3            B12(L),B12(K),DT4A1,DT4A2,DT4B,DT4R1,DT4R2) 
+    87  C
+    88  C---- N-E FOR ELECTRON 1
+    89  C
+    90        CALL GRNUE(L,K,RZ1(L),AA1(L),
+    91       1           RZ1(K),AA1(K),RZ2(L),AA2(L),
+    92       2           RZ2(K),AA2(K),B12(L),B12(K),
+    93       3           EZ1,DEN1A1,DEN1A2,DEN1B,DEN1R1,DEN1R2)                 
+    94        CALL GRNUE(L,K,RZ1(L),AA1(L),
+    95       1           RZ2(K),AA2(K),RZ2(L),AA2(L),
+    96       2           RZ1(K),AA1(K),B12(L),B12(K),
+    97       3           EZ1,DEN2A1,DEN2A2,DEN2B,DEN2R1,DEN2R2)                 
+    98        CALL GRNUE(L,K,RZ1(L),AA1(L),
+    99       1           RZ1(K),AA1(K),RZ2(L),AA2(L),
+   100       2           RZ2(K),AA2(K),B12(L),B12(K),
+   101       3           EZ2,DEN3A1,DEN3A2,DEN3B,DEN3R1,DEN3R2)
+   102        CALL GRNUE(L,K,RZ1(L),AA1(L),
+   103       1           RZ2(K),AA2(K),RZ2(L),AA2(L),
+   104       2           RZ1(K),AA1(K),B12(L),B12(K),
+   105       3           EZ2,DEN4A1,DEN4A2,DEN4B,DEN4R1,DEN4R2)                 
+   106  C
+   107  C---- N-E FOR ELECTRON 2
+   108  C
+   109        CALL GRNUE(L,K,RZ2(L),AA2(L),
+   110       1           RZ2(K),AA2(K),RZ1(L),AA1(L),
+   111       2           RZ1(K),AA1(K),B12(L),B12(K),
+   112       3           EZ1,DEN5A1,DEN5A2,DEN5B,DEN5R1,DEN5R2)                 
+   113        CALL GRNUE(L,K,RZ2(L),AA2(L),
+   114       1           RZ1(K),AA1(K),RZ1(L),AA1(L),
+
+                                                                        PAGE   3
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   115       2           RZ2(K),AA2(K),B12(L),B12(K),
+   116       3           EZ1,DEN6A1,DEN6A2,DEN6B,DEN6R1,DEN6R2)                 
+   117        CALL GRNUE(L,K,RZ2(L),AA2(L),
+   118       1           RZ2(K),AA2(K),RZ1(L),AA1(L),
+   119       2           RZ1(K),AA1(K),B12(L),B12(K),
+   120       3           EZ2,DEN7A1,DEN7A2,DEN7B,DEN7R1,DEN7R2)                 
+   121        CALL GRNUE(L,K,RZ2(L),AA2(L),
+   122       1           RZ1(K),AA1(K),RZ1(L),AA1(L),
+   123       2           RZ2(K),AA2(K),B12(L),B12(K),
+   124       3           EZ2,DEN8A1,DEN8A2,DEN8B,DEN8R1,DEN8R2)                 
+   125  C 
+   126        CALL GRELE(L,K,RZ1(L),AA1(L),
+   127       1           RZ1(K),AA1(K),RZ2(L),AA2(L),
+   128       2           RZ2(K),AA2(K),B12(L),B12(K),
+   129       3           DER1A1,DER1A2,DER1B,DER1R1,DER1R2)  
+   130        CALL GRELE(L,K,RZ1(L),AA1(L),
+   131       1           RZ2(K),AA2(K),RZ2(L),AA2(L),
+   132       2           RZ1(K),AA1(K),B12(L),B12(K),
+   133       3           DER2A1,DER2A2,DER2B,DER2R1,DER2R2)  
+   134        DTA1=(DT1A1+DT2A1+DT3A1+DT4A1)/TWO
+   135        DTA2=(DT1A2+DT2A2+DT3A2+DT4A2)/TWO
+   136        DTB= (DT1B+ DT2B+ DT3B+ DT4B)/TWO
+   137        DTR1=(DT1R1+DT2R1+DT3R1+DT4R1)/TWO
+   138        DTR2=(DT1R2+DT2R2+DT3R2+DT4R2)/TWO
+   139        DENA1=DEN1A1+DEN2A1+DEN3A1+DEN4A1+DEN5A1+DEN6A1+DEN7A1+DEN8A1
+   140        DENA2=DEN1A2+DEN2A2+DEN3A2+DEN4A2+DEN5A2+DEN6A2+DEN7A2+DEN8A2
+   141        DENB =DEN1B +DEN2B +DEN3B +DEN4B +DEN5B +DEN6B +DEN7B +DEN8B
+   142        DENR1=DEN1R1+DEN2R1+DEN3R1+DEN4R1+DEN5R1+DEN6R1+DEN7R1+DEN8R1
+   143        DENR2=DEN1R2+DEN2R2+DEN3R2+DEN4R2+DEN5R2+DEN6R2+DEN7R2+DEN8R2
+   144        DERA1=DER1A1+DER2A1
+   145        DERA2=DER1A2+DER2A2
+   146        DERB =DER1B +DER2B
+   147        DERR1=DER1R1+DER2R1
+   148        DERR2=DER1R2+DER2R2
+   149        GHA1(L,K)=DERA1+DTA1-DENA1
+   150        GHA2(L,K)=DERA2+DTA2-DENA2
+   151        GHB(L,K) =DERB +DTB -DENB
+   152        GHR1(L,K)=DERR1+DTR1-DENR1
+   153        GHR2(L,K)=DERR2+DTR2-DENR2
+   154   200  CONTINUE 
+   155   100  CONTINUE 
+   156  C     CALL MATTAB(S,M)
+   157        CALL TAB(S,M,M,MMAX,MMAX)
+   158        CALL TAB(H,M,M,MMAX,MMAX)
+   159        call ENERGY(M,H,S,EMIN,CO,KIM)
+   160        DO 400 K=1,M
+   161  	GG1=0.0
+   162   	GG2=0.0
+   163  	GG3=0.0
+   164  	GG4=0.0
+   165  	GG5=0.0
+   166        DO 410 L=1,M
+   167        CKL=CO(L)*CO(K)/(DSQRT(SNORM(K,K))*DSQRT(SNORM(L,L)) )	
+   168        WW=2.0-DELTA(L,K)
+   169  	GG1=GG1+WW*CKL*(GHA1(L,K)-EMIN*GSA1(L,K))
+   170  	GG2=GG2+WW*CKL*(GHA2(L,K)-EMIN*GSA2(L,K))
+   171  	GG3=GG3+WW*CKL*(GHB(L,K) -EMIN*GSB(L,K) ) 
+
+                                                                        PAGE   4
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+   172  	GG4=GG4+WW*CKL*(GHR1(L,K)-EMIN*GSR1(L,K))
+   173  	GG5=GG5+WW*CKL*(GHR2(L,K)-EMIN*GSR2(L,K))
+   174  410	CONTINUE
+   175  	G(5*K -4) =GG1
+   176          G(5*K -3) =GG2
+   177          G(5*K -2) =GG3
+   178          G(5*K -1) =GG4
+   179  	G(5*K ) =GG5
+   180  400	CONTINUE
+   181  C
+   182        END
+GRAD@56  Local symbols
+Name                      Class              Type           Size
+
+
+/NORM/. . . . . . . . . . NORM(0)            MULTI*20000   20000
+/VALUE/ . . . . . . . . . VALUE(0)           MULTI*8           8
+AA1 . . . . . . . . . . . param                                4
+AA2 . . . . . . . . . . . param                                4
+B12 . . . . . . . . . . . param                                4
+CKL . . . . . . . . . . . local              REAL*8            8
+CO. . . . . . . . . . . . param                                4
+DELTA . . . . . . . . . . local              REAL*8        80000
+DEN1A1. . . . . . . . . . local              REAL*8            8
+DEN1A2. . . . . . . . . . local              REAL*8            8
+DEN1B . . . . . . . . . . local              REAL*8            8
+DEN1R1. . . . . . . . . . local              REAL*8            8
+DEN1R2. . . . . . . . . . local              REAL*8            8
+DEN2A1. . . . . . . . . . local              REAL*8            8
+DEN2A2. . . . . . . . . . local              REAL*8            8
+DEN2B . . . . . . . . . . local              REAL*8            8
+DEN2R1. . . . . . . . . . local              REAL*8            8
+DEN2R2. . . . . . . . . . local              REAL*8            8
+DEN3A1. . . . . . . . . . local              REAL*8            8
+DEN3A2. . . . . . . . . . local              REAL*8            8
+DEN3B . . . . . . . . . . local              REAL*8            8
+DEN3R1. . . . . . . . . . local              REAL*8            8
+DEN3R2. . . . . . . . . . local              REAL*8            8
+DEN4A1. . . . . . . . . . local              REAL*8            8
+DEN4A2. . . . . . . . . . local              REAL*8            8
+DEN4B . . . . . . . . . . local              REAL*8            8
+DEN4R1. . . . . . . . . . local              REAL*8            8
+DEN4R2. . . . . . . . . . local              REAL*8            8
+DEN5A1. . . . . . . . . . local              REAL*8            8
+DEN5A2. . . . . . . . . . local              REAL*8            8
+DEN5B . . . . . . . . . . local              REAL*8            8
+DEN5R1. . . . . . . . . . local              REAL*8            8
+DEN5R2. . . . . . . . . . local              REAL*8            8
+DEN6A1. . . . . . . . . . local              REAL*8            8
+DEN6A2. . . . . . . . . . local              REAL*8            8
+DEN6B . . . . . . . . . . local              REAL*8            8
+DEN6R1. . . . . . . . . . local              REAL*8            8
+DEN6R2. . . . . . . . . . local              REAL*8            8
+DEN7A1. . . . . . . . . . local              REAL*8            8
+DEN7A2. . . . . . . . . . local              REAL*8            8
+DEN7B . . . . . . . . . . local              REAL*8            8
+DEN7R1. . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   5
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRAD@56  Local symbols
+Name                      Class              Type           Size
+
+
+DEN7R2. . . . . . . . . . local              REAL*8            8
+DEN8A1. . . . . . . . . . local              REAL*8            8
+DEN8A2. . . . . . . . . . local              REAL*8            8
+DEN8B . . . . . . . . . . local              REAL*8            8
+DEN8R1. . . . . . . . . . local              REAL*8            8
+DEN8R2. . . . . . . . . . local              REAL*8            8
+DENA1 . . . . . . . . . . local              REAL*8            8
+DENA2 . . . . . . . . . . local              REAL*8            8
+DENB. . . . . . . . . . . local              REAL*8            8
+DENR1 . . . . . . . . . . local              REAL*8            8
+DENR2 . . . . . . . . . . local              REAL*8            8
+DER1A1. . . . . . . . . . local              REAL*8            8
+DER1A2. . . . . . . . . . local              REAL*8            8
+DER1B . . . . . . . . . . local              REAL*8            8
+DER1R1. . . . . . . . . . local              REAL*8            8
+DER1R2. . . . . . . . . . local              REAL*8            8
+DER2A1. . . . . . . . . . local              REAL*8            8
+DER2A2. . . . . . . . . . local              REAL*8            8
+DER2B . . . . . . . . . . local              REAL*8            8
+DER2R1. . . . . . . . . . local              REAL*8            8
+DER2R2. . . . . . . . . . local              REAL*8            8
+DERA1 . . . . . . . . . . local              REAL*8            8
+DERA2 . . . . . . . . . . local              REAL*8            8
+DERB. . . . . . . . . . . local              REAL*8            8
+DERR1 . . . . . . . . . . local              REAL*8            8
+DERR2 . . . . . . . . . . local              REAL*8            8
+DS1A1 . . . . . . . . . . local              REAL*8            8
+DS1A2 . . . . . . . . . . local              REAL*8            8
+DS1B. . . . . . . . . . . local              REAL*8            8
+DS1R1 . . . . . . . . . . local              REAL*8            8
+DS1R2 . . . . . . . . . . local              REAL*8            8
+DS2A1 . . . . . . . . . . local              REAL*8            8
+DS2A2 . . . . . . . . . . local              REAL*8            8
+DS2B. . . . . . . . . . . local              REAL*8            8
+DS2R1 . . . . . . . . . . local              REAL*8            8
+DS2R2 . . . . . . . . . . local              REAL*8            8
+DT1A1 . . . . . . . . . . local              REAL*8            8
+DT1A2 . . . . . . . . . . local              REAL*8            8
+DT1B. . . . . . . . . . . local              REAL*8            8
+DT1R1 . . . . . . . . . . local              REAL*8            8
+DT1R2 . . . . . . . . . . local              REAL*8            8
+DT2A1 . . . . . . . . . . local              REAL*8            8
+DT2A2 . . . . . . . . . . local              REAL*8            8
+DT2B. . . . . . . . . . . local              REAL*8            8
+DT2R1 . . . . . . . . . . local              REAL*8            8
+DT2R2 . . . . . . . . . . local              REAL*8            8
+DT3A1 . . . . . . . . . . local              REAL*8            8
+DT3A2 . . . . . . . . . . local              REAL*8            8
+DT3B. . . . . . . . . . . local              REAL*8            8
+DT3R1 . . . . . . . . . . local              REAL*8            8
+DT3R2 . . . . . . . . . . local              REAL*8            8
+DT4A1 . . . . . . . . . . local              REAL*8            8
+
+                                                                        PAGE   6
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRAD@56  Local symbols
+Name                      Class              Type           Size
+
+
+DT4A2 . . . . . . . . . . local              REAL*8            8
+DT4B. . . . . . . . . . . local              REAL*8            8
+DT4R1 . . . . . . . . . . local              REAL*8            8
+DT4R2 . . . . . . . . . . local              REAL*8            8
+DTA1. . . . . . . . . . . local              REAL*8            8
+DTA2. . . . . . . . . . . local              REAL*8            8
+DTB . . . . . . . . . . . local              REAL*8            8
+DTR1. . . . . . . . . . . local              REAL*8            8
+DTR2. . . . . . . . . . . local              REAL*8            8
+EMIN. . . . . . . . . . . VALUE(0)           REAL*8            8
+EX1 . . . . . . . . . . . local              REAL*8            8
+EX2 . . . . . . . . . . . local              REAL*8            8
+EY1 . . . . . . . . . . . local              REAL*8            8
+EY2 . . . . . . . . . . . local              REAL*8            8
+EZ1 . . . . . . . . . . . local              REAL*8            8
+EZ2 . . . . . . . . . . . local              REAL*8            8
+G . . . . . . . . . . . . param                                4
+GG1 . . . . . . . . . . . local              REAL*8            8
+GG2 . . . . . . . . . . . local              REAL*8            8
+GG3 . . . . . . . . . . . local              REAL*8            8
+GG4 . . . . . . . . . . . local              REAL*8            8
+GG5 . . . . . . . . . . . local              REAL*8            8
+GHA1. . . . . . . . . . . local              REAL*8        20000
+GHA2. . . . . . . . . . . local              REAL*8        20000
+GHB . . . . . . . . . . . local              REAL*8        20000
+GHR1. . . . . . . . . . . local              REAL*8        20000
+GHR2. . . . . . . . . . . local              REAL*8        20000
+GSA1. . . . . . . . . . . local              REAL*8        20000
+GSA2. . . . . . . . . . . local              REAL*8        20000
+GSB . . . . . . . . . . . local              REAL*8        20000
+GSR1. . . . . . . . . . . local              REAL*8        20000
+GSR2. . . . . . . . . . . local              REAL*8        20000
+H . . . . . . . . . . . . param                                4
+II. . . . . . . . . . . . dynam              INTEGER*4         4
+IK. . . . . . . . . . . . dynam              INTEGER*4         4
+IL. . . . . . . . . . . . dynam              INTEGER*4         4
+K . . . . . . . . . . . . local              INTEGER*4         4
+KIM . . . . . . . . . . . local              INTEGER*4         4
+KLM . . . . . . . . . . . local              INTEGER*4         4
+L . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . param                                4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+OV1 . . . . . . . . . . . local              REAL*8            8
+OV2 . . . . . . . . . . . local              REAL*8            8
+RX1 . . . . . . . . . . . param                                4
+RX2 . . . . . . . . . . . param                                4
+RY1 . . . . . . . . . . . param                                4
+RY2 . . . . . . . . . . . param                                4
+RZ1 . . . . . . . . . . . param                                4
+RZ2 . . . . . . . . . . . param                                4
+S . . . . . . . . . . . . param                                4
+SNORM . . . . . . . . . . NORM(0)            REAL*8        20000
+
+                                                                        PAGE   7
+                                                                        03-13-96
+                                                                        11:43:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GRAD@56  Local symbols
+Name                      Class              Type           Size
+
+
+TWO . . . . . . . . . . . local              REAL*8            8
+WW. . . . . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+ENERGY@24 . . . . . . . . extern             ***             ***
+GEOM@24 . . . . . . . . . extern             ***             ***
+GRAD@56 . . . . . . . . . FUNCT              ***             ***
+GRELE@68. . . . . . . . . extern             ***             ***
+GRKIN@72. . . . . . . . . extern             ***             ***
+GRNUE@72. . . . . . . . . extern             ***             ***
+GROVER@68 . . . . . . . . extern             ***             ***
+NORM. . . . . . . . . . . common             ***           20000
+OVERLP@80 . . . . . . . . extern             ***             ***
+TAB@20. . . . . . . . . . extern             ***             ***
+VALUE . . . . . . . . . . common             ***               8
+
+
+No errors detected

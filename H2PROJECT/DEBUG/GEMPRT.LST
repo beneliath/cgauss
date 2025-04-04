@@ -1,0 +1,97 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:52:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  Z. Zhang
+     2  C           Modified By:  D. Gilmore ---> (24 May 95)
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE GEMPRT(NN,
+     7       1                  AA,X1,X2,X3,
+     8       2                  BB,Y1,Y2,Y3,
+     9       3                  CC)
+    10  C     -----------------------------------------------------
+    11        IMPLICIT REAL*8 (A-H,O-Z)
+    12        LOGICAL PRINT /.TRUE./
+    13  C         ...The Variable "PRINT" is of type LOGICAL and is
+    14  C            set equal to "TRUE".
+    15  C
+    16        WRITE(6,999) NN,AA,X1,X2,X3,BB,Y1,Y2,Y3,CC
+    17        WRITE(7,999) NN,AA,X1,X2,X3,BB,Y1,Y2,Y3,CC
+    18  C         ...DEVICE = 6 ---> CRT Screen
+    19  C            DEVICE = 7 ---> OUTPUT Text File
+    20  C
+    21  C     NN = Gaussian Geminal Number
+    22  C     AA = Exponent Alpha _sub(1)
+    23  C     X1, X2, X3 = Cart. Coordinates for Gaussian of AA
+    24  C     BB = Exponent Alpha _sub(2)
+    25  C     Y1, Y2, Y3 = Cart. Coordinates for Gaussian of BB
+    26  C     CC = Correleation Exponent
+    27  C
+    28  C
+    29  C     -----------------------------------------------------
+    30  C     --- OutPut FORMAT(s) ---
+    31  C     -----------------------------------------------------
+    32  999   FORMAT(' ----------------------------------------------',
+    33       1/,' GEMINAL NO.=',I3,/,
+    34  C         ...I3 = Three Digit Integer (here using NN)
+    35  C
+    36       2' ----------------------------------------------',/,
+    37       3' Orbital exponent ALPHA1 =',F13.9,/,
+    38  C         ...F13.9 = Thirteen Digit Floating Point =
+    39  C                     '####.#########'
+    40  C 
+    41       4' Rx1 = ',F13.9,'au',/,' Ry1 = ',F13.9,'au',/,' Rz1 = ',
+    42       5 F13.9,'au',/,/, 
+    43       6' Orbital exponent ALPHA2 =',F13.9,/, 
+    44       7' Rx2 = ',F13.9,'au',/,' Ry2 = ',F13.9,'au',/,' Rz2 = ',
+    45       8 F13.9,'au',/,/,' Correl. exponent BETA12 =',F13.9, 
+    46       9 /,' ==============================================',/)
+    47  C
+    48  C     ...SEE OUTPUT Text File to see how this prints out...
+    49  C     -----------------------------------------------------
+    50  C     -----------------------------------------------------
+    51  C
+    52  C
+    53        RETURN
+    54        END
+                                                                        PAGE   2
+                                                                        04-26-96
+                                                                        21:52:39
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+GEMPRT@40  Local symbols
+Name                      Class              Type           Size
+
+
+AA. . . . . . . . . . . . param                                4
+BB. . . . . . . . . . . . param                                4
+CC. . . . . . . . . . . . param                                4
+NN. . . . . . . . . . . . param                                4
+X1. . . . . . . . . . . . param                                4
+X2. . . . . . . . . . . . param                                4
+X3. . . . . . . . . . . . param                                4
+Y1. . . . . . . . . . . . param                                4
+Y2. . . . . . . . . . . . param                                4
+Y3. . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+GEMPRT@40 . . . . . . . . FUNCT              ***             ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

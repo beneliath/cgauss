@@ -1,0 +1,42 @@
+ Correlated Gaussian Geminal Output:  H_2
+ ===================================================
+ Adamowicz Research /            [Univ. of AZ, CHEM]
+ Programming:[D. Gilmore, L. Adamowicz, D. Kinghorn]
+  PROGRAM BEGINS:  TIME STAMP...
+      4/18/1996
+     11:13:17:01 
+ OUTPUT STREAM BEGINS...
+  
+ NUMBER OF FUNCTIONS=          0
+ FUNCTION GENERATION=RESTART                                                    
+        
+ OPTIMIZATION METHOD=IMSL:DUMING                                                
+        
+     OUTPUT FILENAME=08APR96_001_82.out                                         
+        
+  NEW RESTART OUTPUT=restart_08APR96_001_82.dat                                 
+        
+        RESTART FROM=RESTART82p.dat                                             
+        
+  
+ STARTING FROM DESIGNATED RESTART POINT!
+  Point taken from File = RESTART82p.dat                                        
+             
+  
+ NUMBER OF FUNCTIONS IN RESTART=         98
+  
+  
+ BEGINNING TIMING ROUTINE...Please Stand By...
+ ---------------------------------------------
+ :BEGIN:
+     11:13:17:32 
+ :FUNCTION CALCULATION IN PROGRESS:
+     11:13:32:03 
+ :GRADIENT CALCULATION IN PROGRESS:
+     11:14:28:45 
+ :END:
+  
+            UNOPTIMIZED ENERGY =       -1.174467823975487
+  
+  UNOPTIMIZED ENERGY ROUTINE FINISHES:  TIME STAMP...
+  

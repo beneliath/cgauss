@@ -1,0 +1,58 @@
+
+                                                                        PAGE   1
+                                                                        04-26-96
+                                                                        21:54:34
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1  C     Originallly Coded:  D. Gilmore
+     2  C           Modified By:  D. Gilmore ---> 19OCT95
+     3  C     -----------------------------------------------------
+     4  C     L. ADAMOWICZ RESEARCH / UNIVERSITY OF ARIZONA / CHEM.
+     5  C     -----------------------------------------------------
+     6        SUBROUTINE VEC (N,A,MAXA,AA)
+     7  C      
+     8  C     MATRIXCOPY receives the matrix A and outputs
+     9  C         the matrix B = A
+    10  C
+    11        IMPLICIT REAL*8 (A-H,O-Z)
+    12        DIMENSION A(MAXA,MAXA),AA(66000)
+    13  C
+    14  C     A=input matrix
+    15  C     AA=output vector
+    16  C     MAXA=maximum dimension of A (MUST BE SQUARE)
+    17  C     N=square dimension of matrix (i.e. 3 if A->3x3 matrix)
+    18  C
+    19            II=0
+    20                DO 1000 I=1,N
+    21                DO 1000 J=1,N
+    22                    II=II+1
+    23                    AA(II)=A(I,J)
+    24   1000         CONTINUE 
+    25  C
+    26        RETURN
+    27        END
+
+VEC@16  Local symbols
+Name                      Class              Type           Size
+
+
+A . . . . . . . . . . . . param                                4
+AA. . . . . . . . . . . . param                                4
+I . . . . . . . . . . . . dynam              INTEGER*4         4
+II. . . . . . . . . . . . local              INTEGER*4         4
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+MAXA. . . . . . . . . . . param                                4
+N . . . . . . . . . . . . param                                4
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+MAKE_INFO . . . . . . . . extern             ***             ***
+VEC@16. . . . . . . . . . FUNCT              ***             ***
+
+
+No errors detected

@@ -1,0 +1,34 @@
+H2_Project Input File
+Adamowicz Research Group / University of Arizona
+Doug W. Gilmore
+28MAR96
+=================================================
+:BEGIN:
+NUMBER_OF_FUNCTIONS=
+3
+FUNCTION_GENERATION=
+random
+SYMMETRY=
+on
+OPTIMIZATION_METHOD=
+imsl:duming
+OUTPUT_FILE=
+08APR96_001_3.out
+RESTART_FILE=
+restart_14APR96_001_3.dat
+START_FROM_RESTART=
+false
+WAVE_FUNCTION_OPTIMIZATION=
+no_iterate_optimization
+OPTIMIZED_WAVEFUNCTION_OUTPUT_FILE=
+optimalWF_08APR96_001_3.dat
+START_BASIS=
+16
+END_BASIS=
+100
+LOOP=
+10
+RESTART_FROM=
+restart_3.dat
+:END:
+=================================================

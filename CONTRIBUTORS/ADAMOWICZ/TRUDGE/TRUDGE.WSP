@@ -1,0 +1,115 @@
+[Header]
+Version=1.00a.0619
+WinVer=4
+WorkspaceName0=&Edit
+WorkspaceName1=&Debug
+WorkspaceName2=&Custom
+Initial=3
+PromptWhenSave=1
+CloseWindow=1
+Status=-1 -1 -1 9
+[Workspace3]
+Coord=26 25 1148 786
+Style=382664704
+RibbonHidden=0
+StatusHidden=0
+WindowNumber=9
+[WindowWorkspace30]
+Type=4
+DuplicateNb=1
+Coord=132 144 1110 582
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=0
+TopMostWindow=0
+FileName=Output - Build
+CursorPosition=5 29 0
+[WindowWorkspace31]
+Type=13
+DuplicateNb=1
+Coord=154 168 1110 606
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TRUDGE\TRUDGE.FOR
+CursorPosition=48 0 0
+[WindowWorkspace32]
+Type=13
+DuplicateNb=1
+Coord=176 192 1110 630
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TRUDGE\SEARCH.FOR
+CursorPosition=0 0 0
+[WindowWorkspace33]
+Type=13
+DuplicateNb=1
+Coord=138 210 1050 648
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TRUDGE\FU.FOR
+CursorPosition=0 15 30
+[WindowWorkspace34]
+Type=13
+DuplicateNb=1
+Coord=2 54 1112 492
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TRUDGE\EIGN.FOR
+CursorPosition=0 0 0
+[WindowWorkspace35]
+Type=13
+DuplicateNb=1
+Coord=22 24 1110 462
+Style=536870912
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\TRUDGE\AAAA.FOR
+CursorPosition=0 18 26
+[WindowWorkspace36]
+Type=13
+DuplicateNb=1
+Coord=460 48 1111 486
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\H2.FOR
+CursorPosition=181 199 0
+[WindowWorkspace37]
+Type=13
+DuplicateNb=1
+Coord=88 96 1110 534
+Style=536870912
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\FUNKYOU.FOR
+CursorPosition=0 0 0
+[WindowWorkspace38]
+Type=13
+DuplicateNb=1
+Coord=72 22 1072 460
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=1
+FileName=C:\USERS\DGILMORE\GRADUATE.SCHOOL\ADAMOWICZ.RESEARCH\H2ANL\FU.FOR
+CursorPosition=0 56 5

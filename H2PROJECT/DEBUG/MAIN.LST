@@ -1,0 +1,179 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:32:16
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        SUBROUTINE VECTORMIN
+     2        PARAMETER (NMAX=50)
+     3        PARAMETER (MMAX=50)
+     4        REAL*8 
+     5       1         AA1(MMAX),RX1(MMAX),RY1(MMAX),RZ1(MMAX),
+     6       2         AA2(MMAX),RX2(MMAX),RY2(MMAX),RZ2(MMAX),
+     7       3         B12(MMAX)
+     8        REAL*8 S(MMAX,MMAX),H(MMAX,MMAX),CO(MMAX),TEMP1,TEMP2
+     9        INTEGER N,M,I,J
+    10        REAL*8 POINT(NMAX),DIRECTION(NMAX),COMPARE,TOLERANCE,FRET
+    11        COMMON /PASSIT/ M,AA1,RX1,RY1,RZ1,AA2,RX2,RY2,RZ2,B12,S,H,CO
+    12        COMMON /VALUE/ EMIN
+    13        N=M*2
+    14        TOLERANCE=1.0D-06
+    15        WRITE(6,777) TOLERANCE
+    16        WRITE(7,777) TOLERANCE
+    17        WRITE(6,*) '    Number of Geminals = ',M
+    18        WRITE(7,*) '    Number of Geminals = ',M
+    19        CALL BIOUT(' ')
+    20   777  FORMAT('     Convergence Target = ',E18.4,/)
+    21  C
+    22  C
+    23        I=1
+    24        J=1
+    25   707  IF (I .LE. M) THEN
+    26            POINT(J)=AA1(I)
+    27            POINT(J+1)=B12(I)
+    28            I=I+1
+    29            J=J+2
+    30            GOTO 707
+    31        ENDIF
+    32  C      POINT(1)=AA1(1)
+    33  C      POINT(2)=B12(1)
+    34  C      POINT(3)=AA1(2)
+    35  C      POINT(4)=B12(2)
+    36  C      POINT(5)=AA1(3)
+    37  C      POINT(6)=B12(3)
+    38  C
+    39  C
+    40   1001 I=1
+    41  c      J=1
+    42   1002 CALL BLANKDIRECTION (N,DIRECTION,NMAX)
+    43  C      IF (J .LE. N) THEN
+    44  C          DIRECTION(J)=0.0D+00
+    45  C          J=J+1
+    46  C          GOTO 1002
+    47  C      ENDIF
+    48  C      WRITE(6,*) I,J
+    49        IF (I .LE. N) THEN
+    50                DIRECTION(I)=1.0D+00
+    51                I=I+1
+    52                CALL LINMIN(POINT,DIRECTION,N,FRET)
+    53            GOTO 1002
+    54        ENDIF
+    55  C      
+    56        COMPARE=FRET
+    57  C
+
+                                                                        PAGE   2
+                                                                        02-23-96
+                                                                        13:32:16
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+    58        I=1
+    59  C      J=1
+    60   1003 CALL BLANKDIRECTION (N,DIRECTION,NMAX)
+    61  C      IF (J .LE. N) THEN
+    62  C          DIRECTION(J)=0.0D+00
+    63  C          J=J+1
+    64  C          GOTO 1003
+    65  C      ENDIF
+    66  C      WRITE(6,*) I,J
+    67            IF (I .LE. N) THEN
+    68                DIRECTION(I)=1.0D+00
+    69                I=I+1
+    70                CALL LINMIN(POINT,DIRECTION,N,FRET)
+    71            GOTO 1003
+    72        ENDIF
+    73  C
+    74  C
+    75        TEMP1=FRET
+    76        TEMP2=COMPARE
+    77        WRITE(6,1856) FRET,ABS(TEMP1-TEMP2)
+    78        WRITE(7,1856) FRET,ABS(TEMP1-TEMP2)
+    79  1856  FORMAT (' E_o = ',F18.12,'  /  Iteration Difference = ',E18.4)
+    80  
+    81        IF (ABS(TEMP1-TEMP2) .GT. TOLERANCE) THEN
+    82            GOTO 1001
+    83        END IF
+    84        CALL BIOUT (' ')
+    85             CALL BIOUT ('   OPTIMUM GAUSSIAN EXPONENTS:')
+    86        CALL BIOUT (' ')          
+    87        I=1
+    88        J=1
+    89        CALL BIOUT('        AA1               AA2               B12')
+    90        CALL BIOUT('        ----------------------------------------------
+    91       1--')
+    92   606  IF (I .LE. M) THEN
+    93   1111 FORMAT(I3,D18.8,D18.8,D18.8)
+    94            WRITE(6,1111) I,AA1(I),AA2(I),B12(I)
+    95            WRITE(7,1111) I,AA1(I),AA2(I),B12(I)
+    96  C          WRITE(7,1111) I,POINT(J),POINT(J),POINT(J+1)
+    97            I=I+1
+    98            J=J+2
+    99        GOTO 606
+   100        END IF
+   101        CALL BIOUT (' ')
+   102        WRITE(6,*) '   FUNCTION VALUE AT MINIMUM= ',FRET
+   103        WRITE(7,*) '   FUNCTION VALUE AT MINIMUM= ',FRET
+   104        CALL BIOUT (' ')
+   105        WRITE(6,*) '   Convergence Index = ',ABS(TEMP1-TEMP2)
+   106        WRITE(7,*) '   Convergence Index = ',ABS(TEMP1-TEMP2)
+   107        RETURN
+   108        END
+
+VECTORMIN@0  Local symbols
+Name                      Class              Type           Size
+
+
+/PASSIT/. . . . . . . . . PASSIT(0)          MULTI*44004   44004
+
+                                                                        PAGE   3
+                                                                        02-23-96
+                                                                        13:32:16
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+
+VECTORMIN@0  Local symbols
+Name                      Class              Type           Size
+
+
+AA1 . . . . . . . . . . . PASSIT(4)          REAL*8          400
+AA2 . . . . . . . . . . . PASSIT(1604)       REAL*8          400
+B12 . . . . . . . . . . . PASSIT(3204)       REAL*8          400
+COMPARE . . . . . . . . . local              REAL*8            8
+DIRECTION . . . . . . . . local              REAL*8          400
+FRET. . . . . . . . . . . local              REAL*8            8
+I . . . . . . . . . . . . local              INTEGER*4         4
+J . . . . . . . . . . . . local              INTEGER*4         4
+M . . . . . . . . . . . . PASSIT(0)          INTEGER*4         4
+MMAX. . . . . . . . . . . const              INTEGER*4         4
+N . . . . . . . . . . . . local              INTEGER*4         4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+POINT . . . . . . . . . . local              REAL*8          400
+TEMP1 . . . . . . . . . . local              REAL*8            8
+TEMP2 . . . . . . . . . . local              REAL*8            8
+TOLERANCE . . . . . . . . local              REAL*8            8
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+BIOUT@8 . . . . . . . . . extern             ***             ***
+BLANKDIRECTION@12 . . . . extern             ***             ***
+F90_ENDWRITE. . . . . . . extern             INTEGER*0       ***
+F90_WRITE . . . . . . . . extern             INTEGER*0       ***
+LINMIN@16 . . . . . . . . extern             ***             ***
+LWRITE_CH . . . . . . . . extern             INTEGER*0       ***
+LWRITE_D. . . . . . . . . extern             INTEGER*0       ***
+LWRITE_I. . . . . . . . . extern             INTEGER*0       ***
+PASSIT. . . . . . . . . . common             ***           44004
+VALUE . . . . . . . . . . common             ***               4
+VECTORMIN@0 . . . . . . . FUNCT              ***             ***
+WRITE_D . . . . . . . . . extern             INTEGER*0       ***
+WRITE_I . . . . . . . . . extern             INTEGER*0       ***
+
+
+No errors detected

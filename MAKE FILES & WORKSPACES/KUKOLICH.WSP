@@ -1,0 +1,49 @@
+[Header]
+Version=1.00a.0619
+WinVer=13059
+WorkspaceName0=&Edit
+WorkspaceName1=&Debug
+WorkspaceName2=&Custom
+Initial=3
+PromptWhenSave=1
+CloseWindow=1
+Status=-1 -1 -1 3
+[Workspace3]
+Coord=116 48 1084 843
+Style=382664704
+RibbonHidden=0
+StatusHidden=0
+WindowNumber=3
+[WindowWorkspace30]
+Type=4
+DuplicateNb=1
+Coord=130 130 960 606
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=0
+TopMostWindow=1
+FileName=Output - Build
+CursorPosition=0 0 0
+[WindowWorkspace31]
+Type=13
+DuplicateNb=1
+Coord=70 189 822 665
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=D:\TEMP\SUBTEMP\ICIK.FOR
+CursorPosition=0 16 1
+[WindowWorkspace32]
+Type=13
+DuplicateNb=1
+Coord=52 52 804 528
+Style=0
+Font=-13 0 0 0 400 0 0 0 0 0 0 0 0
+FaceName=Courier
+Language=5
+TopMostWindow=0
+FileName=D:\TEMP\SUBTEMP\ICSUBX1.FOR
+CursorPosition=0 0 13

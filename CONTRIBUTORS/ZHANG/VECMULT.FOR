@@ -1,0 +1,12 @@
+      SUBROUTINE VECVECMULT (N,A,MAXA,B,MAXB,C)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION A(MAXA),B(MAXB)
+C
+			C=0.0D+00
+			DO K=1,N
+				C=C+A(K)*B(K)
+			END DO
+C	WRITE(6,*)C
+C
+	RETURN
+      END

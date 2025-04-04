@@ -1,0 +1,73 @@
+ Correlated Gaussian Geminal Output:  H_2
+ ===================================================
+ Adamowicz Research /            [Univ. of AZ, CHEM]
+ Programming:[D. Gilmore, L. Adamowicz, D. Kinghorn]
+  PROGRAM BEGINS:  TIME STAMP...
+      3/27/1996
+      9:42:34:89 
+ OUTPUT STREAM BEGINS...
+  
+ NUMBER OF FUNCTIONS=          0
+ FUNCTION GENERATION=RESTART                                                    
+        
+ OPTIMIZATION METHOD=IMSL:DUMING                                                
+        
+     OUTPUT FILENAME=26mar96_001_256.out                                        
+        
+  NEW RESTART OUTPUT=restart_25mar96_001_256.dat                                
+        
+        RESTART FROM=restart_256.dat                                            
+        
+  
+ STARTING FROM DESIGNATED RESTART POINT!
+  Point taken from File = restart_256.dat                                       
+             
+  
+ NUMBER OF FUNCTIONS IN RESTART=        256
+  
+  
+ BEGINNING TIMING ROUTINE...Please Stand By...
+ ---------------------------------------------
+ :BEGIN:
+      9:42:35:46 
+ :FUNCTION CALCULATION IN PROGRESS:
+      9:44:34:45 
+ :GRADIENT CALCULATION IN PROGRESS:
+      9:52:17:12 
+ :END:
+  
+            UNOPTIMIZED ENERGY =       -1.174461472081448
+  
+  UNOPTIMIZED ENERGY ROUTINE FINISHES:  TIME STAMP...
+      3/27/1996
+      9:52:17:54 
+  
+ IMSL:DUMING Optimization Begins...
+ ----------------------------------
+ ENERGY=      -1.174461472081448   --->   ||g||^2 =   8.529029806884948E-009
+ ENERGY=      -1.174461478014749   --->   ||g||^2 =   1.219399354995784E-008
+ ENERGY=      -1.174461502760818   --->   ||g||^2 =   1.454877311590460E-008
+ ENERGY=      -1.174461533516549   --->   ||g||^2 =   1.481012758811855E-008
+ ENERGY=      -1.174461549995219   --->   ||g||^2 =   1.097313935845461E-008
+ ENERGY=      -1.174461569290638   --->   ||g||^2 =   9.519172200586793E-009
+ ENERGY=      -1.174461586243544   --->   ||g||^2 =   1.138059189725195E-008
+ ENERGY=      -1.174461605410894   --->   ||g||^2 =   1.222263722347027E-008
+ ENERGY=      -1.174461624534493   --->   ||g||^2 =   1.197995623054666E-008
+ ENERGY=      -1.174461646384641   --->   ||g||^2 =   1.318937633705762E-008
+ ENERGY=      -1.174461672431881   --->   ||g||^2 =   1.690165387553980E-008
+ ENERGY=      -1.174461702811813   --->   ||g||^2 =   1.961673608150353E-008
+ ENERGY=      -1.174461733608414   --->   ||g||^2 =   1.785190413423628E-008
+ ENERGY=      -1.174461762456563   --->   ||g||^2 =   1.558956988611025E-008
+ ENERGY=      -1.174461790875340   --->   ||g||^2 =   1.654436848940501E-008
+ ENERGY=      -1.174461820928338   --->   ||g||^2 =   1.843688324801377E-008
+ ENERGY=      -1.174461850414683   --->   ||g||^2 =   1.691476315931154E-008
+ ENERGY=      -1.174461876102518   --->   ||g||^2 =   1.379689516572284E-008
+ ENERGY=      -1.174461899462631   --->   ||g||^2 =   1.359091819696295E-008
+ ENERGY=      -1.174461924183854   --->   ||g||^2 =   1.567817434410190E-008
+ ENERGY=      -1.174461949898357   --->   ||g||^2 =   1.554053228539871E-008
+ ENERGY=      -1.174461973250656   --->   ||g||^2 =   1.215034231445163E-008
+ ENERGY=      -1.174461992900885   --->   ||g||^2 =   1.015758172208162E-008
+ ENERGY=      -1.174462011147983   --->   ||g||^2 =   1.070091608826120E-008
+ ENERGY=      -1.174462029386242   --->   ||g||^2 =   1.062565731441489E-008
+ ENERGY=      -1.174462045281807   --->   ||g||^2 =   8.197835516963230E-009
+ ENERGY=      -1.174462057804866   --->   ||g||^2 =   6.693908119802646E-009

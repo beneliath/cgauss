@@ -1,0 +1,48 @@
+
+                                                                        PAGE   1
+                                                                        02-23-96
+                                                                        13:33:29
+
+     Line#  Source Line     Microsoft Fortran PowerStation Compiler. Version 4.0
+
+     1        FUNCTION f1dim(x)
+     2        INTEGER NMAX
+     3        DOUBLE PRECISION f1dim,func,x
+     4        PARAMETER (NMAX=50)
+     5  CU    USES func
+     6        INTEGER j,ncom
+     7        DOUBLE PRECISION pcom(NMAX),xicom(NMAX),xt(NMAX)
+     8        COMMON /f1com/ pcom,xicom,ncom
+     9        do 11 j=1,ncom
+    10          xt(j)=pcom(j)+x*xicom(j)
+    11  11    continue
+    12        f1dim=func(xt)
+    13  C      write(6,*) f1dim
+    14        return
+    15        END
+
+F1DIM@4  Local symbols
+Name                      Class              Type           Size
+
+
+/F1COM/ . . . . . . . . . F1COM(0)           MULTI*804       804
+J . . . . . . . . . . . . dynam              INTEGER*4         4
+NCOM. . . . . . . . . . . F1COM(800)         INTEGER*4         4
+NMAX. . . . . . . . . . . const              INTEGER*4         4
+PCOM. . . . . . . . . . . F1COM(0)           REAL*8          400
+X . . . . . . . . . . . . param                                4
+XICOM . . . . . . . . . . F1COM(400)         REAL*8          400
+XT. . . . . . . . . . . . local              REAL*8          400
+
+
+
+Global Symbols
+Name                      Class              Type           Size
+
+
+F1COM . . . . . . . . . . common             ***             804
+F1DIM@4 . . . . . . . . . FUNCT              REAL*8          ***
+FUNC@4. . . . . . . . . . extern             REAL*8          ***
+
+
+No errors detected
