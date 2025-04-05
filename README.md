@@ -3,6 +3,7 @@
 ## What This Distribution Contains
 
 1. All work product related to the H2 Correlated GG Project:
+
    - **Fortran77 Code**
    - **Fortran90 Code**
    - **Mathematica Files** for the derivatives
@@ -28,16 +29,15 @@ There were several different versions of the H2 Project program at various stage
 
 ---
 
-Doug Gilmore | Graduate Student | eMail: dgilmore@aruba.ccit.arizona.edu  
-Quantum Chemistry/Physics | The University of Arizona | Dept. of Chemistry  
-Old Chemistry #331 | Tucson, AZ 85721 | Fax: 520.621.8407 | Office: 621.6761  
+```
+Doug Gilmore | Graduate Student | eMail: dgilmore@aruba.ccit.arizona.edu
+Quantum Chemistry/Physics | The University of Arizona | Dept. of Chemistry
+Old Chemistry #331 | Tucson, AZ 85721 | Fax: 520.621.8407 | Office: 621.6761
 [www: http://www.u.arizona.edu/~dgilmore](http://www.u.arizona.edu/~dgilmore)
 
-```
                                       ("\''/").___..--''"`-._
                                       `9_ 9  )   `-.  (     ).`-.__.`)
                                       (_Y_.)'  ._   )  `._ `. ``-..-'
                                     _..`--'_..-_/  /--'_.' .'
                                    (il).-''  ((i).'  ((!.-'
 ```
-
