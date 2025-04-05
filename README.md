@@ -25,7 +25,7 @@
 
 ## Development History
 
-There were several different versions of the H2 Project program at various stages of development. Initially, there was Zhang's code, then came prototyping in "H2PROJ". The latest version (generating the preliminary results for the paper) is contained in "CGAUSS".
+There were several different versions of the H2 Project program at various stages of development. Initially, there was Zhang's code, then came prototyping in "H2PROJ". The latest version (generating the preliminary results for the paper) is contained in "CGAUSS."
 
 ---
 
